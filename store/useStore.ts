@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { AppData, Chapter, Subject, Topic } from '@/lib/domain/types';
 import { makeId } from '@/lib/domain/id';
 import { markRevised } from '@/lib/revision/engine';
+import { arrayMove } from '@/lib/util/array';
 import { ApiRepository } from '@/lib/repository/ApiRepository';
 import { seedData } from '@/lib/repository/seed';
 
@@ -27,6 +28,11 @@ interface StoreState extends AppData {
   restoreChapter: (id: string) => void;
   archiveTopic: (id: string) => void;
   restoreTopic: (id: string) => void;
+  reorderSubjects: (activeId: string, overId: string) => void;
+  reorderChapters: (activeId: string, overId: string) => void;
+  reorderTopics: (activeId: string, overId: string) => void;
+  moveChapter: (chapterId: string, toSubjectId: string) => void;
+  moveTopic: (topicId: string, toChapterId: string) => void;
 }
 
 function snapshot(s: StoreState): AppData {
@@ -214,6 +220,62 @@ export const useStore = create<StoreState>((set, get) => {
       const { archivedAt: _drop, ...rest } = s.topics[id];
       void _drop;
       commit({ topics: { ...s.topics, [id]: rest } });
+    },
+
+    reorderSubjects: (activeId, overId) => {
+      const s = get();
+      const from = s.subjectOrder.indexOf(activeId);
+      const to = s.subjectOrder.indexOf(overId);
+      if (from < 0 || to < 0 || from === to) return;
+      commit({ subjectOrder: arrayMove(s.subjectOrder, from, to) });
+    },
+
+    reorderChapters: (activeId, overId) => {
+      const s = get();
+      const chapter = s.chapters[activeId];
+      if (!chapter) return;
+      const subject = s.subjects[chapter.subjectId];
+      if (!subject) return;
+      const from = subject.chapterIds.indexOf(activeId);
+      const to = subject.chapterIds.indexOf(overId);
+      if (from < 0 || to < 0 || from === to) return;
+      commit({ subjects: { ...s.subjects, [subject.id]: { ...subject, chapterIds: arrayMove(subject.chapterIds, from, to) } } });
+    },
+
+    reorderTopics: (activeId, overId) => {
+      const s = get();
+      const topic = s.topics[activeId];
+      if (!topic) return;
+      const chapter = s.chapters[topic.chapterId];
+      if (!chapter) return;
+      const from = chapter.topicIds.indexOf(activeId);
+      const to = chapter.topicIds.indexOf(overId);
+      if (from < 0 || to < 0 || from === to) return;
+      commit({ chapters: { ...s.chapters, [chapter.id]: { ...chapter, topicIds: arrayMove(chapter.topicIds, from, to) } } });
+    },
+
+    moveChapter: (chapterId, toSubjectId) => {
+      const s = get();
+      const chapter = s.chapters[chapterId];
+      const target = s.subjects[toSubjectId];
+      if (!chapter || !target || chapter.subjectId === toSubjectId) return;
+      const source = s.subjects[chapter.subjectId];
+      const subjects = { ...s.subjects };
+      if (source) subjects[source.id] = { ...source, chapterIds: source.chapterIds.filter((x) => x !== chapterId) };
+      subjects[target.id] = { ...target, chapterIds: [...target.chapterIds, chapterId] };
+      commit({ subjects, chapters: { ...s.chapters, [chapterId]: { ...chapter, subjectId: toSubjectId } } });
+    },
+
+    moveTopic: (topicId, toChapterId) => {
+      const s = get();
+      const topic = s.topics[topicId];
+      const target = s.chapters[toChapterId];
+      if (!topic || !target || topic.chapterId === toChapterId) return;
+      const source = s.chapters[topic.chapterId];
+      const chapters = { ...s.chapters };
+      if (source) chapters[source.id] = { ...source, topicIds: source.topicIds.filter((x) => x !== topicId) };
+      chapters[target.id] = { ...target, topicIds: [...target.topicIds, topicId] };
+      commit({ chapters, topics: { ...s.topics, [topicId]: { ...topic, chapterId: toChapterId } } });
     },
   };
 });

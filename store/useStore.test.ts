@@ -71,4 +71,45 @@ describe('useStore', () => {
     useStore.getState().restoreChapter(c);
     expect(useStore.getState().chapters[c].archivedAt).toBeUndefined();
   });
+
+  it('reorderTopics moves a topic within its chapter', () => {
+    const s = useStore.getState().addSubject('S');
+    const c = useStore.getState().addChapter(s, 'C');
+    const t1 = useStore.getState().addTopic(c, 'A');
+    const t2 = useStore.getState().addTopic(c, 'B');
+    const t3 = useStore.getState().addTopic(c, 'C');
+    useStore.getState().reorderTopics(t1, t3); // move A to C's slot
+    expect(useStore.getState().chapters[c].topicIds).toEqual([t2, t3, t1]);
+  });
+
+  it('moveTopic reparents a topic to another chapter (appended)', () => {
+    const s = useStore.getState().addSubject('S');
+    const c1 = useStore.getState().addChapter(s, 'C1');
+    const c2 = useStore.getState().addChapter(s, 'C2');
+    const t = useStore.getState().addTopic(c1, 'T');
+    useStore.getState().moveTopic(t, c2);
+    const state = useStore.getState();
+    expect(state.chapters[c1].topicIds).not.toContain(t);
+    expect(state.chapters[c2].topicIds).toContain(t);
+    expect(state.topics[t].chapterId).toBe(c2);
+  });
+
+  it('moveChapter reparents a chapter to another subject (appended)', () => {
+    const s1 = useStore.getState().addSubject('S1');
+    const s2 = useStore.getState().addSubject('S2');
+    const c = useStore.getState().addChapter(s1, 'C');
+    useStore.getState().moveChapter(c, s2);
+    const state = useStore.getState();
+    expect(state.subjects[s1].chapterIds).not.toContain(c);
+    expect(state.subjects[s2].chapterIds).toContain(c);
+    expect(state.chapters[c].subjectId).toBe(s2);
+  });
+
+  it('moveTopic to the same chapter is a no-op (no duplicate)', () => {
+    const s = useStore.getState().addSubject('S');
+    const c = useStore.getState().addChapter(s, 'C');
+    const t = useStore.getState().addTopic(c, 'T');
+    useStore.getState().moveTopic(t, c);
+    expect(useStore.getState().chapters[c].topicIds).toEqual([t]);
+  });
 });
