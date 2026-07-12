@@ -1,15 +1,24 @@
 import type { BadgeState } from '@/lib/revision/engine';
 
 const LABELS: Record<BadgeState, string> = {
-  NeverRevised: 'Never Revised', Overdue: 'Overdue', DueToday: 'Due Today',
-  DueTomorrow: 'Due Tomorrow', RecentlyRevised: 'Recently Revised', Upcoming: 'Upcoming',
+  NeverRevised: 'NEW', Overdue: 'OVERDUE', DueToday: 'DUE TODAY',
+  DueTomorrow: 'DUE +1D', RecentlyRevised: 'REVISED', Upcoming: 'UPCOMING',
 };
+// Blueprint annotation tags — mono, uppercase, redline colour-coded.
 const COLORS: Record<BadgeState, string> = {
-  NeverRevised: 'bg-white/10 text-white/70', Overdue: 'bg-red-500/20 text-red-300',
-  DueToday: 'bg-amber-500/20 text-amber-300', DueTomorrow: 'bg-sky-500/20 text-sky-300',
-  RecentlyRevised: 'bg-emerald-500/20 text-emerald-300', Upcoming: 'bg-white/10 text-white/60',
+  NeverRevised: 'border-line text-ink-dim',
+  Overdue: 'border-alarm/50 text-alarm bg-alarm/10',
+  DueToday: 'border-annotation/50 text-annotation bg-annotation/10',
+  DueTomorrow: 'border-accent/50 text-accent bg-accent/10',
+  RecentlyRevised: 'border-go/50 text-go bg-go/10',
+  Upcoming: 'border-line text-ink-faint',
 };
 
 export function RevisionBadge({ state }: { state: BadgeState }) {
-  return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${COLORS[state]}`}>{LABELS[state]}</span>;
+  return (
+    <span className={`dim-chip inline-flex items-center gap-1 font-medium ${COLORS[state]}`}>
+      <span className="h-1 w-1 rounded-full bg-current" />
+      {LABELS[state]}
+    </span>
+  );
 }

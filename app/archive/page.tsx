@@ -28,8 +28,8 @@ export default function ArchivePage() {
         <div className="mt-1 text-xs opacity-50">{kind}</div>
       </div>
       <div className="flex items-center gap-1">
-        <button aria-label="Restore" onClick={onRestore} className="flex items-center gap-1 rounded p-1.5 text-sm hover:bg-white/10"><RotateCcw size={15} /> Restore</button>
-        <button aria-label="Delete permanently" onClick={onPurge} className="rounded p-1.5 hover:bg-white/10"><Trash2 size={15} /></button>
+        <button aria-label="Restore" onClick={onRestore} className="flex items-center gap-1 rounded p-1.5 text-sm hover:bg-panel-2"><RotateCcw size={15} /> Restore</button>
+        <button aria-label="Delete permanently" onClick={onPurge} className="rounded p-1.5 hover:bg-panel-2"><Trash2 size={15} /></button>
       </div>
     </div>
   );
@@ -37,7 +37,7 @@ export default function ArchivePage() {
   return (
     <div>
       <Breadcrumb items={[{ label: 'Subjects', href: '/' }, { label: 'Archive' }]} />
-      <h1 className="mb-6 mt-4 text-2xl font-bold">Archive</h1>
+      <div className="mb-6 mt-4"><div className="tblabel mb-1.5">Superseded · Restorable</div><h1 className="text-2xl font-semibold tracking-tight text-ink">Archive</h1></div>
       {empty ? (
         <p className="text-sm opacity-50">Nothing archived. Items you archive appear here to restore or delete permanently.</p>
       ) : (

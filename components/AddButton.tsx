@@ -8,8 +8,8 @@ export function AddButton({ label, onAdd }: { label: string; onAdd: (name: strin
   };
   return (
     <button onClick={click}
-      className="flex items-center gap-2 rounded-xl border border-dashed border-white/15 px-4 py-3 text-sm opacity-80 transition hover:border-white/30 hover:opacity-100">
-      <Plus size={16} /> Add {label}
+      className="tblabel group flex items-center gap-2 rounded-lg border border-dashed border-line-strong px-4 py-2.5 text-accent transition-colors hover:border-accent hover:bg-accent-soft">
+      <Plus size={15} className="transition-transform group-hover:rotate-90" /> Add {label}
     </button>
   );
 }

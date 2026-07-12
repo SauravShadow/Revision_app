@@ -17,18 +17,21 @@ export function TopicCard({ topic, autoEdit = false }: { topic: Topic; autoEdit?
   const last = lastRevisedAt(topic.revisionHistory);
   const remove = () => { if (window.confirm(`Archive "${topic.title}"? You can restore it later.`)) archiveTopic(topic.id); };
   return (
-    <Link href={`/topic/${topic.id}`} className="group glass flex items-center justify-between rounded-xl p-4">
-      <div onDoubleClick={(e) => { e.preventDefault(); setEditing(true); }}>
-        <div className="font-medium">
+    <Link href={`/topic/${topic.id}`}
+      className="group glass flex items-center justify-between gap-3 rounded-lg border-l-2 border-l-accent/50 p-4 transition-colors hover:bg-panel-2">
+      <div className="min-w-0" onDoubleClick={(e) => { e.preventDefault(); setEditing(true); }}>
+        <div className="truncate font-medium text-ink">
           <InlineEditable value={topic.title} editing={editing} onEditingChange={setEditing}
             onCommit={(n) => renameTopic(topic.id, n)} />
         </div>
-        <div className="mt-1 text-xs opacity-60">
-          {totalRevisions(topic.revisionHistory)} revisions · {last ? relativeLabel(last, now) : 'not revised yet'}
+        <div className="tblabel mt-1.5">
+          <span className="text-accent">{String(totalRevisions(topic.revisionHistory)).padStart(2, '0')}</span> REV
+          <span className="mx-2 text-line-strong">·</span>
+          <span className="normal-case tracking-normal">{last ? relativeLabel(last, now) : 'not revised yet'}</span>
         </div>
       </div>
-      <div className="flex items-center gap-3">
-        {topic.bookmarkedAt && <Star size={14} className="fill-amber-400 text-amber-400" />}
+      <div className="flex shrink-0 items-center gap-2.5">
+        {topic.bookmarkedAt && <Star size={14} className="fill-annotation text-annotation" />}
         <RevisionBadge state={badgeState(topic.revisionHistory, now)} />
         <RowActions onRename={() => setEditing(true)} onDelete={remove} />
       </div>

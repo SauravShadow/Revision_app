@@ -1,55 +1,171 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   BLUEPRINT DRAFTING — design system
+   A drafting-table aesthetic: prussian-navy ground, faint CAD grid, technical
+   monospace labelling, cyan "ink" annotations and drafting corner ticks.
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+
+  /* Grounds */
+  --ground:        #0a1a2b;   /* page base — deep prussian navy */
+  --ground-deep:   #06111d;   /* recessed wells */
+  --panel:         #0e2135;   /* raised panel fill */
+  --panel-2:       #123049;   /* hover / active panel */
+
+  /* Draughting ink lines */
+  --line:          rgba(120, 178, 222, 0.16);  /* hairline borders + minor grid */
+  --line-strong:   rgba(120, 178, 222, 0.34);  /* emphasised borders / major grid */
+  --grid-minor:    rgba(120, 178, 222, 0.055);
+  --grid-major:    rgba(120, 178, 222, 0.10);
+
+  /* Text */
+  --ink:           #e7f1f9;   /* primary — chalk white with a blue cast */
+  --ink-dim:       #92aec6;   /* secondary labels */
+  --ink-faint:     #5f7c94;   /* tertiary / disabled */
+
+  /* Accents — the blueprint pen */
+  --accent:        #4fc3f7;   /* cyan draughting ink */
+  --accent-soft:   rgba(79, 195, 247, 0.14);
+  --annotation:    #f4a63b;   /* amber — warnings, "due" marks */
+  --alarm:         #ff6b6b;   /* red — overdue redlines */
+  --go:            #4fd6a6;   /* green — completed / recently revised */
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ground:       var(--ground);
+  --color-ground-deep:  var(--ground-deep);
+  --color-panel:        var(--panel);
+  --color-panel-2:      var(--panel-2);
+  --color-line:         var(--line);
+  --color-line-strong:  var(--line-strong);
+  --color-ink:          var(--ink);
+  --color-ink-dim:      var(--ink-dim);
+  --color-ink-faint:    var(--ink-faint);
+  --color-accent:       var(--accent);
+  --color-annotation:   var(--annotation);
+  --color-alarm:        var(--alarm);
+  --color-go:           var(--go);
+
+  --font-sans: var(--font-archivo);
+  --font-mono: var(--font-plex-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ----- The drafting sheet ------------------------------------------------ */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--ground);
+  /* Two-tier CAD grid: fine 28px cells inside heavy 140px major divisions. */
+  background-image:
+    linear-gradient(var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px);
+  background-size: 28px 28px, 28px 28px, 140px 140px, 140px 140px;
+  background-position: -1px -1px;
+  color: var(--ink);
+  font-family: var(--font-sans), "Segoe UI", sans-serif;
+  font-feature-settings: "ss01", "cv01";
+  -webkit-font-smoothing: antialiased;
 }
 
-:root { color-scheme: dark; }
-.glass { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(12px); }
+/* Drafting light — a soft lamp glow from top, vignetted corners. Sits behind
+   all content (AppShell root is z-10). */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(130% 90% at 50% -20%, rgba(79, 195, 247, 0.10), transparent 55%),
+    radial-gradient(120% 120% at 50% 120%, rgba(4, 10, 18, 0.65), transparent 65%);
+}
 
-/* Gradient border via double background (padding-box + border-box). */
+::selection { background: var(--accent-soft); color: var(--ink); }
+
+/* ----- Custom scrollbar (a machined runner) ------------------------------ */
+* { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--accent); background-clip: content-box; }
+
+/* ----- Panels ------------------------------------------------------------ */
+/* .glass and .gradient-border are reused across cards; here they become
+   blueprint panels rather than frosted glass. */
+.glass {
+  background:
+    linear-gradient(180deg, rgba(18, 48, 73, 0.55), rgba(10, 26, 43, 0.55));
+  border: 1px solid var(--line);
+  backdrop-filter: blur(6px);
+}
+.glass:hover { border-color: var(--line-strong); }
+
 .gradient-border {
   border: 1px solid transparent;
   background:
-    linear-gradient(var(--card-bg, rgba(20,20,22,0.6)), var(--card-bg, rgba(20,20,22,0.6))) padding-box,
-    linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.02)) border-box;
-}
-@media (prefers-color-scheme: light) {
-  .gradient-border { --card-bg: rgba(255,255,255,0.7); }
+    linear-gradient(var(--panel), var(--panel)) padding-box,
+    linear-gradient(135deg, rgba(79, 195, 247, 0.40), rgba(79, 195, 247, 0.03) 55%) border-box;
 }
 
-/* Callouts */
-.callout { border-left: 3px solid; border-radius: 0.5rem; padding: 0.6rem 0.8rem; background: rgba(255,255,255,0.03); }
-.callout-note { border-color: #38bdf8; }
-.callout-tip { border-color: #34d399; }
-.callout-warning { border-color: #fbbf24; }
-.callout-danger { border-color: #f87171; }
+/* Drafting corner ticks — the registration marks on a titleblock. Apply to a
+   position:relative element (reveal on hover of the element or its .group). */
+.bp-ticks { position: relative; }
+.bp-ticks::before,
+.bp-ticks::after {
+  content: "";
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border-color: var(--accent);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.bp-ticks::before { top: 8px; left: 8px; border-top: 1.5px solid; border-left: 1.5px solid; }
+.bp-ticks::after  { bottom: 8px; right: 8px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
+.bp-ticks:hover::before,
+.bp-ticks:hover::after,
+.group:hover .bp-ticks::before,
+.group:hover .bp-ticks::after { opacity: 0.7; }
 
-/* Minimal highlight.js token theme (rehype-highlight adds .hljs-* classes) */
-.hljs-keyword, .hljs-selector-tag, .hljs-built_in { color: #c792ea; }
-.hljs-string, .hljs-attr { color: #c3e88d; }
-.hljs-number, .hljs-literal { color: #f78c6c; }
-.hljs-comment { color: #7f848e; font-style: italic; }
-.hljs-title, .hljs-function .hljs-title, .hljs-section { color: #82aaff; }
+/* ----- Titleblock label — mono, tracked, uppercase --------------------- */
+.tblabel {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* A dimension "chip" — bracketed mono readout used for stats/badges. */
+.dim-chip {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--line);
+  padding: 0.1rem 0.5rem;
+  border-radius: 0.3rem;
+  white-space: nowrap;
+}
+
+/* ----- Callouts (retuned to the palette) --------------------------------- */
+.callout { border-left: 3px solid; border-radius: 0.5rem; padding: 0.6rem 0.8rem; background: rgba(120, 178, 222, 0.05); }
+.callout-note { border-color: var(--accent); }
+.callout-tip { border-color: var(--go); }
+.callout-warning { border-color: var(--annotation); }
+.callout-danger { border-color: var(--alarm); }
+
+/* ----- highlight.js token theme (blueprint ink set) ---------------------- */
+.hljs-keyword, .hljs-selector-tag, .hljs-built_in { color: #7fb8ff; }
+.hljs-string, .hljs-attr { color: var(--go); }
+.hljs-number, .hljs-literal { color: var(--annotation); }
+.hljs-comment { color: var(--ink-faint); font-style: italic; }
+.hljs-title, .hljs-function .hljs-title, .hljs-section { color: var(--accent); }
 .hljs-type, .hljs-class .hljs-title { color: #ffcb6b; }

@@ -22,7 +22,7 @@ export function FilterBar() {
     <div className="mb-4 flex flex-wrap items-center gap-1.5">
       {STATUSES.map((s) => (
         <button key={s.key} onClick={() => toggleStatus(s.key)}
-          className={`rounded-full px-2.5 py-1 text-xs transition ${statuses.includes(s.key) ? 'bg-white/20' : 'bg-white/5 opacity-70 hover:opacity-100'}`}>
+          className={`dim-chip transition-colors ${statuses.includes(s.key) ? 'border-accent bg-accent-soft text-accent' : 'text-ink-dim hover:border-line-strong hover:text-ink'}`}>
           {s.label}
         </button>
       ))}
@@ -32,14 +32,18 @@ export function FilterBar() {
         const on = tagIds.includes(id);
         return (
           <button key={id} onClick={() => toggleTag(id)}
-            className="rounded-full px-2.5 py-1 text-xs transition"
-            style={{ background: on ? tag.color : `${tag.color}22`, color: on ? '#000' : undefined, opacity: on ? 1 : 0.85 }}>
+            className="dim-chip transition-colors"
+            style={{
+              background: on ? tag.color : `${tag.color}1f`,
+              borderColor: on ? tag.color : `${tag.color}55`,
+              color: on ? '#08131f' : undefined,
+            }}>
             {tag.name}
           </button>
         );
       })}
       {active && (
-        <button onClick={clear} className="flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-xs opacity-70 hover:opacity-100"><X size={12} /> Clear</button>
+        <button onClick={clear} className="dim-chip flex items-center gap-1 text-ink-dim transition-colors hover:border-alarm/60 hover:text-alarm"><X size={12} /> Clear</button>
       )}
       <TagManager />
     </div>

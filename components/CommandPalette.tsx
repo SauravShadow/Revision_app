@@ -34,23 +34,27 @@ export function CommandPalette() {
   return (
     <>
       <button onClick={() => setOpen(true)} aria-label="Search"
-        className="flex items-center gap-2 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs opacity-70 transition hover:opacity-100">
-        <Search size={14} /> <span className="hidden sm:inline">Search</span> <kbd className="hidden rounded bg-white/10 px-1 sm:inline">⌘K</kbd>
+        className="tblabel flex items-center gap-2 rounded-md border border-line px-2.5 py-1.5 text-ink-dim transition hover:border-line-strong hover:text-ink">
+        <Search size={14} /> <span className="hidden sm:inline">Search</span>
+        <kbd className="hidden rounded border border-line px-1 font-mono text-[0.6rem] text-ink-faint sm:inline">⌘K</kbd>
       </button>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 pt-24" onClick={() => setOpen(false)}>
-          <div className="glass w-full max-w-xl overflow-hidden rounded-2xl" onClick={(e) => e.stopPropagation()}>
-            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onInputKey}
-              placeholder="Search subjects, chapters, topics, notes, tags…"
-              className="w-full border-b border-white/10 bg-transparent px-4 py-3 text-sm outline-none" />
-            <ul className="max-h-80 overflow-y-auto p-1">
-              {q && results.length === 0 && <li className="px-3 py-4 text-sm opacity-50">No matches.</li>}
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-ground-deep/70 p-4 pt-24 backdrop-blur-sm" onClick={() => setOpen(false)}>
+          <div className="glass w-full max-w-xl overflow-hidden rounded-xl ring-1 ring-accent/20 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.9)]" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2 border-b border-line px-4">
+              <Search size={15} className="shrink-0 text-accent" />
+              <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onInputKey}
+                placeholder="Search subjects, chapters, topics, notes, tags…"
+                className="w-full bg-transparent py-3 text-sm text-ink outline-none placeholder:text-ink-faint" />
+            </div>
+            <ul className="max-h-80 overflow-y-auto p-1.5">
+              {q && results.length === 0 && <li className="tblabel px-3 py-4">No matches.</li>}
               {results.map((r, i) => (
                 <li key={`${r.kind}:${r.id}`}>
                   <button onClick={() => go(r.href)} onMouseEnter={() => setActive(i)}
-                    className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm ${i === active ? 'bg-white/15' : 'hover:bg-white/5'}`}>
-                    <span className="min-w-0 truncate">{r.label}{r.sublabel ? <span className="opacity-50"> · {r.sublabel}</span> : null}</span>
-                    <span className="shrink-0 text-xs uppercase opacity-40">{r.kind}</span>
+                    className={`flex w-full items-center justify-between gap-2 rounded-md border-l-2 px-3 py-2 text-left text-sm transition-colors ${i === active ? 'border-l-accent bg-panel-2 text-ink' : 'border-l-transparent text-ink-dim hover:bg-panel'}`}>
+                    <span className="min-w-0 truncate">{r.label}{r.sublabel ? <span className="text-ink-faint"> · {r.sublabel}</span> : null}</span>
+                    <span className="tblabel shrink-0">{r.kind}</span>
                   </button>
                 </li>
               ))}

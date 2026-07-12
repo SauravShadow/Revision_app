@@ -16,13 +16,22 @@ export function ChapterCard({ chapter, autoEdit = false }: { chapter: Chapter; a
   const remove = () => { if (window.confirm(`Archive "${chapter.name}"? You can restore it later.`)) archiveChapter(chapter.id); };
   const activeTopics = chapter.topicIds.filter((tid) => data.topics[tid] && !data.topics[tid].archivedAt).length;
   return (
-    <Link href={`/chapter/${chapter.id}`} className="group glass flex items-center justify-between rounded-xl p-4">
-      <div onDoubleClick={(e) => { e.preventDefault(); setEditing(true); }}>
-        <div className="font-medium">
+    <Link href={`/chapter/${chapter.id}`}
+      className="group glass flex items-center justify-between gap-3 rounded-lg border-l-2 border-l-accent/50 p-4 transition-colors hover:bg-panel-2">
+      <div className="min-w-0" onDoubleClick={(e) => { e.preventDefault(); setEditing(true); }}>
+        <div className="truncate font-medium text-ink">
           <InlineEditable value={chapter.name} editing={editing} onEditingChange={setEditing}
             onCommit={(n) => renameChapter(chapter.id, n)} />
         </div>
-        <div className="mt-1 text-xs opacity-60">{activeTopics} topic{activeTopics === 1 ? '' : 's'} · {progress}% · {chapter.difficulty} · {chapter.priority}</div>
+        <div className="tblabel mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="text-accent">{progress}%</span>
+          <span className="text-line-strong">·</span>
+          <span>{activeTopics} TOPIC{activeTopics === 1 ? '' : 'S'}</span>
+          <span className="text-line-strong">·</span>
+          <span>{chapter.difficulty}</span>
+          <span className="text-line-strong">·</span>
+          <span>{chapter.priority}</span>
+        </div>
       </div>
       <RowActions onRename={() => setEditing(true)} onDelete={remove} onDuplicate={() => duplicateChapter(chapter.id)} />
     </Link>

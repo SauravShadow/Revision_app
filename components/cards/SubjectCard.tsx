@@ -21,25 +21,31 @@ export function SubjectCard({ subject, autoEdit = false }: { subject: Subject; a
   return (
     <motion.div whileHover={{ y: -4 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
       <Link href={`/subject/${subject.id}`}
-        className="group glass gradient-border block rounded-2xl p-5"
-        style={{ boxShadow: `inset 0 0 0 1px ${subject.color}22` }}>
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold" onDoubleClick={(e) => { e.preventDefault(); setEditing(true); }}>
+        className="group glass gradient-border bp-ticks relative block rounded-xl p-5 transition-shadow hover:shadow-[0_18px_40px_-24px_rgba(0,0,0,0.9)]"
+        style={{ boxShadow: `inset 3px 0 0 0 ${subject.color}` }}>
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="pr-2 font-semibold tracking-tight text-ink" onDoubleClick={(e) => { e.preventDefault(); setEditing(true); }}>
             <InlineEditable value={subject.name} editing={editing} onEditingChange={setEditing}
               onCommit={(n) => renameSubject(subject.id, n)} />
           </h3>
-          <div className="flex items-center gap-2">
-            <span className="text-sm opacity-60">{progress}%</span>
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-lg font-medium leading-none text-accent">{progress}<span className="text-xs text-ink-dim">%</span></span>
             <RowActions onRename={() => setEditing(true)} onDelete={remove} />
           </div>
         </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full rounded-full" style={{ width: `${progress}%`, background: subject.color }} />
+
+        {/* Dimensioned progress rail */}
+        <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-ground-deep ring-1 ring-inset ring-line">
+          <motion.div className="h-full rounded-full"
+            style={{ background: subject.color, boxShadow: `0 0 10px ${subject.color}88` }}
+            initial={{ width: 0 }} animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.7, ease: 'easeOut' }} />
         </div>
-        <div className="mt-4 flex justify-between text-xs opacity-60">
-          <span>{stats.chapterCount} chapters</span>
-          <span>{stats.pending} pending</span>
-          <span>{stats.lastRevised ? relativeLabel(stats.lastRevised, now) : 'Never'}</span>
+
+        <div className="mt-4 flex items-center justify-between border-t border-line pt-3">
+          <span className="tblabel">CH&nbsp;<span className="text-ink">{String(stats.chapterCount).padStart(2, '0')}</span></span>
+          <span className="tblabel">PEND&nbsp;<span className={stats.pending ? 'text-annotation' : 'text-ink'}>{String(stats.pending).padStart(2, '0')}</span></span>
+          <span className="tblabel normal-case tracking-normal">{stats.lastRevised ? relativeLabel(stats.lastRevised, now) : '— never —'}</span>
         </div>
       </Link>
     </motion.div>

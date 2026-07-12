@@ -15,8 +15,11 @@ export default function DashboardPage() {
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Subjects</h1>
+      <div className="mb-6 flex items-end justify-between gap-4">
+        <div>
+          <div className="tblabel mb-1.5">Index · Sheet 01</div>
+          <h1 className="text-2xl font-semibold tracking-tight text-ink">Subjects</h1>
+        </div>
         <AddButton label="Subject" onAdd={(name) => setJustAddedId(addSubject(name))} />
       </div>
       <SortableContext

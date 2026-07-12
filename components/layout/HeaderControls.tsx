@@ -13,14 +13,16 @@ export function HeaderControls() {
   return (
     <div className="flex items-center gap-2">
       {saveState !== 'idle' && (
-        <span className="flex items-center gap-1 text-xs opacity-60">
-          {saveState === 'saving' ? <><Loader2 size={13} className="animate-spin" /> Saving…</> : <><Check size={13} /> Saved</>}
+        <span className="tblabel flex items-center gap-1 normal-case tracking-normal">
+          {saveState === 'saving'
+            ? <><Loader2 size={13} className="animate-spin text-accent" /> Saving…</>
+            : <><Check size={13} className="text-go" /> Saved</>}
         </span>
       )}
       <button aria-label="Undo" disabled={!canUndo} onClick={undo}
-        className="rounded-lg border border-white/10 p-2 transition hover:bg-white/5 disabled:opacity-30"><Undo2 size={16} /></button>
+        className="rounded-md border border-line p-2 text-ink-dim transition hover:border-line-strong hover:bg-panel hover:text-ink disabled:opacity-30"><Undo2 size={16} /></button>
       <button aria-label="Redo" disabled={!canRedo} onClick={redo}
-        className="rounded-lg border border-white/10 p-2 transition hover:bg-white/5 disabled:opacity-30"><Redo2 size={16} /></button>
+        className="rounded-md border border-line p-2 text-ink-dim transition hover:border-line-strong hover:bg-panel hover:text-ink disabled:opacity-30"><Redo2 size={16} /></button>
     </div>
   );
 }
