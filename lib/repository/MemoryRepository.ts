@@ -7,7 +7,7 @@ export class MemoryRepository implements RevisionRepository {
   async load(): Promise<AppData | null> {
     return this.data;
   }
-  async save(data: AppData, _opts?: { keepalive?: boolean }): Promise<void> {
+  async save(data: AppData): Promise<void> {
     this.data = data;
   }
 }

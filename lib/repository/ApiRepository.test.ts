@@ -38,7 +38,7 @@ describe('ApiRepository', () => {
   });
 
   it('save passes keepalive for tab-close flushes', async () => {
-    const fetchMock = vi.fn(async (..._args: Parameters<typeof fetch>) => new Response(null, { status: 204 }));
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(null, { status: 204 }));
     vi.stubGlobal('fetch', fetchMock);
     await new ApiRepository().save(seedData(), { keepalive: true });
     expect(fetchMock.mock.calls[0][1]).toMatchObject({ keepalive: true });

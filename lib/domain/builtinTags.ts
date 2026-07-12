@@ -1,4 +1,4 @@
-import type { AppData, Tag } from './types';
+import type { Tag } from './types';
 import { makeId } from './id';
 
 export const BUILTIN_TAGS: { name: string; color: string; icon: string }[] = [
