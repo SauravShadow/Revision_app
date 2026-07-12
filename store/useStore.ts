@@ -7,8 +7,7 @@ import { arrayMove } from '@/lib/util/array';
 import { emptyHistory, record, undo as undoHistory, redo as redoHistory, type History } from './history';
 import { ApiRepository } from '@/lib/repository/ApiRepository';
 import { seedData } from '@/lib/repository/seed';
-
-const repo = new ApiRepository();
+import type { RevisionRepository } from '@/lib/repository/RevisionRepository';
 
 interface StoreState extends AppData {
   hydrate: () => Promise<void>;
@@ -55,347 +54,351 @@ function snapshot(s: StoreState): AppData {
   return { subjects: s.subjects, chapters: s.chapters, topics: s.topics, subjectOrder: s.subjectOrder, tags: s.tags, tagOrder: s.tagOrder };
 }
 
-export const useStore = create<StoreState>((set, get) => {
-  const persist = () => {
-    set({ saveState: 'saving' } as never);
-    void repo.save(snapshot(get())).then(() => set({ saveState: 'saved' } as never));
-  };
-  // Structural edits: capture an undo snapshot, then apply + persist.
-  const commit = (patch: Partial<AppData>) => {
-    const prev = snapshot(get());
-    set({ ...patch, history: record(get().history, prev) } as never);
-    persist();
-  };
-  // Non-structural edits (notes, mark-revised): apply + persist, no history.
-  const commitSilent = (patch: Partial<AppData>) => { set(patch as never); persist(); };
+export function createRevisionStore(repo: RevisionRepository) {
+  return create<StoreState>((set, get) => {
+    const persist = () => {
+      set({ saveState: 'saving' });
+      void repo.save(snapshot(get())).then(() => set({ saveState: 'saved' }));
+    };
+    // Structural edits: capture an undo snapshot, then apply + persist.
+    const commit = (patch: Partial<AppData>) => {
+      const prev = snapshot(get());
+      set({ ...patch, history: record(get().history, prev) });
+      persist();
+    };
+    // Non-structural edits (notes, mark-revised): apply + persist, no history.
+    const commitSilent = (patch: Partial<AppData>) => { set(patch); persist(); };
 
-  return {
-    subjects: {}, chapters: {}, topics: {}, subjectOrder: [],
-    tags: {}, tagOrder: [],
-    history: emptyHistory<AppData>(),
-    saveState: 'idle',
+    return {
+      subjects: {}, chapters: {}, topics: {}, subjectOrder: [],
+      tags: {}, tagOrder: [],
+      history: emptyHistory<AppData>(),
+      saveState: 'idle',
 
-    hydrate: async () => {
-      const loaded = await repo.load();
-      if (loaded) { set({ ...normalizeData(loaded), history: emptyHistory<AppData>() } as never); return; }
-      const seeded = seedData();
-      set({ ...seeded, history: emptyHistory<AppData>() } as never);
-      await repo.save(seeded);
-    },
+      hydrate: async () => {
+        const loaded = await repo.load();
+        if (loaded) { set({ ...normalizeData(loaded), history: emptyHistory<AppData>() }); return; }
+        const seeded = seedData();
+        set({ ...seeded, history: emptyHistory<AppData>() });
+        await repo.save(seeded);
+      },
 
-    addSubject: (name) => {
-      const id = makeId();
-      const s = get();
-      const subject: Subject = { id, name, color: '#6366f1', icon: 'BookOpen', order: s.subjectOrder.length, chapterIds: [] };
-      commit({ subjects: { ...s.subjects, [id]: subject }, subjectOrder: [...s.subjectOrder, id] });
-      return id;
-    },
+      addSubject: (name) => {
+        const id = makeId();
+        const s = get();
+        const subject: Subject = { id, name, color: '#6366f1', icon: 'BookOpen', order: s.subjectOrder.length, chapterIds: [] };
+        commit({ subjects: { ...s.subjects, [id]: subject }, subjectOrder: [...s.subjectOrder, id] });
+        return id;
+      },
 
-    renameSubject: (id, name) => {
-      const s = get();
-      if (!s.subjects[id]) return;
-      commit({ subjects: { ...s.subjects, [id]: { ...s.subjects[id], name } } });
-    },
+      renameSubject: (id, name) => {
+        const s = get();
+        if (!s.subjects[id]) return;
+        commit({ subjects: { ...s.subjects, [id]: { ...s.subjects[id], name } } });
+      },
 
-    deleteSubject: (id) => {
-      const s = get();
-      const subject = s.subjects[id];
-      if (!subject) return;
-      const subjects = { ...s.subjects }; delete subjects[id];
-      const chapters = { ...s.chapters };
-      const topics = { ...s.topics };
-      for (const cid of subject.chapterIds) {
-        const chapter = chapters[cid];
-        if (chapter) chapter.topicIds.forEach((tid) => delete topics[tid]);
-        delete chapters[cid];
-      }
-      commit({ subjects, chapters, topics, subjectOrder: s.subjectOrder.filter((x) => x !== id) });
-    },
+      deleteSubject: (id) => {
+        const s = get();
+        const subject = s.subjects[id];
+        if (!subject) return;
+        const subjects = { ...s.subjects }; delete subjects[id];
+        const chapters = { ...s.chapters };
+        const topics = { ...s.topics };
+        for (const cid of subject.chapterIds) {
+          const chapter = chapters[cid];
+          if (chapter) chapter.topicIds.forEach((tid) => delete topics[tid]);
+          delete chapters[cid];
+        }
+        commit({ subjects, chapters, topics, subjectOrder: s.subjectOrder.filter((x) => x !== id) });
+      },
 
-    addChapter: (subjectId, name) => {
-      const id = makeId();
-      const s = get();
-      const subject = s.subjects[subjectId];
-      if (!subject) return id;
-      const chapter: Chapter = { id, subjectId, name, order: subject.chapterIds.length, difficulty: 'Medium', priority: 'Medium', topicIds: [] };
-      commit({
-        chapters: { ...s.chapters, [id]: chapter },
-        subjects: { ...s.subjects, [subjectId]: { ...subject, chapterIds: [...subject.chapterIds, id] } },
-      });
-      return id;
-    },
+      addChapter: (subjectId, name) => {
+        const id = makeId();
+        const s = get();
+        const subject = s.subjects[subjectId];
+        if (!subject) return id;
+        const chapter: Chapter = { id, subjectId, name, order: subject.chapterIds.length, difficulty: 'Medium', priority: 'Medium', topicIds: [] };
+        commit({
+          chapters: { ...s.chapters, [id]: chapter },
+          subjects: { ...s.subjects, [subjectId]: { ...subject, chapterIds: [...subject.chapterIds, id] } },
+        });
+        return id;
+      },
 
-    renameChapter: (id, name) => {
-      const s = get();
-      if (!s.chapters[id]) return;
-      commit({ chapters: { ...s.chapters, [id]: { ...s.chapters[id], name } } });
-    },
+      renameChapter: (id, name) => {
+        const s = get();
+        if (!s.chapters[id]) return;
+        commit({ chapters: { ...s.chapters, [id]: { ...s.chapters[id], name } } });
+      },
 
-    deleteChapter: (id) => {
-      const s = get();
-      const chapter = s.chapters[id];
-      if (!chapter) return;
-      const chapters = { ...s.chapters }; delete chapters[id];
-      const topics = { ...s.topics };
-      chapter.topicIds.forEach((tid) => delete topics[tid]);
-      const subject = s.subjects[chapter.subjectId];
-      const subjects = subject
-        ? { ...s.subjects, [subject.id]: { ...subject, chapterIds: subject.chapterIds.filter((x) => x !== id) } }
-        : s.subjects;
-      commit({ chapters, topics, subjects });
-    },
+      deleteChapter: (id) => {
+        const s = get();
+        const chapter = s.chapters[id];
+        if (!chapter) return;
+        const chapters = { ...s.chapters }; delete chapters[id];
+        const topics = { ...s.topics };
+        chapter.topicIds.forEach((tid) => delete topics[tid]);
+        const subject = s.subjects[chapter.subjectId];
+        const subjects = subject
+          ? { ...s.subjects, [subject.id]: { ...subject, chapterIds: subject.chapterIds.filter((x) => x !== id) } }
+          : s.subjects;
+        commit({ chapters, topics, subjects });
+      },
 
-    duplicateChapter: (id) => {
-      const s = get();
-      const chapter = s.chapters[id];
-      if (!chapter) return id;
-      const newId = makeId();
-      const topics = { ...s.topics };
-      const newTopicIds: string[] = [];
-      chapter.topicIds.forEach((tid) => {
-        const t = s.topics[tid];
+      duplicateChapter: (id) => {
+        const s = get();
+        const chapter = s.chapters[id];
+        if (!chapter) return id;
+        const newId = makeId();
+        const topics = { ...s.topics };
+        const newTopicIds: string[] = [];
+        chapter.topicIds.forEach((tid) => {
+          const t = s.topics[tid];
+          if (!t) return;
+          const ntid = makeId();
+          topics[ntid] = { ...t, id: ntid, chapterId: newId, revisionHistory: [] };
+          newTopicIds.push(ntid);
+        });
+        const copy: Chapter = { ...chapter, id: newId, name: `${chapter.name} (copy)`, topicIds: newTopicIds };
+        const subject = s.subjects[chapter.subjectId];
+        const subjects = subject
+          ? { ...s.subjects, [subject.id]: { ...subject, chapterIds: [...subject.chapterIds, newId] } }
+          : s.subjects;
+        commit({ chapters: { ...s.chapters, [newId]: copy }, topics, subjects });
+        return newId;
+      },
+
+      addTopic: (chapterId, title) => {
+        const id = makeId();
+        const s = get();
+        const chapter = s.chapters[chapterId];
+        if (!chapter) return id;
+        const now = Date.now();
+        const topic: Topic = { id, chapterId, title, notes: '', order: chapter.topicIds.length, difficulty: 'Medium', priority: 'Medium', revisionHistory: [], createdAt: now, updatedAt: now };
+        commit({
+          topics: { ...s.topics, [id]: topic },
+          chapters: { ...s.chapters, [chapterId]: { ...chapter, topicIds: [...chapter.topicIds, id] } },
+        });
+        return id;
+      },
+
+      renameTopic: (id, title) => {
+        const s = get();
+        if (!s.topics[id]) return;
+        commit({ topics: { ...s.topics, [id]: { ...s.topics[id], title, updatedAt: Date.now() } } });
+      },
+
+      deleteTopic: (id) => {
+        const s = get();
+        const topic = s.topics[id];
+        if (!topic) return;
+        const topics = { ...s.topics }; delete topics[id];
+        const chapter = s.chapters[topic.chapterId];
+        const chapters = chapter
+          ? { ...s.chapters, [chapter.id]: { ...chapter, topicIds: chapter.topicIds.filter((x) => x !== id) } }
+          : s.chapters;
+        commit({ topics, chapters });
+      },
+
+      updateTopicNotes: (id, notes) => {
+        const s = get();
+        if (!s.topics[id]) return;
+        commitSilent({ topics: { ...s.topics, [id]: { ...s.topics[id], notes, updatedAt: Date.now() } } });
+      },
+
+      markTopicRevised: (id) => {
+        const s = get();
+        const topic = s.topics[id];
+        if (!topic) return;
+        commitSilent({ topics: { ...s.topics, [id]: markRevised(topic, Date.now()) } });
+      },
+
+      archiveSubject: (id) => {
+        const s = get();
+        if (!s.subjects[id]) return;
+        commit({ subjects: { ...s.subjects, [id]: { ...s.subjects[id], archivedAt: Date.now() } } });
+      },
+      restoreSubject: (id) => {
+        const s = get();
+        if (!s.subjects[id]) return;
+        const { archivedAt: _drop, ...rest } = s.subjects[id];
+        void _drop;
+        commit({ subjects: { ...s.subjects, [id]: rest } });
+      },
+      archiveChapter: (id) => {
+        const s = get();
+        if (!s.chapters[id]) return;
+        commit({ chapters: { ...s.chapters, [id]: { ...s.chapters[id], archivedAt: Date.now() } } });
+      },
+      restoreChapter: (id) => {
+        const s = get();
+        if (!s.chapters[id]) return;
+        const { archivedAt: _drop, ...rest } = s.chapters[id];
+        void _drop;
+        commit({ chapters: { ...s.chapters, [id]: rest } });
+      },
+      archiveTopic: (id) => {
+        const s = get();
+        if (!s.topics[id]) return;
+        commit({ topics: { ...s.topics, [id]: { ...s.topics[id], archivedAt: Date.now() } } });
+      },
+      restoreTopic: (id) => {
+        const s = get();
+        if (!s.topics[id]) return;
+        const { archivedAt: _drop, ...rest } = s.topics[id];
+        void _drop;
+        commit({ topics: { ...s.topics, [id]: rest } });
+      },
+
+      reorderSubjects: (activeId, overId) => {
+        const s = get();
+        const from = s.subjectOrder.indexOf(activeId);
+        const to = s.subjectOrder.indexOf(overId);
+        if (from < 0 || to < 0 || from === to) return;
+        commit({ subjectOrder: arrayMove(s.subjectOrder, from, to) });
+      },
+
+      reorderChapters: (activeId, overId) => {
+        const s = get();
+        const chapter = s.chapters[activeId];
+        if (!chapter) return;
+        const subject = s.subjects[chapter.subjectId];
+        if (!subject) return;
+        const from = subject.chapterIds.indexOf(activeId);
+        const to = subject.chapterIds.indexOf(overId);
+        if (from < 0 || to < 0 || from === to) return;
+        commit({ subjects: { ...s.subjects, [subject.id]: { ...subject, chapterIds: arrayMove(subject.chapterIds, from, to) } } });
+      },
+
+      reorderTopics: (activeId, overId) => {
+        const s = get();
+        const topic = s.topics[activeId];
+        if (!topic) return;
+        const chapter = s.chapters[topic.chapterId];
+        if (!chapter) return;
+        const from = chapter.topicIds.indexOf(activeId);
+        const to = chapter.topicIds.indexOf(overId);
+        if (from < 0 || to < 0 || from === to) return;
+        commit({ chapters: { ...s.chapters, [chapter.id]: { ...chapter, topicIds: arrayMove(chapter.topicIds, from, to) } } });
+      },
+
+      moveChapter: (chapterId, toSubjectId) => {
+        const s = get();
+        const chapter = s.chapters[chapterId];
+        const target = s.subjects[toSubjectId];
+        if (!chapter || !target || chapter.subjectId === toSubjectId) return;
+        const source = s.subjects[chapter.subjectId];
+        const subjects = { ...s.subjects };
+        if (source) subjects[source.id] = { ...source, chapterIds: source.chapterIds.filter((x) => x !== chapterId) };
+        subjects[target.id] = { ...target, chapterIds: [...target.chapterIds, chapterId] };
+        commit({ subjects, chapters: { ...s.chapters, [chapterId]: { ...chapter, subjectId: toSubjectId } } });
+      },
+
+      moveTopic: (topicId, toChapterId) => {
+        const s = get();
+        const topic = s.topics[topicId];
+        const target = s.chapters[toChapterId];
+        if (!topic || !target || topic.chapterId === toChapterId) return;
+        const source = s.chapters[topic.chapterId];
+        const chapters = { ...s.chapters };
+        if (source) chapters[source.id] = { ...source, topicIds: source.topicIds.filter((x) => x !== topicId) };
+        chapters[target.id] = { ...target, topicIds: [...target.topicIds, topicId] };
+        commit({ chapters, topics: { ...s.topics, [topicId]: { ...topic, chapterId: toChapterId } } });
+      },
+
+      addAttachment: (topicId, a) => {
+        const s = get();
+        const t = s.topics[topicId];
         if (!t) return;
-        const ntid = makeId();
-        topics[ntid] = { ...t, id: ntid, chapterId: newId, revisionHistory: [] };
-        newTopicIds.push(ntid);
-      });
-      const copy: Chapter = { ...chapter, id: newId, name: `${chapter.name} (copy)`, topicIds: newTopicIds };
-      const subject = s.subjects[chapter.subjectId];
-      const subjects = subject
-        ? { ...s.subjects, [subject.id]: { ...subject, chapterIds: [...subject.chapterIds, newId] } }
-        : s.subjects;
-      commit({ chapters: { ...s.chapters, [newId]: copy }, topics, subjects });
-      return newId;
-    },
+        commit({ topics: { ...s.topics, [topicId]: { ...t, attachments: [...(t.attachments ?? []), a], updatedAt: Date.now() } } });
+      },
+      removeAttachment: (topicId, attId) => {
+        const s = get();
+        const t = s.topics[topicId];
+        if (!t) return;
+        commit({ topics: { ...s.topics, [topicId]: { ...t, attachments: (t.attachments ?? []).filter((x) => x.id !== attId), updatedAt: Date.now() } } });
+      },
+      addFlashcard: (topicId, front, back) => {
+        const id = makeId();
+        const s = get();
+        const t = s.topics[topicId];
+        if (!t) return id;
+        const card: Flashcard = { id, front, back, createdAt: Date.now() };
+        commit({ topics: { ...s.topics, [topicId]: { ...t, flashcards: [...(t.flashcards ?? []), card], updatedAt: Date.now() } } });
+        return id;
+      },
+      updateFlashcard: (topicId, cardId, front, back) => {
+        const s = get();
+        const t = s.topics[topicId];
+        if (!t) return;
+        const flashcards = (t.flashcards ?? []).map((c) => (c.id === cardId ? { ...c, front, back } : c));
+        commit({ topics: { ...s.topics, [topicId]: { ...t, flashcards, updatedAt: Date.now() } } });
+      },
+      deleteFlashcard: (topicId, cardId) => {
+        const s = get();
+        const t = s.topics[topicId];
+        if (!t) return;
+        commit({ topics: { ...s.topics, [topicId]: { ...t, flashcards: (t.flashcards ?? []).filter((c) => c.id !== cardId), updatedAt: Date.now() } } });
+      },
+      toggleBookmark: (topicId) => {
+        const s = get();
+        const t = s.topics[topicId];
+        if (!t) return;
+        const next = t.bookmarkedAt ? undefined : Date.now();
+        const { bookmarkedAt: _drop, ...rest } = t;
+        void _drop;
+        const updated = next ? { ...rest, bookmarkedAt: next, updatedAt: Date.now() } : { ...rest, updatedAt: Date.now() };
+        commit({ topics: { ...s.topics, [topicId]: updated } });
+      },
 
-    addTopic: (chapterId, title) => {
-      const id = makeId();
-      const s = get();
-      const chapter = s.chapters[chapterId];
-      if (!chapter) return id;
-      const now = Date.now();
-      const topic: Topic = { id, chapterId, title, notes: '', order: chapter.topicIds.length, difficulty: 'Medium', priority: 'Medium', revisionHistory: [], createdAt: now, updatedAt: now };
-      commit({
-        topics: { ...s.topics, [id]: topic },
-        chapters: { ...s.chapters, [chapterId]: { ...chapter, topicIds: [...chapter.topicIds, id] } },
-      });
-      return id;
-    },
+      addTag: (name, color, icon, description) => {
+        const id = makeId();
+        const s = get();
+        const order = s.tagOrder.length;
+        const tag: Tag = { id, name, color, icon, description, order };
+        commit({ tags: { ...s.tags, [id]: tag }, tagOrder: [...s.tagOrder, id] });
+        return id;
+      },
+      updateTag: (id, patch) => {
+        const s = get();
+        const tag = s.tags[id];
+        if (!tag) return;
+        commit({ tags: { ...s.tags, [id]: { ...tag, ...patch } } });
+      },
+      deleteTag: (id) => {
+        const s = get();
+        if (!s.tags[id]) return;
+        const tags = { ...s.tags }; delete tags[id];
+        const topics = { ...s.topics };
+        for (const tid of Object.keys(topics)) {
+          const tp = topics[tid];
+          if (tp.tagIds?.includes(id)) topics[tid] = { ...tp, tagIds: tp.tagIds.filter((x) => x !== id) };
+        }
+        commit({ tags, tagOrder: s.tagOrder.filter((x) => x !== id), topics });
+      },
+      toggleTopicTag: (topicId, tagId) => {
+        const s = get();
+        const t = s.topics[topicId];
+        if (!t) return;
+        const current = t.tagIds ?? [];
+        const tagIds = current.includes(tagId) ? current.filter((x) => x !== tagId) : [...current, tagId];
+        commit({ topics: { ...s.topics, [topicId]: { ...t, tagIds, updatedAt: Date.now() } } });
+      },
 
-    renameTopic: (id, title) => {
-      const s = get();
-      if (!s.topics[id]) return;
-      commit({ topics: { ...s.topics, [id]: { ...s.topics[id], title, updatedAt: Date.now() } } });
-    },
+      undo: () => {
+        const res = undoHistory(get().history, snapshot(get()));
+        if (!res) return;
+        set({ ...res.present, history: res.history });
+        persist();
+      },
+      redo: () => {
+        const res = redoHistory(get().history, snapshot(get()));
+        if (!res) return;
+        set({ ...res.present, history: res.history });
+        persist();
+      },
+    };
+  });
+}
 
-    deleteTopic: (id) => {
-      const s = get();
-      const topic = s.topics[id];
-      if (!topic) return;
-      const topics = { ...s.topics }; delete topics[id];
-      const chapter = s.chapters[topic.chapterId];
-      const chapters = chapter
-        ? { ...s.chapters, [chapter.id]: { ...chapter, topicIds: chapter.topicIds.filter((x) => x !== id) } }
-        : s.chapters;
-      commit({ topics, chapters });
-    },
-
-    updateTopicNotes: (id, notes) => {
-      const s = get();
-      if (!s.topics[id]) return;
-      commitSilent({ topics: { ...s.topics, [id]: { ...s.topics[id], notes, updatedAt: Date.now() } } });
-    },
-
-    markTopicRevised: (id) => {
-      const s = get();
-      const topic = s.topics[id];
-      if (!topic) return;
-      commitSilent({ topics: { ...s.topics, [id]: markRevised(topic, Date.now()) } });
-    },
-
-    archiveSubject: (id) => {
-      const s = get();
-      if (!s.subjects[id]) return;
-      commit({ subjects: { ...s.subjects, [id]: { ...s.subjects[id], archivedAt: Date.now() } } });
-    },
-    restoreSubject: (id) => {
-      const s = get();
-      if (!s.subjects[id]) return;
-      const { archivedAt: _drop, ...rest } = s.subjects[id];
-      void _drop;
-      commit({ subjects: { ...s.subjects, [id]: rest } });
-    },
-    archiveChapter: (id) => {
-      const s = get();
-      if (!s.chapters[id]) return;
-      commit({ chapters: { ...s.chapters, [id]: { ...s.chapters[id], archivedAt: Date.now() } } });
-    },
-    restoreChapter: (id) => {
-      const s = get();
-      if (!s.chapters[id]) return;
-      const { archivedAt: _drop, ...rest } = s.chapters[id];
-      void _drop;
-      commit({ chapters: { ...s.chapters, [id]: rest } });
-    },
-    archiveTopic: (id) => {
-      const s = get();
-      if (!s.topics[id]) return;
-      commit({ topics: { ...s.topics, [id]: { ...s.topics[id], archivedAt: Date.now() } } });
-    },
-    restoreTopic: (id) => {
-      const s = get();
-      if (!s.topics[id]) return;
-      const { archivedAt: _drop, ...rest } = s.topics[id];
-      void _drop;
-      commit({ topics: { ...s.topics, [id]: rest } });
-    },
-
-    reorderSubjects: (activeId, overId) => {
-      const s = get();
-      const from = s.subjectOrder.indexOf(activeId);
-      const to = s.subjectOrder.indexOf(overId);
-      if (from < 0 || to < 0 || from === to) return;
-      commit({ subjectOrder: arrayMove(s.subjectOrder, from, to) });
-    },
-
-    reorderChapters: (activeId, overId) => {
-      const s = get();
-      const chapter = s.chapters[activeId];
-      if (!chapter) return;
-      const subject = s.subjects[chapter.subjectId];
-      if (!subject) return;
-      const from = subject.chapterIds.indexOf(activeId);
-      const to = subject.chapterIds.indexOf(overId);
-      if (from < 0 || to < 0 || from === to) return;
-      commit({ subjects: { ...s.subjects, [subject.id]: { ...subject, chapterIds: arrayMove(subject.chapterIds, from, to) } } });
-    },
-
-    reorderTopics: (activeId, overId) => {
-      const s = get();
-      const topic = s.topics[activeId];
-      if (!topic) return;
-      const chapter = s.chapters[topic.chapterId];
-      if (!chapter) return;
-      const from = chapter.topicIds.indexOf(activeId);
-      const to = chapter.topicIds.indexOf(overId);
-      if (from < 0 || to < 0 || from === to) return;
-      commit({ chapters: { ...s.chapters, [chapter.id]: { ...chapter, topicIds: arrayMove(chapter.topicIds, from, to) } } });
-    },
-
-    moveChapter: (chapterId, toSubjectId) => {
-      const s = get();
-      const chapter = s.chapters[chapterId];
-      const target = s.subjects[toSubjectId];
-      if (!chapter || !target || chapter.subjectId === toSubjectId) return;
-      const source = s.subjects[chapter.subjectId];
-      const subjects = { ...s.subjects };
-      if (source) subjects[source.id] = { ...source, chapterIds: source.chapterIds.filter((x) => x !== chapterId) };
-      subjects[target.id] = { ...target, chapterIds: [...target.chapterIds, chapterId] };
-      commit({ subjects, chapters: { ...s.chapters, [chapterId]: { ...chapter, subjectId: toSubjectId } } });
-    },
-
-    moveTopic: (topicId, toChapterId) => {
-      const s = get();
-      const topic = s.topics[topicId];
-      const target = s.chapters[toChapterId];
-      if (!topic || !target || topic.chapterId === toChapterId) return;
-      const source = s.chapters[topic.chapterId];
-      const chapters = { ...s.chapters };
-      if (source) chapters[source.id] = { ...source, topicIds: source.topicIds.filter((x) => x !== topicId) };
-      chapters[target.id] = { ...target, topicIds: [...target.topicIds, topicId] };
-      commit({ chapters, topics: { ...s.topics, [topicId]: { ...topic, chapterId: toChapterId } } });
-    },
-
-    addAttachment: (topicId, a) => {
-      const s = get();
-      const t = s.topics[topicId];
-      if (!t) return;
-      commit({ topics: { ...s.topics, [topicId]: { ...t, attachments: [...(t.attachments ?? []), a], updatedAt: Date.now() } } });
-    },
-    removeAttachment: (topicId, attId) => {
-      const s = get();
-      const t = s.topics[topicId];
-      if (!t) return;
-      commit({ topics: { ...s.topics, [topicId]: { ...t, attachments: (t.attachments ?? []).filter((x) => x.id !== attId), updatedAt: Date.now() } } });
-    },
-    addFlashcard: (topicId, front, back) => {
-      const id = makeId();
-      const s = get();
-      const t = s.topics[topicId];
-      if (!t) return id;
-      const card: Flashcard = { id, front, back, createdAt: Date.now() };
-      commit({ topics: { ...s.topics, [topicId]: { ...t, flashcards: [...(t.flashcards ?? []), card], updatedAt: Date.now() } } });
-      return id;
-    },
-    updateFlashcard: (topicId, cardId, front, back) => {
-      const s = get();
-      const t = s.topics[topicId];
-      if (!t) return;
-      const flashcards = (t.flashcards ?? []).map((c) => (c.id === cardId ? { ...c, front, back } : c));
-      commit({ topics: { ...s.topics, [topicId]: { ...t, flashcards, updatedAt: Date.now() } } });
-    },
-    deleteFlashcard: (topicId, cardId) => {
-      const s = get();
-      const t = s.topics[topicId];
-      if (!t) return;
-      commit({ topics: { ...s.topics, [topicId]: { ...t, flashcards: (t.flashcards ?? []).filter((c) => c.id !== cardId), updatedAt: Date.now() } } });
-    },
-    toggleBookmark: (topicId) => {
-      const s = get();
-      const t = s.topics[topicId];
-      if (!t) return;
-      const next = t.bookmarkedAt ? undefined : Date.now();
-      const { bookmarkedAt: _drop, ...rest } = t;
-      void _drop;
-      const updated = next ? { ...rest, bookmarkedAt: next, updatedAt: Date.now() } : { ...rest, updatedAt: Date.now() };
-      commit({ topics: { ...s.topics, [topicId]: updated } });
-    },
-
-    addTag: (name, color, icon, description) => {
-      const id = makeId();
-      const s = get();
-      const order = s.tagOrder.length;
-      const tag: Tag = { id, name, color, icon, description, order };
-      commit({ tags: { ...s.tags, [id]: tag }, tagOrder: [...s.tagOrder, id] });
-      return id;
-    },
-    updateTag: (id, patch) => {
-      const s = get();
-      const tag = s.tags[id];
-      if (!tag) return;
-      commit({ tags: { ...s.tags, [id]: { ...tag, ...patch } } });
-    },
-    deleteTag: (id) => {
-      const s = get();
-      if (!s.tags[id]) return;
-      const tags = { ...s.tags }; delete tags[id];
-      const topics = { ...s.topics };
-      for (const tid of Object.keys(topics)) {
-        const tp = topics[tid];
-        if (tp.tagIds?.includes(id)) topics[tid] = { ...tp, tagIds: tp.tagIds.filter((x) => x !== id) };
-      }
-      commit({ tags, tagOrder: s.tagOrder.filter((x) => x !== id), topics });
-    },
-    toggleTopicTag: (topicId, tagId) => {
-      const s = get();
-      const t = s.topics[topicId];
-      if (!t) return;
-      const current = t.tagIds ?? [];
-      const tagIds = current.includes(tagId) ? current.filter((x) => x !== tagId) : [...current, tagId];
-      commit({ topics: { ...s.topics, [topicId]: { ...t, tagIds, updatedAt: Date.now() } } });
-    },
-
-    undo: () => {
-      const res = undoHistory(get().history, snapshot(get()));
-      if (!res) return;
-      set({ ...res.present, history: res.history } as never);
-      persist();
-    },
-    redo: () => {
-      const res = redoHistory(get().history, snapshot(get()));
-      if (!res) return;
-      set({ ...res.present, history: res.history } as never);
-      persist();
-    },
-  };
-});
+export const useStore = createRevisionStore(new ApiRepository());

@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useStore } from './useStore';
+import { useStore, createRevisionStore } from './useStore';
+import { MemoryRepository } from '@/lib/repository/MemoryRepository';
+import { seedData } from '@/lib/repository/seed';
 
 function reset() {
   window.localStorage.clear();
@@ -202,5 +204,13 @@ describe('useStore', () => {
     const tagId = useStore.getState().addTag('Old', '#f00', 'Star');
     useStore.getState().updateTag(tagId, { name: 'New', color: '#0f0' });
     expect(useStore.getState().tags![tagId]).toMatchObject({ name: 'New', color: '#0f0' });
+  });
+
+  it('hydrate loads from the injected repository', async () => {
+    const repo = new MemoryRepository();
+    await repo.save(seedData());
+    const store = createRevisionStore(repo);
+    await store.getState().hydrate();
+    expect(store.getState().subjectOrder).toHaveLength(13);
   });
 });
