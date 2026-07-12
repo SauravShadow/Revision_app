@@ -7,6 +7,7 @@ export class SaveQueue<T> {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private inFlight = false;
   private rerun = false;
+  private rerunKeepalive = false;
 
   constructor(
     private readonly saveFn: (snapshot: T, opts: { keepalive: boolean }) => Promise<void>,
@@ -25,6 +26,13 @@ export class SaveQueue<T> {
   }
 
   // Send a pending save immediately (tab close). No-op when nothing is pending.
+  //
+  // Safe to no-op when this.timer is null even if a save is currently in
+  // flight: schedule() unconditionally (re)arms this.timer regardless of
+  // inFlight, so the only way for the timer to be null while inFlight is
+  // true is that no mutation has arrived since the in-flight run captured
+  // its snapshot via getSnapshot(). That in-flight request therefore
+  // already carries the latest data, so there is nothing new to flush.
   flush(): void {
     if (!this.timer) return;
     clearTimeout(this.timer);
@@ -35,6 +43,7 @@ export class SaveQueue<T> {
   private async run(keepalive: boolean): Promise<void> {
     if (this.inFlight) {
       this.rerun = true;
+      this.rerunKeepalive = this.rerunKeepalive || keepalive;
       return;
     }
     this.inFlight = true;
@@ -47,7 +56,9 @@ export class SaveQueue<T> {
     this.inFlight = false;
     if (this.rerun) {
       this.rerun = false;
-      void this.run(keepalive);
+      const ka = this.rerunKeepalive;
+      this.rerunKeepalive = false;
+      void this.run(ka);
       return;
     }
     // A new debounce window may have opened while we were in flight.

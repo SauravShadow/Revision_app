@@ -89,4 +89,51 @@ describe('SaveQueue', () => {
     await vi.advanceTimersByTimeAsync(800);
     expect(calls).toHaveLength(0);
   });
+
+  it('stays saving when a new debounce window opens mid-flight', async () => {
+    const saves: string[] = [];
+    const statuses: SaveStatus[] = [];
+    const gate = deferred();
+    let snap = 'v1';
+    const q = new SaveQueue<string>(
+      async (s) => { saves.push(s); if (saves.length === 1) await gate.promise; },
+      () => snap,
+      (s) => statuses.push(s),
+      800,
+    );
+    q.schedule();
+    await vi.advanceTimersByTimeAsync(800); // first save now in flight, blocked on gate
+    snap = 'v2';
+    q.schedule(); // new debounce window opens mid-flight
+    gate.resolve();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(statuses.at(-1)).not.toBe('saved'); // still saving: second window pending
+    expect(statuses.at(-1)).toBe('saving');
+    await vi.advanceTimersByTimeAsync(800); // second save completes
+    expect(saves).toEqual(['v1', 'v2']);
+    expect(statuses.at(-1)).toBe('saved');
+  });
+
+  it('flush during an in-flight save keeps keepalive for the follow-up', async () => {
+    const calls: { snap: string; keepalive: boolean }[] = [];
+    const gate = deferred();
+    let snap = 'v1';
+    const q = new SaveQueue<string>(
+      async (s, opts) => { calls.push({ snap: s, keepalive: opts.keepalive }); if (calls.length === 1) await gate.promise; },
+      () => snap,
+      () => {},
+      800,
+    );
+    q.schedule();
+    await vi.advanceTimersByTimeAsync(800); // first save now in flight, blocked on gate
+    snap = 'v2';
+    q.schedule(); // timer pending
+    q.flush(); // should record rerun with keepalive=true
+    gate.resolve();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(calls).toEqual([
+      { snap: 'v1', keepalive: false },
+      { snap: 'v2', keepalive: true },
+    ]);
+  });
 });
