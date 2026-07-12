@@ -41,6 +41,10 @@ interface StoreState extends AppData {
   updateFlashcard: (topicId: string, cardId: string, front: string, back: string) => void;
   deleteFlashcard: (topicId: string, cardId: string) => void;
   toggleBookmark: (topicId: string) => void;
+  addTag: (name: string, color: string, icon: string, description?: string) => string;
+  updateTag: (id: string, patch: Partial<Pick<Tag, 'name' | 'color' | 'icon' | 'description'>>) => void;
+  deleteTag: (id: string) => void;
+  toggleTopicTag: (topicId: string, tagId: string) => void;
   history: History<AppData>;
   saveState: 'idle' | 'saving' | 'saved';
   undo: () => void;
@@ -345,6 +349,40 @@ export const useStore = create<StoreState>((set, get) => {
       void _drop;
       const updated = next ? { ...rest, bookmarkedAt: next, updatedAt: Date.now() } : { ...rest, updatedAt: Date.now() };
       commit({ topics: { ...s.topics, [topicId]: updated } });
+    },
+
+    addTag: (name, color, icon, description) => {
+      const id = makeId();
+      const s = get();
+      const order = (s.tagOrder ?? []).length;
+      const tag: Tag = { id, name, color, icon, description, order };
+      commit({ tags: { ...(s.tags ?? {}), [id]: tag }, tagOrder: [...(s.tagOrder ?? []), id] });
+      return id;
+    },
+    updateTag: (id, patch) => {
+      const s = get();
+      const tag = (s.tags ?? {})[id];
+      if (!tag) return;
+      commit({ tags: { ...(s.tags ?? {}), [id]: { ...tag, ...patch } } });
+    },
+    deleteTag: (id) => {
+      const s = get();
+      if (!(s.tags ?? {})[id]) return;
+      const tags = { ...(s.tags ?? {}) }; delete tags[id];
+      const topics = { ...s.topics };
+      for (const tid of Object.keys(topics)) {
+        const tp = topics[tid];
+        if (tp.tagIds?.includes(id)) topics[tid] = { ...tp, tagIds: tp.tagIds.filter((x) => x !== id) };
+      }
+      commit({ tags, tagOrder: (s.tagOrder ?? []).filter((x) => x !== id), topics });
+    },
+    toggleTopicTag: (topicId, tagId) => {
+      const s = get();
+      const t = s.topics[topicId];
+      if (!t) return;
+      const current = t.tagIds ?? [];
+      const tagIds = current.includes(tagId) ? current.filter((x) => x !== tagId) : [...current, tagId];
+      commit({ topics: { ...s.topics, [topicId]: { ...t, tagIds, updatedAt: Date.now() } } });
     },
 
     undo: () => {

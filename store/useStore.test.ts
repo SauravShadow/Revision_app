@@ -3,7 +3,7 @@ import { useStore } from './useStore';
 
 function reset() {
   window.localStorage.clear();
-  useStore.setState({ subjects: {}, chapters: {}, topics: {}, subjectOrder: [] });
+  useStore.setState({ subjects: {}, chapters: {}, topics: {}, subjectOrder: [], tags: {}, tagOrder: [] });
 }
 
 describe('useStore', () => {
@@ -172,5 +172,35 @@ describe('useStore', () => {
     expect(useStore.getState().topics[t].bookmarkedAt).toBeTypeOf('number');
     useStore.getState().toggleBookmark(t);
     expect(useStore.getState().topics[t].bookmarkedAt).toBeUndefined();
+  });
+
+  it('addTag adds a tag; toggleTopicTag adds then removes it on a topic', () => {
+    const s = useStore.getState().addSubject('S');
+    const c = useStore.getState().addChapter(s, 'C');
+    const t = useStore.getState().addTopic(c, 'T');
+    const tagId = useStore.getState().addTag('Formula', '#f00', 'Sigma');
+    expect(useStore.getState().tags![tagId].name).toBe('Formula');
+    useStore.getState().toggleTopicTag(t, tagId);
+    expect(useStore.getState().topics[t].tagIds).toContain(tagId);
+    useStore.getState().toggleTopicTag(t, tagId);
+    expect(useStore.getState().topics[t].tagIds).not.toContain(tagId);
+  });
+
+  it('deleteTag removes it and strips it from all topics', () => {
+    const s = useStore.getState().addSubject('S');
+    const c = useStore.getState().addChapter(s, 'C');
+    const t = useStore.getState().addTopic(c, 'T');
+    const tagId = useStore.getState().addTag('Weak', '#f00', 'TriangleAlert');
+    useStore.getState().toggleTopicTag(t, tagId);
+    useStore.getState().deleteTag(tagId);
+    expect(useStore.getState().tags![tagId]).toBeUndefined();
+    expect(useStore.getState().tagOrder).not.toContain(tagId);
+    expect(useStore.getState().topics[t].tagIds ?? []).not.toContain(tagId);
+  });
+
+  it('updateTag patches fields', () => {
+    const tagId = useStore.getState().addTag('Old', '#f00', 'Star');
+    useStore.getState().updateTag(tagId, { name: 'New', color: '#0f0' });
+    expect(useStore.getState().tags![tagId]).toMatchObject({ name: 'New', color: '#0f0' });
   });
 });
