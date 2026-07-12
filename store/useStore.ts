@@ -2,10 +2,10 @@ import { create } from 'zustand';
 import type { AppData, Chapter, Subject, Topic } from '@/lib/domain/types';
 import { makeId } from '@/lib/domain/id';
 import { markRevised } from '@/lib/revision/engine';
-import { LocalStorageRepository } from '@/lib/repository/LocalStorageRepository';
+import { ApiRepository } from '@/lib/repository/ApiRepository';
 import { seedData } from '@/lib/repository/seed';
 
-const repo = new LocalStorageRepository();
+const repo = new ApiRepository();
 
 interface StoreState extends AppData {
   hydrate: () => Promise<void>;
