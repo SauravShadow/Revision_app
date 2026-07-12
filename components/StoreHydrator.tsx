@@ -5,7 +5,12 @@ import { useStore } from '@/store/useStore';
 export function StoreHydrator({ children }: { children: React.ReactNode }) {
   const hydrate = useStore((s) => s.hydrate);
   const [ready, setReady] = useState(false);
-  useEffect(() => { void hydrate().then(() => setReady(true)); }, [hydrate]);
+  useEffect(() => {
+    void hydrate().then(() => {
+      setReady(true);
+      void fetch('/api/files/gc', { method: 'POST' }).catch(() => {});
+    });
+  }, [hydrate]);
   useEffect(() => {
     const flush = () => useStore.getState().flushSave();
     window.addEventListener('pagehide', flush);

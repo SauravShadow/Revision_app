@@ -28,10 +28,7 @@ export function AttachmentsPanel({ topic }: { topic: Topic }) {
     setUrl('');
   };
 
-  const remove = (id: string, isUpload: boolean) => {
-    removeAttachment(topic.id, id);
-    if (isUpload) void fetch(`/api/files/${id}`, { method: 'DELETE' });
-  };
+  const remove = (id: string) => removeAttachment(topic.id, id);
 
   return (
     <div className="glass rounded-xl p-4">
@@ -52,9 +49,7 @@ export function AttachmentsPanel({ topic }: { topic: Topic }) {
         <p className="text-sm opacity-50">No attachments yet.</p>
       ) : (
         <ul className="grid gap-2 sm:grid-cols-2">
-          {attachments.map((a) => {
-            const isUpload = a.url.startsWith('/api/files/');
-            return (
+          {attachments.map((a) => (
               <li key={a.id} className="flex items-center justify-between gap-2 rounded-lg bg-white/5 p-2">
                 <a href={a.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 text-sm hover:underline">
                   {a.kind === 'image' ? (
@@ -63,10 +58,9 @@ export function AttachmentsPanel({ topic }: { topic: Topic }) {
                   ) : a.kind === 'pdf' ? <FileText size={18} /> : <ExternalLink size={16} />}
                   <span className="truncate">{a.name}</span>
                 </a>
-                <button aria-label="Remove attachment" onClick={() => remove(a.id, isUpload)} className="rounded p-1 hover:bg-white/10"><Trash2 size={14} /></button>
+                <button aria-label="Remove attachment" onClick={() => remove(a.id)} className="rounded p-1 hover:bg-white/10"><Trash2 size={14} /></button>
               </li>
-            );
-          })}
+          ))}
         </ul>
       )}
     </div>

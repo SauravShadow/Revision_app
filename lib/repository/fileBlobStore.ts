@@ -46,3 +46,5 @@ export async function deleteBlob(id: string): Promise<void> {
   await fs.rm(path.join(dir, id), { force: true });
   await fs.rm(path.join(dir, `${id}.json`), { force: true });
 }
+
+export const GC_GRACE_MS = 24 * 60 * 60 * 1000;
