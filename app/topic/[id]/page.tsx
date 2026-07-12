@@ -38,7 +38,7 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
         </button>
       </div>
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <MarkdownEditor value={topic.notes} onChange={(v) => updateTopicNotes(topic.id, v)} />
+        <MarkdownEditor value={topic.notes} onChange={(v) => updateTopicNotes(topic.id, v)} topicId={topic.id} />
         <RevisionHistoryPanel topic={topic} />
       </div>
     </div>
