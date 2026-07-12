@@ -21,7 +21,7 @@ export function SubjectCard({ subject, autoEdit = false }: { subject: Subject; a
   return (
     <motion.div whileHover={{ y: -4 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
       <Link href={`/subject/${subject.id}`}
-        className="group glass block rounded-2xl p-5"
+        className="group glass gradient-border block rounded-2xl p-5"
         style={{ boxShadow: `inset 0 0 0 1px ${subject.color}22` }}>
         <div className="flex items-center justify-between">
           <h3 className="font-semibold" onDoubleClick={(e) => { e.preventDefault(); setEditing(true); }}>
