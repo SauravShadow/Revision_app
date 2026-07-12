@@ -5,6 +5,7 @@ import { CheckCircle2, Star } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { MarkdownEditor } from '@/components/editor/MarkdownEditor';
 import { RevisionHistoryPanel } from '@/components/RevisionHistoryPanel';
+import { TagPicker } from '@/components/TagPicker';
 import { AttachmentsPanel } from '@/components/AttachmentsPanel';
 import { FlashcardsPanel } from '@/components/FlashcardsPanel';
 import { RevisionBadge } from '@/components/RevisionBadge';
@@ -47,6 +48,7 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
         <MarkdownEditor value={topic.notes} onChange={(v) => updateTopicNotes(topic.id, v)} topicId={topic.id} />
         <div className="space-y-4">
           <RevisionHistoryPanel topic={topic} />
+          <TagPicker topic={topic} />
           <AttachmentsPanel topic={topic} />
           <FlashcardsPanel topic={topic} />
         </div>

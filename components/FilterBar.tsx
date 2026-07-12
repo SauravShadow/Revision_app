@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useFilters } from '@/store/useFilters';
 import { hasActiveFilters, type StatusFilter } from '@/lib/filters/predicates';
+import { TagManager } from '@/components/TagManager';
 
 const STATUSES: { key: StatusFilter; label: string }[] = [
   { key: 'needs-revision', label: 'Needs Revision' },
@@ -40,6 +41,7 @@ export function FilterBar() {
       {active && (
         <button onClick={clear} className="flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-xs opacity-70 hover:opacity-100"><X size={12} /> Clear</button>
       )}
+      <TagManager />
     </div>
   );
 }
