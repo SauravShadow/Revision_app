@@ -138,4 +138,39 @@ describe('useStore', () => {
     useStore.getState().addSubject('S');
     expect(useStore.getState().saveState).toBe('saving');
   });
+
+  it('addAttachment / removeAttachment update the topic and are undoable', () => {
+    const s = useStore.getState().addSubject('S');
+    const c = useStore.getState().addChapter(s, 'C');
+    const t = useStore.getState().addTopic(c, 'T');
+    const att = { id: 'a1', name: 'x.png', kind: 'image' as const, url: '/api/files/a1', createdAt: 1 };
+    const before = useStore.getState().history.past.length;
+    useStore.getState().addAttachment(t, att);
+    expect(useStore.getState().topics[t].attachments).toEqual([att]);
+    expect(useStore.getState().history.past.length).toBe(before + 1);
+    useStore.getState().removeAttachment(t, 'a1');
+    expect(useStore.getState().topics[t].attachments).toEqual([]);
+  });
+
+  it('addFlashcard / updateFlashcard / deleteFlashcard manage the card list', () => {
+    const s = useStore.getState().addSubject('S');
+    const c = useStore.getState().addChapter(s, 'C');
+    const t = useStore.getState().addTopic(c, 'T');
+    const cid = useStore.getState().addFlashcard(t, 'Q', 'A');
+    expect(useStore.getState().topics[t].flashcards).toHaveLength(1);
+    useStore.getState().updateFlashcard(t, cid, 'Q2', 'A2');
+    expect(useStore.getState().topics[t].flashcards![0]).toMatchObject({ front: 'Q2', back: 'A2' });
+    useStore.getState().deleteFlashcard(t, cid);
+    expect(useStore.getState().topics[t].flashcards).toHaveLength(0);
+  });
+
+  it('toggleBookmark flips bookmarkedAt', () => {
+    const s = useStore.getState().addSubject('S');
+    const c = useStore.getState().addChapter(s, 'C');
+    const t = useStore.getState().addTopic(c, 'T');
+    useStore.getState().toggleBookmark(t);
+    expect(useStore.getState().topics[t].bookmarkedAt).toBeTypeOf('number');
+    useStore.getState().toggleBookmark(t);
+    expect(useStore.getState().topics[t].bookmarkedAt).toBeUndefined();
+  });
 });

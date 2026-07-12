@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { AppData, Chapter, Subject, Topic } from '@/lib/domain/types';
+import type { AppData, Attachment, Chapter, Flashcard, Subject, Topic } from '@/lib/domain/types';
 import { makeId } from '@/lib/domain/id';
 import { markRevised } from '@/lib/revision/engine';
 import { arrayMove } from '@/lib/util/array';
@@ -34,6 +34,12 @@ interface StoreState extends AppData {
   reorderTopics: (activeId: string, overId: string) => void;
   moveChapter: (chapterId: string, toSubjectId: string) => void;
   moveTopic: (topicId: string, toChapterId: string) => void;
+  addAttachment: (topicId: string, a: Attachment) => void;
+  removeAttachment: (topicId: string, attId: string) => void;
+  addFlashcard: (topicId: string, front: string, back: string) => string;
+  updateFlashcard: (topicId: string, cardId: string, front: string, back: string) => void;
+  deleteFlashcard: (topicId: string, cardId: string) => void;
+  toggleBookmark: (topicId: string) => void;
   history: History<AppData>;
   saveState: 'idle' | 'saving' | 'saved';
   undo: () => void;
@@ -292,6 +298,51 @@ export const useStore = create<StoreState>((set, get) => {
       if (source) chapters[source.id] = { ...source, topicIds: source.topicIds.filter((x) => x !== topicId) };
       chapters[target.id] = { ...target, topicIds: [...target.topicIds, topicId] };
       commit({ chapters, topics: { ...s.topics, [topicId]: { ...topic, chapterId: toChapterId } } });
+    },
+
+    addAttachment: (topicId, a) => {
+      const s = get();
+      const t = s.topics[topicId];
+      if (!t) return;
+      commit({ topics: { ...s.topics, [topicId]: { ...t, attachments: [...(t.attachments ?? []), a], updatedAt: Date.now() } } });
+    },
+    removeAttachment: (topicId, attId) => {
+      const s = get();
+      const t = s.topics[topicId];
+      if (!t) return;
+      commit({ topics: { ...s.topics, [topicId]: { ...t, attachments: (t.attachments ?? []).filter((x) => x.id !== attId), updatedAt: Date.now() } } });
+    },
+    addFlashcard: (topicId, front, back) => {
+      const id = makeId();
+      const s = get();
+      const t = s.topics[topicId];
+      if (!t) return id;
+      const card: Flashcard = { id, front, back, createdAt: Date.now() };
+      commit({ topics: { ...s.topics, [topicId]: { ...t, flashcards: [...(t.flashcards ?? []), card], updatedAt: Date.now() } } });
+      return id;
+    },
+    updateFlashcard: (topicId, cardId, front, back) => {
+      const s = get();
+      const t = s.topics[topicId];
+      if (!t) return;
+      const flashcards = (t.flashcards ?? []).map((c) => (c.id === cardId ? { ...c, front, back } : c));
+      commit({ topics: { ...s.topics, [topicId]: { ...t, flashcards, updatedAt: Date.now() } } });
+    },
+    deleteFlashcard: (topicId, cardId) => {
+      const s = get();
+      const t = s.topics[topicId];
+      if (!t) return;
+      commit({ topics: { ...s.topics, [topicId]: { ...t, flashcards: (t.flashcards ?? []).filter((c) => c.id !== cardId), updatedAt: Date.now() } } });
+    },
+    toggleBookmark: (topicId) => {
+      const s = get();
+      const t = s.topics[topicId];
+      if (!t) return;
+      const next = t.bookmarkedAt ? undefined : Date.now();
+      const { bookmarkedAt: _drop, ...rest } = t;
+      void _drop;
+      const updated = next ? { ...rest, bookmarkedAt: next, updatedAt: Date.now() } : { ...rest, updatedAt: Date.now() };
+      commit({ topics: { ...s.topics, [topicId]: updated } });
     },
 
     undo: () => {
