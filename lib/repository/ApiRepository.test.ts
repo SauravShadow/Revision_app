@@ -33,12 +33,24 @@ describe('ApiRepository', () => {
       method: 'PUT',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(data),
+      keepalive: false,
     });
   });
 
-  it('save swallows network errors', async () => {
+  it('save passes keepalive for tab-close flushes', async () => {
+    const fetchMock = vi.fn(async (..._args: Parameters<typeof fetch>) => new Response(null, { status: 204 }));
+    vi.stubGlobal('fetch', fetchMock);
+    await new ApiRepository().save(seedData(), { keepalive: true });
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ keepalive: true });
+  });
+
+  it('save throws on network error', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline'); }));
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    await expect(new ApiRepository().save(seedData())).resolves.toBeUndefined();
+    await expect(new ApiRepository().save(seedData())).rejects.toThrow();
+  });
+
+  it('save throws on a non-2xx response', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(null, { status: 500 })));
+    await expect(new ApiRepository().save(seedData())).rejects.toThrow(/500/);
   });
 });

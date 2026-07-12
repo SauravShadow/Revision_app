@@ -4,8 +4,7 @@ import type { RevisionRepository } from './RevisionRepository';
 export const DATA_ENDPOINT = '/api/data';
 
 // Client-side repository backed by the server route (server-side persistence).
-// Failures degrade gracefully: load() -> null (store seeds), save() -> logged
-// and swallowed so a transient network blip never crashes the UI.
+// Failures degrade gracefully: load() -> null (store seeds).
 export class ApiRepository implements RevisionRepository {
   async load(): Promise<AppData | null> {
     try {
@@ -18,15 +17,13 @@ export class ApiRepository implements RevisionRepository {
     }
   }
 
-  async save(data: AppData): Promise<void> {
-    try {
-      await fetch(DATA_ENDPOINT, {
-        method: 'PUT',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-    } catch (err) {
-      console.error('Failed to persist data to server', err);
-    }
+  async save(data: AppData, opts: { keepalive?: boolean } = {}): Promise<void> {
+    const res = await fetch(DATA_ENDPOINT, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(data),
+      keepalive: opts.keepalive ?? false,
+    });
+    if (!res.ok) throw new Error(`save failed: ${res.status}`);
   }
 }

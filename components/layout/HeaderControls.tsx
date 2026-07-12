@@ -1,5 +1,5 @@
 'use client';
-import { Undo2, Redo2, Check, Loader2 } from 'lucide-react';
+import { Undo2, Redo2, Check, Loader2, TriangleAlert } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useUndoRedoShortcuts } from '@/components/hooks/useUndoRedoShortcuts';
 
@@ -16,7 +16,9 @@ export function HeaderControls() {
         <span className="tblabel flex items-center gap-1 normal-case tracking-normal">
           {saveState === 'saving'
             ? <><Loader2 size={13} className="animate-spin text-accent" /> Saving…</>
-            : <><Check size={13} className="text-go" /> Saved</>}
+            : saveState === 'error'
+              ? <><TriangleAlert size={13} className="text-alarm" /> Save failed — retrying</>
+              : <><Check size={13} className="text-go" /> Saved</>}
         </span>
       )}
       <button aria-label="Undo" disabled={!canUndo} onClick={undo}

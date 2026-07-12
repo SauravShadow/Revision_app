@@ -2,5 +2,6 @@ import type { AppData } from '@/lib/domain/types';
 
 export interface RevisionRepository {
   load(): Promise<AppData | null>;
-  save(data: AppData): Promise<void>;
+  // Throws on failure — callers own retry/UI. keepalive survives tab close.
+  save(data: AppData, opts?: { keepalive?: boolean }): Promise<void>;
 }

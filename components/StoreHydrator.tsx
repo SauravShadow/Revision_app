@@ -6,6 +6,11 @@ export function StoreHydrator({ children }: { children: React.ReactNode }) {
   const hydrate = useStore((s) => s.hydrate);
   const [ready, setReady] = useState(false);
   useEffect(() => { void hydrate().then(() => setReady(true)); }, [hydrate]);
+  useEffect(() => {
+    const flush = () => useStore.getState().flushSave();
+    window.addEventListener('pagehide', flush);
+    return () => window.removeEventListener('pagehide', flush);
+  }, []);
   if (!ready) {
     return <div className="grid min-h-screen place-items-center text-sm opacity-60">Loading…</div>;
   }

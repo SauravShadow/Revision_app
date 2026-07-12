@@ -5,6 +5,7 @@ import { normalizeData } from '@/lib/domain/normalize';
 import { markRevised } from '@/lib/revision/engine';
 import { arrayMove } from '@/lib/util/array';
 import { emptyHistory, record, undo as undoHistory, redo as redoHistory, type History } from './history';
+import { SaveQueue, type SaveStatus } from './saveQueue';
 import { ApiRepository } from '@/lib/repository/ApiRepository';
 import { seedData } from '@/lib/repository/seed';
 import type { RevisionRepository } from '@/lib/repository/RevisionRepository';
@@ -45,9 +46,10 @@ interface StoreState extends AppData {
   deleteTag: (id: string) => void;
   toggleTopicTag: (topicId: string, tagId: string) => void;
   history: History<AppData>;
-  saveState: 'idle' | 'saving' | 'saved';
+  saveState: SaveStatus;
   undo: () => void;
   redo: () => void;
+  flushSave: () => void;
 }
 
 function snapshot(s: StoreState): AppData {
@@ -56,10 +58,12 @@ function snapshot(s: StoreState): AppData {
 
 export function createRevisionStore(repo: RevisionRepository) {
   return create<StoreState>((set, get) => {
-    const persist = () => {
-      set({ saveState: 'saving' });
-      void repo.save(snapshot(get())).then(() => set({ saveState: 'saved' }));
-    };
+    const queue = new SaveQueue<AppData>(
+      (snap, opts) => repo.save(snap, opts),
+      () => snapshot(get()),
+      (saveState) => set({ saveState }),
+    );
+    const persist = () => queue.schedule();
     // Structural edits: capture an undo snapshot, then apply + persist.
     const commit = (patch: Partial<AppData>) => {
       const prev = snapshot(get());
@@ -80,7 +84,11 @@ export function createRevisionStore(repo: RevisionRepository) {
         if (loaded) { set({ ...normalizeData(loaded), history: emptyHistory<AppData>() }); return; }
         const seeded = seedData();
         set({ ...seeded, history: emptyHistory<AppData>() });
-        await repo.save(seeded);
+        try {
+          await repo.save(seeded);
+        } catch {
+          set({ saveState: 'error' });
+        }
       },
 
       addSubject: (name) => {
@@ -397,6 +405,7 @@ export function createRevisionStore(repo: RevisionRepository) {
         set({ ...res.present, history: res.history });
         persist();
       },
+      flushSave: () => queue.flush(),
     };
   });
 }

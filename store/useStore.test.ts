@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useStore, createRevisionStore } from './useStore';
 import { MemoryRepository } from '@/lib/repository/MemoryRepository';
 import { seedData } from '@/lib/repository/seed';
@@ -212,5 +212,35 @@ describe('useStore', () => {
     const store = createRevisionStore(repo);
     await store.getState().hydrate();
     expect(store.getState().subjectOrder).toHaveLength(13);
+  });
+
+  it('debounces persistence and saves the latest snapshot once', async () => {
+    vi.useFakeTimers();
+    try {
+      const repo = new MemoryRepository();
+      const store = createRevisionStore(repo);
+      store.getState().addSubject('A');
+      store.getState().addSubject('B');
+      expect(store.getState().saveState).toBe('saving');
+      await vi.advanceTimersByTimeAsync(800);
+      expect((await repo.load())?.subjectOrder).toHaveLength(2);
+      expect(store.getState().saveState).toBe('saved');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('flushSave sends a pending save immediately', async () => {
+    vi.useFakeTimers();
+    try {
+      const repo = new MemoryRepository();
+      const store = createRevisionStore(repo);
+      store.getState().addSubject('A');
+      store.getState().flushSave();
+      await vi.advanceTimersByTimeAsync(0);
+      expect((await repo.load())?.subjectOrder).toHaveLength(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
