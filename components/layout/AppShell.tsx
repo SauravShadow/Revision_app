@@ -10,6 +10,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Link href="/" className="text-lg font-semibold tracking-tight">CE Revision</Link>
         <div className="flex items-center gap-3">
           <HeaderControls />
+          <Link href="/bookmarks" className="text-sm opacity-70 transition hover:opacity-100">Bookmarks</Link>
           <Link href="/archive" className="text-sm opacity-70 transition hover:opacity-100">Archive</Link>
           <ThemeToggle />
         </div>

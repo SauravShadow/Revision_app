@@ -1,7 +1,7 @@
 'use client';
 import { use } from 'react';
 import { notFound } from 'next/navigation';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Star } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { MarkdownEditor } from '@/components/editor/MarkdownEditor';
 import { RevisionHistoryPanel } from '@/components/RevisionHistoryPanel';
@@ -18,6 +18,7 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
   const subjects = useStore((s) => s.subjects);
   const updateTopicNotes = useStore((s) => s.updateTopicNotes);
   const markTopicRevised = useStore((s) => s.markTopicRevised);
+  const toggleBookmark = useStore((s) => s.toggleBookmark);
   if (!topic) return notFound();
   const chapter = chapters[topic.chapterId];
   const subject = chapter ? subjects[chapter.subjectId] : undefined;
@@ -33,6 +34,9 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold">{topic.title}</h1>
           <RevisionBadge state={badgeState(topic.revisionHistory, Date.now())} />
+          <button aria-label="Toggle bookmark" onClick={() => toggleBookmark(topic.id)} className="rounded-lg p-1.5 hover:bg-white/10">
+            <Star size={18} className={topic.bookmarkedAt ? 'fill-amber-400 text-amber-400' : 'opacity-60'} />
+          </button>
         </div>
         <button onClick={() => markTopicRevised(topic.id)}
           className="flex items-center gap-2 rounded-xl bg-emerald-500/90 px-4 py-2 text-sm font-medium text-black transition hover:bg-emerald-400">

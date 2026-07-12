@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Star } from 'lucide-react';
 import type { Topic } from '@/lib/domain/types';
 import { useStore } from '@/store/useStore';
 import { badgeState, totalRevisions, lastRevisedAt, relativeLabel } from '@/lib/revision/engine';
@@ -27,6 +28,7 @@ export function TopicCard({ topic, autoEdit = false }: { topic: Topic; autoEdit?
         </div>
       </div>
       <div className="flex items-center gap-3">
+        {topic.bookmarkedAt && <Star size={14} className="fill-amber-400 text-amber-400" />}
         <RevisionBadge state={badgeState(topic.revisionHistory, now)} />
         <RowActions onRename={() => setEditing(true)} onDelete={remove} />
       </div>
