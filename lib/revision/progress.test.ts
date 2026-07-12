@@ -13,6 +13,8 @@ function fixture(): AppData {
       t1: { id: 't1', chapterId: 'c1', title: 'A', notes: '', order: 0, difficulty: 'Medium', priority: 'Medium', revisionHistory: [{ id: 'r', timestamp: now }], createdAt: 0, updatedAt: now },
       t2: { id: 't2', chapterId: 'c1', title: 'B', notes: '', order: 1, difficulty: 'Medium', priority: 'Medium', revisionHistory: [], createdAt: 0, updatedAt: 0 },
     },
+    tags: {},
+    tagOrder: [],
   };
 }
 

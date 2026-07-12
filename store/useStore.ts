@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { AppData, Attachment, Chapter, Flashcard, Subject, Tag, Topic } from '@/lib/domain/types';
 import { makeId } from '@/lib/domain/id';
-import { withBuiltinTagsIfMissing } from '@/lib/domain/builtinTags';
+import { normalizeData } from '@/lib/domain/normalize';
 import { markRevised } from '@/lib/revision/engine';
 import { arrayMove } from '@/lib/util/array';
 import { emptyHistory, record, undo as undoHistory, redo as redoHistory, type History } from './history';
@@ -52,7 +52,7 @@ interface StoreState extends AppData {
 }
 
 function snapshot(s: StoreState): AppData {
-  return { subjects: s.subjects, chapters: s.chapters, topics: s.topics, subjectOrder: s.subjectOrder, tags: s.tags ?? {}, tagOrder: s.tagOrder ?? [] };
+  return { subjects: s.subjects, chapters: s.chapters, topics: s.topics, subjectOrder: s.subjectOrder, tags: s.tags, tagOrder: s.tagOrder };
 }
 
 export const useStore = create<StoreState>((set, get) => {
@@ -77,7 +77,7 @@ export const useStore = create<StoreState>((set, get) => {
 
     hydrate: async () => {
       const loaded = await repo.load();
-      if (loaded) { set({ ...withBuiltinTagsIfMissing(loaded), history: emptyHistory<AppData>() } as never); return; }
+      if (loaded) { set({ ...normalizeData(loaded), history: emptyHistory<AppData>() } as never); return; }
       const seeded = seedData();
       set({ ...seeded, history: emptyHistory<AppData>() } as never);
       await repo.save(seeded);
@@ -354,27 +354,27 @@ export const useStore = create<StoreState>((set, get) => {
     addTag: (name, color, icon, description) => {
       const id = makeId();
       const s = get();
-      const order = (s.tagOrder ?? []).length;
+      const order = s.tagOrder.length;
       const tag: Tag = { id, name, color, icon, description, order };
-      commit({ tags: { ...(s.tags ?? {}), [id]: tag }, tagOrder: [...(s.tagOrder ?? []), id] });
+      commit({ tags: { ...s.tags, [id]: tag }, tagOrder: [...s.tagOrder, id] });
       return id;
     },
     updateTag: (id, patch) => {
       const s = get();
-      const tag = (s.tags ?? {})[id];
+      const tag = s.tags[id];
       if (!tag) return;
-      commit({ tags: { ...(s.tags ?? {}), [id]: { ...tag, ...patch } } });
+      commit({ tags: { ...s.tags, [id]: { ...tag, ...patch } } });
     },
     deleteTag: (id) => {
       const s = get();
-      if (!(s.tags ?? {})[id]) return;
-      const tags = { ...(s.tags ?? {}) }; delete tags[id];
+      if (!s.tags[id]) return;
+      const tags = { ...s.tags }; delete tags[id];
       const topics = { ...s.topics };
       for (const tid of Object.keys(topics)) {
         const tp = topics[tid];
         if (tp.tagIds?.includes(id)) topics[tid] = { ...tp, tagIds: tp.tagIds.filter((x) => x !== id) };
       }
-      commit({ tags, tagOrder: (s.tagOrder ?? []).filter((x) => x !== id), topics });
+      commit({ tags, tagOrder: s.tagOrder.filter((x) => x !== id), topics });
     },
     toggleTopicTag: (topicId, tagId) => {
       const s = get();

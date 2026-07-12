@@ -78,6 +78,6 @@ export interface AppData {
   chapters: Record<string, Chapter>;
   topics: Record<string, Topic>;
   subjectOrder: string[];
-  tags?: Record<string, Tag>;
-  tagOrder?: string[];
+  tags: Record<string, Tag>;
+  tagOrder: string[];
 }

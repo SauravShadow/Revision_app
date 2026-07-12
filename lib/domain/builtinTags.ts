@@ -19,10 +19,3 @@ export function makeBuiltinTags(): { tags: Record<string, Tag>; tagOrder: string
   });
   return { tags, tagOrder };
 }
-
-// Backfill built-in tags for snapshots saved before tags existed
-// (tagOrder absent). A user who deliberately emptied their tags keeps [].
-export function withBuiltinTagsIfMissing(data: AppData): AppData {
-  if (data.tagOrder === undefined) return { ...data, ...makeBuiltinTags() };
-  return data;
-}

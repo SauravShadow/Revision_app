@@ -39,6 +39,8 @@ describe('filter predicates', () => {
         t1: topic({ id: 't1', chapterId: 'c1', bookmarkedAt: 5 }),
         t2: topic({ id: 't2', chapterId: 'c1' }),
       },
+      tags: {},
+      tagOrder: [],
     };
     const res = matchingTopics(data, { tagIds: [], statuses: ['bookmarked'] }, now);
     expect(res).toHaveLength(1);
