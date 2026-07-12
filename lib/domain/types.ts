@@ -13,6 +13,7 @@ export interface Subject {
   icon: string;
   order: number;
   chapterIds: string[];
+  archivedAt?: number;
 }
 
 export interface Chapter {
@@ -23,6 +24,7 @@ export interface Chapter {
   difficulty: Difficulty;
   priority: Priority;
   topicIds: string[];
+  archivedAt?: number;
 }
 
 export interface Topic {
@@ -36,6 +38,7 @@ export interface Topic {
   revisionHistory: Revision[];
   createdAt: number;
   updatedAt: number;
+  archivedAt?: number;
 }
 
 export interface AppData {
