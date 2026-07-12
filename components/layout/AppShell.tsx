@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ThemeToggle } from './ThemeToggle';
+import { SidebarTree } from './SidebarTree';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -11,7 +12,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <ThemeToggle />
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
+      <div className="mx-auto flex max-w-7xl gap-4 px-4">
+        <SidebarTree />
+        <main className="min-w-0 flex-1 px-2 py-8">{children}</main>
+      </div>
     </div>
   );
 }
