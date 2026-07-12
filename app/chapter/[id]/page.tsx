@@ -1,5 +1,5 @@
 'use client';
-import { use } from 'react';
+import { use, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useStore } from '@/store/useStore';
 import { TopicCard } from '@/components/cards/TopicCard';
@@ -12,6 +12,7 @@ export default function ChapterPage({ params }: { params: Promise<{ id: string }
   const topics = useStore((s) => s.topics);
   const subjects = useStore((s) => s.subjects);
   const addTopic = useStore((s) => s.addTopic);
+  const [justAddedId, setJustAddedId] = useState<string | null>(null);
   if (!chapter) return notFound();
   const subject = subjects[chapter.subjectId];
   return (
@@ -23,10 +24,12 @@ export default function ChapterPage({ params }: { params: Promise<{ id: string }
       ]} />
       <div className="mb-6 mt-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">{chapter.name}</h1>
-        <AddButton label="Topic" onAdd={(title) => addTopic(id, title)} />
+        <AddButton label="Topic" onAdd={(title) => setJustAddedId(addTopic(id, title))} />
       </div>
       <div className="grid gap-3">
-        {chapter.topicIds.map((tid) => topics[tid] && <TopicCard key={tid} topic={topics[tid]} />)}
+        {chapter.topicIds.map((tid) => topics[tid] && !topics[tid].archivedAt && (
+          <TopicCard key={tid} topic={topics[tid]} autoEdit={tid === justAddedId} />
+        ))}
       </div>
     </div>
   );

@@ -1,28 +1,34 @@
 'use client';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import type { Topic } from '@/lib/domain/types';
 import { useStore } from '@/store/useStore';
 import { badgeState, totalRevisions, lastRevisedAt, relativeLabel } from '@/lib/revision/engine';
 import { RevisionBadge } from '@/components/RevisionBadge';
 import { RowActions } from '@/components/RowActions';
+import { InlineEditable } from '@/components/InlineEditable';
 
-export function TopicCard({ topic }: { topic: Topic }) {
-  const { renameTopic, deleteTopic } = useStore.getState();
+export function TopicCard({ topic, autoEdit = false }: { topic: Topic; autoEdit?: boolean }) {
+  const { renameTopic, archiveTopic } = useStore.getState();
+  const [editing, setEditing] = useState(autoEdit);
+  useEffect(() => { if (autoEdit) setEditing(true); }, [autoEdit]);
   const now = Date.now();
   const last = lastRevisedAt(topic.revisionHistory);
-  const rename = () => { const n = window.prompt('Rename topic', topic.title); if (n && n.trim()) renameTopic(topic.id, n.trim()); };
-  const remove = () => { if (window.confirm(`Delete "${topic.title}"?`)) deleteTopic(topic.id); };
+  const remove = () => { if (window.confirm(`Archive "${topic.title}"? You can restore it later.`)) archiveTopic(topic.id); };
   return (
     <Link href={`/topic/${topic.id}`} className="group glass flex items-center justify-between rounded-xl p-4">
-      <div>
-        <div className="font-medium">{topic.title}</div>
+      <div onDoubleClick={(e) => { e.preventDefault(); setEditing(true); }}>
+        <div className="font-medium">
+          <InlineEditable value={topic.title} editing={editing} onEditingChange={setEditing}
+            onCommit={(n) => renameTopic(topic.id, n)} />
+        </div>
         <div className="mt-1 text-xs opacity-60">
           {totalRevisions(topic.revisionHistory)} revisions · {last ? relativeLabel(last, now) : 'not revised yet'}
         </div>
       </div>
       <div className="flex items-center gap-3">
         <RevisionBadge state={badgeState(topic.revisionHistory, now)} />
-        <RowActions onRename={rename} onDelete={remove} />
+        <RowActions onRename={() => setEditing(true)} onDelete={remove} />
       </div>
     </Link>
   );
