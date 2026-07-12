@@ -112,4 +112,30 @@ describe('useStore', () => {
     useStore.getState().moveTopic(t, c);
     expect(useStore.getState().chapters[c].topicIds).toEqual([t]);
   });
+
+  it('undo reverts a structural change; redo re-applies it', () => {
+    const s = useStore.getState().addSubject('S');
+    const c1 = useStore.getState().addChapter(s, 'C1');
+    useStore.getState().addChapter(s, 'C2');
+    expect(useStore.getState().subjects[s].chapterIds).toHaveLength(2);
+    useStore.getState().undo();
+    expect(useStore.getState().subjects[s].chapterIds).toHaveLength(1);
+    expect(useStore.getState().subjects[s].chapterIds).toContain(c1);
+    useStore.getState().redo();
+    expect(useStore.getState().subjects[s].chapterIds).toHaveLength(2);
+  });
+
+  it('editing notes does not create an undo entry', () => {
+    const s = useStore.getState().addSubject('S');
+    const c = useStore.getState().addChapter(s, 'C');
+    const t = useStore.getState().addTopic(c, 'T');
+    const before = useStore.getState().history.past.length;
+    useStore.getState().updateTopicNotes(t, 'hello');
+    expect(useStore.getState().history.past.length).toBe(before);
+  });
+
+  it('marking a mutation sets saveState to saving', () => {
+    useStore.getState().addSubject('S');
+    expect(useStore.getState().saveState).toBe('saving');
+  });
 });

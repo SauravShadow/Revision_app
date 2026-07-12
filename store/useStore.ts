@@ -3,6 +3,7 @@ import type { AppData, Chapter, Subject, Topic } from '@/lib/domain/types';
 import { makeId } from '@/lib/domain/id';
 import { markRevised } from '@/lib/revision/engine';
 import { arrayMove } from '@/lib/util/array';
+import { emptyHistory, record, undo as undoHistory, redo as redoHistory, type History } from './history';
 import { ApiRepository } from '@/lib/repository/ApiRepository';
 import { seedData } from '@/lib/repository/seed';
 
@@ -33,6 +34,10 @@ interface StoreState extends AppData {
   reorderTopics: (activeId: string, overId: string) => void;
   moveChapter: (chapterId: string, toSubjectId: string) => void;
   moveTopic: (topicId: string, toChapterId: string) => void;
+  history: History<AppData>;
+  saveState: 'idle' | 'saving' | 'saved';
+  undo: () => void;
+  redo: () => void;
 }
 
 function snapshot(s: StoreState): AppData {
@@ -40,18 +45,29 @@ function snapshot(s: StoreState): AppData {
 }
 
 export const useStore = create<StoreState>((set, get) => {
-  // persist after every mutation
-  const persist = () => { void repo.save(snapshot(get())); };
-  const commit = (patch: Partial<AppData>) => { set(patch as never); persist(); };
+  const persist = () => {
+    set({ saveState: 'saving' } as never);
+    void repo.save(snapshot(get())).then(() => set({ saveState: 'saved' } as never));
+  };
+  // Structural edits: capture an undo snapshot, then apply + persist.
+  const commit = (patch: Partial<AppData>) => {
+    const prev = snapshot(get());
+    set({ ...patch, history: record(get().history, prev) } as never);
+    persist();
+  };
+  // Non-structural edits (notes, mark-revised): apply + persist, no history.
+  const commitSilent = (patch: Partial<AppData>) => { set(patch as never); persist(); };
 
   return {
     subjects: {}, chapters: {}, topics: {}, subjectOrder: [],
+    history: emptyHistory<AppData>(),
+    saveState: 'idle',
 
     hydrate: async () => {
       const loaded = await repo.load();
-      if (loaded) { set(loaded as never); return; }
+      if (loaded) { set({ ...loaded, history: emptyHistory<AppData>() } as never); return; }
       const seeded = seedData();
-      set(seeded as never);
+      set({ ...seeded, history: emptyHistory<AppData>() } as never);
       await repo.save(seeded);
     },
 
@@ -175,14 +191,14 @@ export const useStore = create<StoreState>((set, get) => {
     updateTopicNotes: (id, notes) => {
       const s = get();
       if (!s.topics[id]) return;
-      commit({ topics: { ...s.topics, [id]: { ...s.topics[id], notes, updatedAt: Date.now() } } });
+      commitSilent({ topics: { ...s.topics, [id]: { ...s.topics[id], notes, updatedAt: Date.now() } } });
     },
 
     markTopicRevised: (id) => {
       const s = get();
       const topic = s.topics[id];
       if (!topic) return;
-      commit({ topics: { ...s.topics, [id]: markRevised(topic, Date.now()) } });
+      commitSilent({ topics: { ...s.topics, [id]: markRevised(topic, Date.now()) } });
     },
 
     archiveSubject: (id) => {
@@ -276,6 +292,19 @@ export const useStore = create<StoreState>((set, get) => {
       if (source) chapters[source.id] = { ...source, topicIds: source.topicIds.filter((x) => x !== topicId) };
       chapters[target.id] = { ...target, topicIds: [...target.topicIds, topicId] };
       commit({ chapters, topics: { ...s.topics, [topicId]: { ...topic, chapterId: toChapterId } } });
+    },
+
+    undo: () => {
+      const res = undoHistory(get().history, snapshot(get()));
+      if (!res) return;
+      set({ ...res.present, history: res.history } as never);
+      persist();
+    },
+    redo: () => {
+      const res = redoHistory(get().history, snapshot(get()));
+      if (!res) return;
+      set({ ...res.present, history: res.history } as never);
+      persist();
     },
   };
 });
