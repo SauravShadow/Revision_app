@@ -10,14 +10,36 @@ describe('seedData', () => {
       expect(data.subjects[id]).toBeDefined();
     }
   });
-  it('starts with no chapters or topics', () => {
+
+  it('seeds chapters and topics for the syllabus', () => {
     const data = seedData();
-    expect(Object.keys(data.chapters)).toHaveLength(0);
-    expect(Object.keys(data.topics)).toHaveLength(0);
+    expect(Object.keys(data.chapters).length).toBeGreaterThan(0);
+    expect(Object.keys(data.topics).length).toBeGreaterThan(0);
   });
-  it('includes Fluid Mechanics', () => {
+
+  it('has referential integrity across the hierarchy', () => {
     const data = seedData();
-    const names = Object.values(data.subjects).map((s) => s.name);
-    expect(names).toContain('Fluid Mechanics');
+    for (const sid of data.subjectOrder) {
+      const subject = data.subjects[sid];
+      expect(subject.chapterIds.length).toBeGreaterThan(0);
+      for (const cid of subject.chapterIds) {
+        const chapter = data.chapters[cid];
+        expect(chapter).toBeDefined();
+        expect(chapter.subjectId).toBe(sid);
+        expect(chapter.topicIds.length).toBeGreaterThan(0);
+        for (const tid of chapter.topicIds) {
+          const topic = data.topics[tid];
+          expect(topic).toBeDefined();
+          expect(topic.chapterId).toBe(cid);
+        }
+      }
+    }
+  });
+
+  it('includes key ESE subjects', () => {
+    const names = Object.values(seedData().subjects).map((s) => s.name);
+    expect(names).toContain('Structural Analysis');
+    expect(names).toContain('Environmental Engineering');
+    expect(names).toContain('Transportation Engineering');
   });
 });
