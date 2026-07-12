@@ -27,6 +27,25 @@ export interface Chapter {
   archivedAt?: number;
 }
 
+export type AttachmentKind = 'image' | 'pdf' | 'link' | 'video';
+
+export interface Attachment {
+  id: string;
+  name: string;
+  kind: AttachmentKind;
+  url: string;        // '/api/files/<id>' for uploads; external URL otherwise
+  mime?: string;
+  size?: number;
+  createdAt: number;
+}
+
+export interface Flashcard {
+  id: string;
+  front: string;
+  back: string;
+  createdAt: number;
+}
+
 export interface Topic {
   id: string;
   chapterId: string;
@@ -39,6 +58,9 @@ export interface Topic {
   createdAt: number;
   updatedAt: number;
   archivedAt?: number;
+  attachments?: Attachment[];
+  flashcards?: Flashcard[];
+  bookmarkedAt?: number;
 }
 
 export interface AppData {
