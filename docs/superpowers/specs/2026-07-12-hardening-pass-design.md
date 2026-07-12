@@ -33,7 +33,7 @@ Fix the correctness, security, and data-integrity defects found in the review wi
 
 ## 1. File API security (H1)
 
-Add `isValidBlobId(id: string): boolean` in `lib/repository/fileBlobStore.ts` — a strict UUID-shape check matching what `makeId()` produces (`/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i`).
+Add `isValidBlobId(id: string): boolean` in `lib/repository/fileBlobStore.ts` — a strict charset check (`/^[A-Za-z0-9-]{1,64}$/`) covering both UUID ids and the base36 fallback `makeId()` can produce; `.`/`/` are excluded so traversal is impossible.
 
 - `app/api/files/[id]/route.ts`: GET and DELETE return 400 for invalid ids before touching the filesystem.
 - `readBlob` / `deleteBlob` also reject invalid ids (return `null` / no-op) as defense in depth.
