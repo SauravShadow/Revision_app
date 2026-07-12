@@ -9,6 +9,7 @@ import { SaveQueue, type SaveStatus } from './saveQueue';
 import { ApiRepository } from '@/lib/repository/ApiRepository';
 import { seedData } from '@/lib/repository/seed';
 import type { RevisionRepository } from '@/lib/repository/RevisionRepository';
+import { preserveSilentFields } from './silentFields';
 
 interface StoreState extends AppData {
   hydrate: () => Promise<void>;
@@ -396,13 +397,13 @@ export function createRevisionStore(repo: RevisionRepository) {
       undo: () => {
         const res = undoHistory(get().history, snapshot(get()));
         if (!res) return;
-        set({ ...res.present, history: res.history });
+        set({ ...preserveSilentFields(res.present, snapshot(get())), history: res.history });
         persist();
       },
       redo: () => {
         const res = redoHistory(get().history, snapshot(get()));
         if (!res) return;
-        set({ ...res.present, history: res.history });
+        set({ ...preserveSilentFields(res.present, snapshot(get())), history: res.history });
         persist();
       },
       flushSave: () => queue.flush(),

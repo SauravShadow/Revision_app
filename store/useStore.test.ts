@@ -243,4 +243,25 @@ describe('useStore', () => {
       vi.useRealTimers();
     }
   });
+
+  it('undo reverts structure but keeps notes typed after the snapshot', () => {
+    const s = useStore.getState().addSubject('S');
+    const c = useStore.getState().addChapter(s, 'C');
+    const t = useStore.getState().addTopic(c, 'T');
+    useStore.getState().addChapter(s, 'C2'); // structural change to undo
+    useStore.getState().updateTopicNotes(t, 'my notes'); // silent edit
+    useStore.getState().undo();
+    expect(useStore.getState().subjects[s].chapterIds).toHaveLength(1);
+    expect(useStore.getState().topics[t].notes).toBe('my notes');
+  });
+
+  it('mark-revised survives undo of a later structural change', () => {
+    const s = useStore.getState().addSubject('S');
+    const c = useStore.getState().addChapter(s, 'C');
+    const t = useStore.getState().addTopic(c, 'T');
+    useStore.getState().addChapter(s, 'C2');
+    useStore.getState().markTopicRevised(t); // silent edit
+    useStore.getState().undo();
+    expect(useStore.getState().topics[t].revisionHistory).toHaveLength(1);
+  });
 });
