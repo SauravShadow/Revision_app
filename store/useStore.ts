@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import type { AppData, Attachment, Chapter, Flashcard, Subject, Topic } from '@/lib/domain/types';
+import type { AppData, Attachment, Chapter, Flashcard, Subject, Tag, Topic } from '@/lib/domain/types';
 import { makeId } from '@/lib/domain/id';
+import { withBuiltinTagsIfMissing } from '@/lib/domain/builtinTags';
 import { markRevised } from '@/lib/revision/engine';
 import { arrayMove } from '@/lib/util/array';
 import { emptyHistory, record, undo as undoHistory, redo as redoHistory, type History } from './history';
@@ -47,7 +48,7 @@ interface StoreState extends AppData {
 }
 
 function snapshot(s: StoreState): AppData {
-  return { subjects: s.subjects, chapters: s.chapters, topics: s.topics, subjectOrder: s.subjectOrder };
+  return { subjects: s.subjects, chapters: s.chapters, topics: s.topics, subjectOrder: s.subjectOrder, tags: s.tags ?? {}, tagOrder: s.tagOrder ?? [] };
 }
 
 export const useStore = create<StoreState>((set, get) => {
@@ -66,12 +67,13 @@ export const useStore = create<StoreState>((set, get) => {
 
   return {
     subjects: {}, chapters: {}, topics: {}, subjectOrder: [],
+    tags: {}, tagOrder: [],
     history: emptyHistory<AppData>(),
     saveState: 'idle',
 
     hydrate: async () => {
       const loaded = await repo.load();
-      if (loaded) { set({ ...loaded, history: emptyHistory<AppData>() } as never); return; }
+      if (loaded) { set({ ...withBuiltinTagsIfMissing(loaded), history: emptyHistory<AppData>() } as never); return; }
       const seeded = seedData();
       set({ ...seeded, history: emptyHistory<AppData>() } as never);
       await repo.save(seeded);

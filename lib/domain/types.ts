@@ -16,6 +16,15 @@ export interface Subject {
   archivedAt?: number;
 }
 
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+  icon: string;
+  description?: string;
+  order: number;
+}
+
 export interface Chapter {
   id: string;
   subjectId: string;
@@ -61,6 +70,7 @@ export interface Topic {
   attachments?: Attachment[];
   flashcards?: Flashcard[];
   bookmarkedAt?: number;
+  tagIds?: string[];
 }
 
 export interface AppData {
@@ -68,4 +78,6 @@ export interface AppData {
   chapters: Record<string, Chapter>;
   topics: Record<string, Topic>;
   subjectOrder: string[];
+  tags?: Record<string, Tag>;
+  tagOrder?: string[];
 }

@@ -36,6 +36,14 @@ describe('seedData', () => {
     }
   });
 
+  it('seeds the built-in tags', () => {
+    const data = seedData();
+    expect(data.tagOrder?.length).toBeGreaterThan(0);
+    const names = Object.values(data.tags ?? {}).map((t) => t.name);
+    expect(names).toContain('Formula');
+    expect(names).toContain('PYQ');
+  });
+
   it('includes key ESE subjects', () => {
     const names = Object.values(seedData().subjects).map((s) => s.name);
     expect(names).toContain('Structural Analysis');

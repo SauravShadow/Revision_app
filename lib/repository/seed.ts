@@ -1,5 +1,6 @@
 import type { AppData, Chapter, Subject, Topic } from '@/lib/domain/types';
 import { makeId } from '@/lib/domain/id';
+import { makeBuiltinTags } from '@/lib/domain/builtinTags';
 
 // Source of truth: docs/ESE-Civil-Engineering-Syllabus.md (UPSC ESE Civil, 2026).
 // 12 technical subjects + General Studies & Engineering Aptitude (Prelims Paper I).
@@ -386,5 +387,6 @@ export function seedData(): AppData {
     subjectOrder.push(sid);
   });
 
-  return { subjects, chapters, topics, subjectOrder };
+  const { tags, tagOrder } = makeBuiltinTags();
+  return { subjects, chapters, topics, subjectOrder, tags, tagOrder };
 }
