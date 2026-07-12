@@ -38,3 +38,18 @@ body {
 @media (prefers-color-scheme: light) {
   .gradient-border { --card-bg: rgba(255,255,255,0.7); }
 }
+
+/* Callouts */
+.callout { border-left: 3px solid; border-radius: 0.5rem; padding: 0.6rem 0.8rem; background: rgba(255,255,255,0.03); }
+.callout-note { border-color: #38bdf8; }
+.callout-tip { border-color: #34d399; }
+.callout-warning { border-color: #fbbf24; }
+.callout-danger { border-color: #f87171; }
+
+/* Minimal highlight.js token theme (rehype-highlight adds .hljs-* classes) */
+.hljs-keyword, .hljs-selector-tag, .hljs-built_in { color: #c792ea; }
+.hljs-string, .hljs-attr { color: #c3e88d; }
+.hljs-number, .hljs-literal { color: #f78c6c; }
+.hljs-comment { color: #7f848e; font-style: italic; }
+.hljs-title, .hljs-function .hljs-title, .hljs-section { color: #82aaff; }
+.hljs-type, .hljs-class .hljs-title { color: #ffcb6b; }
