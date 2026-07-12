@@ -8,6 +8,10 @@ import { AddButton } from '@/components/AddButton';
 import { Breadcrumb } from '@/components/layout/Breadcrumb';
 import { SortableRow } from '@/components/dnd/SortableRow';
 import { dragId } from '@/components/dnd/ids';
+import { useFilters } from '@/store/useFilters';
+import { matchingTopics, hasActiveFilters } from '@/lib/filters/predicates';
+import { FilterBar } from '@/components/FilterBar';
+import { TopicResultRow } from '@/components/TopicResultRow';
 
 export default function ChapterPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -15,6 +19,9 @@ export default function ChapterPage({ params }: { params: Promise<{ id: string }
   const topics = useStore((s) => s.topics);
   const subjects = useStore((s) => s.subjects);
   const addTopic = useStore((s) => s.addTopic);
+  const data = useStore();
+  const { tagIds, statuses } = useFilters();
+  const filters = { tagIds, statuses };
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
   if (!chapter) return notFound();
   const subject = subjects[chapter.subjectId];
@@ -29,18 +36,27 @@ export default function ChapterPage({ params }: { params: Promise<{ id: string }
         <h1 className="text-2xl font-bold">{chapter.name}</h1>
         <AddButton label="Topic" onAdd={(title) => setJustAddedId(addTopic(id, title))} />
       </div>
-      <SortableContext
-        items={chapter.topicIds.filter((tid) => topics[tid] && !topics[tid].archivedAt).map((tid) => dragId('topic', tid))}
-        strategy={verticalListSortingStrategy}
-      >
+      <FilterBar />
+      {hasActiveFilters(filters) ? (
         <div className="grid gap-3">
-          {chapter.topicIds.map((tid) => topics[tid] && !topics[tid].archivedAt && (
-            <SortableRow key={tid} id={dragId('topic', tid)}>
-              <TopicCard topic={topics[tid]} autoEdit={tid === justAddedId} />
-            </SortableRow>
+          {matchingTopics(data, filters, Date.now(), { chapterId: id }).map(({ topic, subject: subj, chapter: ch }) => (
+            <TopicResultRow key={topic.id} topic={topic} subject={subj} chapter={ch} />
           ))}
         </div>
-      </SortableContext>
+      ) : (
+        <SortableContext
+          items={chapter.topicIds.filter((tid) => topics[tid] && !topics[tid].archivedAt).map((tid) => dragId('topic', tid))}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="grid gap-3">
+            {chapter.topicIds.map((tid) => topics[tid] && !topics[tid].archivedAt && (
+              <SortableRow key={tid} id={dragId('topic', tid)}>
+                <TopicCard topic={topics[tid]} autoEdit={tid === justAddedId} />
+              </SortableRow>
+            ))}
+          </div>
+        </SortableContext>
+      )}
     </div>
   );
 }
