@@ -5,6 +5,7 @@ import { CheckCircle2 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { MarkdownEditor } from '@/components/editor/MarkdownEditor';
 import { RevisionHistoryPanel } from '@/components/RevisionHistoryPanel';
+import { AttachmentsPanel } from '@/components/AttachmentsPanel';
 import { RevisionBadge } from '@/components/RevisionBadge';
 import { Breadcrumb } from '@/components/layout/Breadcrumb';
 import { badgeState } from '@/lib/revision/engine';
@@ -39,7 +40,10 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
       </div>
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <MarkdownEditor value={topic.notes} onChange={(v) => updateTopicNotes(topic.id, v)} topicId={topic.id} />
-        <RevisionHistoryPanel topic={topic} />
+        <div className="space-y-4">
+          <RevisionHistoryPanel topic={topic} />
+          <AttachmentsPanel topic={topic} />
+        </div>
       </div>
     </div>
   );

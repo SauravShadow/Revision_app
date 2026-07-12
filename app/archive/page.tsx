@@ -12,6 +12,13 @@ export default function ArchivePage() {
   const topics = Object.values(data.topics).filter((t) => t.archivedAt);
   const empty = subjects.length + chapters.length + topics.length === 0;
 
+  const purgeTopicBlobs = (topicId: string) => {
+    const t = data.topics[topicId];
+    (t?.attachments ?? []).filter((a) => a.url.startsWith('/api/files/')).forEach((a) => {
+      void fetch(`/api/files/${a.id}`, { method: 'DELETE' });
+    });
+  };
+
   const Row = ({ label, kind, onRestore, onPurge }: {
     label: string; kind: string; onRestore: () => void; onPurge: () => void;
   }) => (
@@ -48,7 +55,7 @@ export default function ArchivePage() {
           {topics.map((t) => (
             <Row key={t.id} label={t.title} kind="Topic"
               onRestore={() => store.restoreTopic(t.id)}
-              onPurge={() => { if (window.confirm(`Permanently delete "${t.title}"?`)) store.deleteTopic(t.id); }} />
+              onPurge={() => { if (window.confirm(`Permanently delete "${t.title}"?`)) { purgeTopicBlobs(t.id); store.deleteTopic(t.id); } }} />
           ))}
         </div>
       )}
