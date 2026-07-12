@@ -11,5 +11,5 @@ it('renders chapter name and topic count', () => {
   useStore.getState().addTopic(c, 'Bernoulli');
   render(<ChapterCard chapter={useStore.getState().chapters[c]} />);
   expect(screen.getByText('Flow through Pipes')).toBeInTheDocument();
-  expect(screen.getByText(/1 topic/)).toBeInTheDocument();
+  expect(screen.getByText(/1 TOPIC/)).toBeInTheDocument();
 });
