@@ -3,19 +3,24 @@ import { inGoodStanding, lastRevisedAt } from './engine';
 
 export function chapterProgress(data: AppData, chapterId: string, now: number): number {
   const chapter = data.chapters[chapterId];
-  if (!chapter || chapter.topicIds.length === 0) return 0;
-  const good = chapter.topicIds.filter((tid) => {
-    const t = data.topics[tid];
-    return t && inGoodStanding(t.revisionHistory, now);
-  }).length;
-  return Math.round((good / chapter.topicIds.length) * 100);
+  if (!chapter) return 0;
+  const topics = chapter.topicIds
+    .map((tid) => data.topics[tid])
+    .filter((t) => t && !t.archivedAt);
+  if (topics.length === 0) return 0;
+  const good = topics.filter((t) => inGoodStanding(t.revisionHistory, now)).length;
+  return Math.round((good / topics.length) * 100);
 }
 
 export function subjectProgress(data: AppData, subjectId: string, now: number): number {
   const subject = data.subjects[subjectId];
-  if (!subject || subject.chapterIds.length === 0) return 0;
-  const total = subject.chapterIds.reduce((sum, cid) => sum + chapterProgress(data, cid, now), 0);
-  return Math.round(total / subject.chapterIds.length);
+  if (!subject) return 0;
+  const chapters = subject.chapterIds
+    .map((cid) => data.chapters[cid])
+    .filter((c) => c && !c.archivedAt);
+  if (chapters.length === 0) return 0;
+  const total = chapters.reduce((sum, c) => sum + chapterProgress(data, c.id, now), 0);
+  return Math.round(total / chapters.length);
 }
 
 export function subjectStats(
@@ -25,16 +30,18 @@ export function subjectStats(
   if (!subject) return { chapterCount: 0, pending: 0, lastRevised: undefined };
   let pending = 0;
   let lastRevised: number | undefined;
+  let chapterCount = 0;
   for (const cid of subject.chapterIds) {
     const chapter = data.chapters[cid];
-    if (!chapter) continue;
+    if (!chapter || chapter.archivedAt) continue;
+    chapterCount += 1;
     for (const tid of chapter.topicIds) {
       const t = data.topics[tid];
-      if (!t) continue;
+      if (!t || t.archivedAt) continue;
       if (!inGoodStanding(t.revisionHistory, now)) pending += 1;
       const lr = lastRevisedAt(t.revisionHistory);
       if (lr !== undefined && (lastRevised === undefined || lr > lastRevised)) lastRevised = lr;
     }
   }
-  return { chapterCount: subject.chapterIds.length, pending, lastRevised };
+  return { chapterCount, pending, lastRevised };
 }

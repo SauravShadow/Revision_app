@@ -21,6 +21,12 @@ interface StoreState extends AppData {
   deleteTopic: (id: string) => void;
   updateTopicNotes: (id: string, notes: string) => void;
   markTopicRevised: (id: string) => void;
+  archiveSubject: (id: string) => void;
+  restoreSubject: (id: string) => void;
+  archiveChapter: (id: string) => void;
+  restoreChapter: (id: string) => void;
+  archiveTopic: (id: string) => void;
+  restoreTopic: (id: string) => void;
 }
 
 function snapshot(s: StoreState): AppData {
@@ -171,6 +177,43 @@ export const useStore = create<StoreState>((set, get) => {
       const topic = s.topics[id];
       if (!topic) return;
       commit({ topics: { ...s.topics, [id]: markRevised(topic, Date.now()) } });
+    },
+
+    archiveSubject: (id) => {
+      const s = get();
+      if (!s.subjects[id]) return;
+      commit({ subjects: { ...s.subjects, [id]: { ...s.subjects[id], archivedAt: Date.now() } } });
+    },
+    restoreSubject: (id) => {
+      const s = get();
+      if (!s.subjects[id]) return;
+      const { archivedAt: _drop, ...rest } = s.subjects[id];
+      void _drop;
+      commit({ subjects: { ...s.subjects, [id]: rest } });
+    },
+    archiveChapter: (id) => {
+      const s = get();
+      if (!s.chapters[id]) return;
+      commit({ chapters: { ...s.chapters, [id]: { ...s.chapters[id], archivedAt: Date.now() } } });
+    },
+    restoreChapter: (id) => {
+      const s = get();
+      if (!s.chapters[id]) return;
+      const { archivedAt: _drop, ...rest } = s.chapters[id];
+      void _drop;
+      commit({ chapters: { ...s.chapters, [id]: rest } });
+    },
+    archiveTopic: (id) => {
+      const s = get();
+      if (!s.topics[id]) return;
+      commit({ topics: { ...s.topics, [id]: { ...s.topics[id], archivedAt: Date.now() } } });
+    },
+    restoreTopic: (id) => {
+      const s = get();
+      if (!s.topics[id]) return;
+      const { archivedAt: _drop, ...rest } = s.topics[id];
+      void _drop;
+      commit({ topics: { ...s.topics, [id]: rest } });
     },
   };
 });

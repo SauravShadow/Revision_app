@@ -52,4 +52,23 @@ describe('useStore', () => {
     expect(state.chapters[copyId].topicIds).toHaveLength(1);
     expect(state.chapters[copyId].topicIds[0]).not.toBe(state.chapters[chapterId].topicIds[0]);
   });
+
+  it('archiveTopic sets archivedAt and restoreTopic clears it', () => {
+    const s = useStore.getState().addSubject('S');
+    const c = useStore.getState().addChapter(s, 'C');
+    const t = useStore.getState().addTopic(c, 'T');
+    useStore.getState().archiveTopic(t);
+    expect(useStore.getState().topics[t].archivedAt).toBeTypeOf('number');
+    useStore.getState().restoreTopic(t);
+    expect(useStore.getState().topics[t].archivedAt).toBeUndefined();
+  });
+
+  it('archiveChapter then restoreChapter round-trips archivedAt', () => {
+    const s = useStore.getState().addSubject('S');
+    const c = useStore.getState().addChapter(s, 'C');
+    useStore.getState().archiveChapter(c);
+    expect(useStore.getState().chapters[c].archivedAt).toBeTypeOf('number');
+    useStore.getState().restoreChapter(c);
+    expect(useStore.getState().chapters[c].archivedAt).toBeUndefined();
+  });
 });

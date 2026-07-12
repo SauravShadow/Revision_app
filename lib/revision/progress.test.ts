@@ -30,3 +30,18 @@ describe('progress', () => {
     expect(subjectProgress(fixture(), 's1', now)).toBe(50);
   });
 });
+
+describe('progress ignores archived entities', () => {
+  it('excludes an archived topic from chapter progress', () => {
+    const data = fixture();
+    // t2 (never revised) is archived -> only t1 counts, which is in good standing -> 100%
+    data.topics.t2.archivedAt = 1;
+    expect(chapterProgress(data, 'c1', now)).toBe(100);
+  });
+  it('excludes an archived chapter from subject progress', () => {
+    const data = fixture();
+    data.chapters.c1.archivedAt = 1;
+    // the subject has no non-archived chapters -> 0
+    expect(subjectProgress(data, 's1', now)).toBe(0);
+  });
+});
