@@ -6,6 +6,7 @@ import { useStore } from '@/store/useStore';
 import { MarkdownEditor } from '@/components/editor/MarkdownEditor';
 import { RevisionHistoryPanel } from '@/components/RevisionHistoryPanel';
 import { AttachmentsPanel } from '@/components/AttachmentsPanel';
+import { FlashcardsPanel } from '@/components/FlashcardsPanel';
 import { RevisionBadge } from '@/components/RevisionBadge';
 import { Breadcrumb } from '@/components/layout/Breadcrumb';
 import { badgeState } from '@/lib/revision/engine';
@@ -43,6 +44,7 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
         <div className="space-y-4">
           <RevisionHistoryPanel topic={topic} />
           <AttachmentsPanel topic={topic} />
+          <FlashcardsPanel topic={topic} />
         </div>
       </div>
     </div>
