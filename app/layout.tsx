@@ -5,6 +5,7 @@ import './globals.css';
 import { StoreHydrator } from '@/components/StoreHydrator';
 import { DndProvider } from '@/components/dnd/DndProvider';
 import { AppShell } from '@/components/layout/AppShell';
+import { AuthProvider } from '@/components/AuthProvider';
 
 // Blueprint Drafting type system: an engineered grotesque for structure,
 // a technical monospace for every label, dimension and data readout.
@@ -20,18 +21,21 @@ const plexMono = IBM_Plex_Mono({
   display: 'swap',
 });
 
-export const metadata: Metadata = { title: 'CE ESE Revision Manager', description: 'Track your Civil Engineering revision.' };
+export const metadata: Metadata = { title: 'Revision Manager', description: 'Track your exam revision — Civil Engineering, Software Engineering & more.' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`dark ${archivo.variable} ${plexMono.variable}`}>
       <body className="bg-ground text-ink antialiased">
-        <StoreHydrator>
-          <DndProvider>
-            <AppShell>{children}</AppShell>
-          </DndProvider>
-        </StoreHydrator>
+        <AuthProvider>
+          <StoreHydrator>
+            <DndProvider>
+              <AppShell>{children}</AppShell>
+            </DndProvider>
+          </StoreHydrator>
+        </AuthProvider>
       </body>
     </html>
   );
 }
+

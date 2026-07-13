@@ -2,15 +2,24 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import type { AppData } from '@/lib/domain/types';
 
-// Server-only snapshot store. One JSON blob on disk (Docker-volume friendly).
-// Swap for a real DB later without touching the RevisionRepository contract.
-export function dataFilePath(): string {
-  return process.env.DATA_FILE || path.join(process.cwd(), 'data', 'appdata.json');
+// Server-only snapshot store. JSON blob(s) on disk (Docker-volume friendly).
+// Per-user: data/users/<userId>/appdata.json
+// Legacy single-user (no userId): uses DATA_FILE env or data/appdata.json
+function dataRoot(): string {
+  return process.env.DATA_DIR ?? path.join(process.cwd(), 'data');
 }
 
-export async function readData(): Promise<AppData | null> {
+export function dataFilePath(userId?: string): string {
+  if (userId) {
+    return path.join(dataRoot(), 'users', userId, 'appdata.json');
+  }
+  // Backwards-compat: honours DATA_FILE env or falls back to data/appdata.json
+  return process.env.DATA_FILE ?? path.join(dataRoot(), 'appdata.json');
+}
+
+export async function readData(userId?: string): Promise<AppData | null> {
   try {
-    const raw = await fs.readFile(dataFilePath(), 'utf8');
+    const raw = await fs.readFile(dataFilePath(userId), 'utf8');
     if (!raw) return null;
     return JSON.parse(raw) as AppData;
   } catch {
@@ -19,8 +28,8 @@ export async function readData(): Promise<AppData | null> {
   }
 }
 
-export async function writeData(data: AppData): Promise<void> {
-  const file = dataFilePath();
+export async function writeData(data: AppData, userId?: string): Promise<void> {
+  const file = dataFilePath(userId);
   await fs.mkdir(path.dirname(file), { recursive: true });
   // Atomic write: write to a temp file then rename, so a crash mid-write
   // never leaves a half-written snapshot.

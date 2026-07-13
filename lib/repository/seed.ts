@@ -428,3 +428,304 @@ export function seedData(): AppData {
   const { tags, tagOrder } = makeBuiltinTags();
   return { subjects, chapters, topics, subjectOrder, tags, tagOrder };
 }
+
+// ── Software Engineering / GATE CS seed ──────────────────────────────────────
+
+const SE_SYLLABUS: SeedSubject[] = [
+  {
+    name: 'Data Structures & Algorithms',
+    color: '#6366f1',
+    icon: 'GitBranch',
+    chapters: [
+      {
+        name: 'Linear Data Structures',
+        topics: [
+          'Arrays — static & dynamic, operations, complexity',
+          'Linked Lists — singly, doubly, circular',
+          'Stacks — implementation, applications (balanced parentheses, infix→postfix)',
+          'Queues — circular queue, deque, priority queue',
+        ],
+      },
+      {
+        name: 'Non-Linear Data Structures',
+        topics: [
+          'Trees — binary tree, traversals (inorder/preorder/postorder), height',
+          'Binary Search Tree — insert, delete, search, balancing',
+          'AVL Trees — rotations, balance factor',
+          'Heaps — max-heap, min-heap, heapify, heap sort',
+          'Graphs — representations (adjacency matrix/list), BFS, DFS',
+        ],
+      },
+      {
+        name: 'Searching & Sorting',
+        topics: [
+          'Sorting — bubble, selection, insertion, merge, quick, counting, radix',
+          'Searching — linear, binary, interpolation, exponential',
+          'Divide & Conquer — master theorem, recurrence relations',
+        ],
+      },
+      {
+        name: 'Advanced Algorithms',
+        topics: [
+          'Dynamic Programming — memoization vs tabulation, 0/1 knapsack, LCS, LIS',
+          'Greedy Algorithms — activity selection, Huffman coding, fractional knapsack',
+          'Backtracking — N-Queens, Sudoku solver, subset sum',
+          'Graph Algorithms — Dijkstra, Bellman-Ford, Floyd-Warshall, Prim, Kruskal',
+          'Hashing — hash functions, collision resolution (chaining, open addressing)',
+        ],
+      },
+    ],
+  },
+  {
+    name: 'Operating Systems',
+    color: '#f97316',
+    icon: 'Cpu',
+    chapters: [
+      {
+        name: 'Process Management',
+        topics: [
+          'Process vs Thread — PCB, context switching, process states',
+          'CPU Scheduling — FCFS, SJF, Round Robin, Priority, MLFQ',
+          'Synchronization — race conditions, mutex, semaphores, monitors',
+          'Deadlocks — conditions, prevention, avoidance (Banker\'s Algorithm), detection',
+        ],
+      },
+      {
+        name: 'Memory Management',
+        topics: [
+          'Memory Allocation — contiguous, fragmentation, compaction',
+          'Paging — page tables, TLB, multi-level paging',
+          'Segmentation — segmentation with paging',
+          'Virtual Memory — demand paging, page replacement (FIFO, LRU, Optimal)',
+          'Thrashing — working set model',
+        ],
+      },
+      {
+        name: 'Storage & I/O',
+        topics: [
+          'File Systems — FAT, inode, directory structures',
+          'Disk Scheduling — FCFS, SSTF, SCAN, C-SCAN',
+          'I/O Systems — DMA, buffering, caching, spooling',
+        ],
+      },
+    ],
+  },
+  {
+    name: 'Database Management Systems',
+    color: '#10b981',
+    icon: 'Database',
+    chapters: [
+      {
+        name: 'Relational Model & SQL',
+        topics: [
+          'ER Model — entities, attributes, relationships, ER to relational mapping',
+          'Relational Algebra — select, project, join, union, difference',
+          'SQL — DDL, DML, DCL; joins, subqueries, aggregate functions',
+          'Views, Triggers, Stored Procedures',
+        ],
+      },
+      {
+        name: 'Normalization',
+        topics: [
+          'Functional Dependencies — Armstrong\'s axioms, closure',
+          'Normal Forms — 1NF, 2NF, 3NF, BCNF',
+          'Decomposition — lossless join, dependency preservation',
+        ],
+      },
+      {
+        name: 'Transactions & Concurrency',
+        topics: [
+          'ACID Properties',
+          'Transaction States — active, committed, aborted',
+          'Concurrency Control — locks (S/X), two-phase locking, deadlock in DB',
+          'Isolation Levels — read uncommitted to serializable',
+          'Recovery — undo/redo logs, checkpointing',
+        ],
+      },
+      {
+        name: 'Indexing & Storage',
+        topics: [
+          'B-Tree and B+ Tree — structure, operations, use in DBMS',
+          'Indexing — dense vs sparse, clustered vs unclustered',
+          'Query Optimization — cost estimation, query plan, heuristics',
+        ],
+      },
+    ],
+  },
+  {
+    name: 'Computer Networks',
+    color: '#3b82f6',
+    icon: 'Network',
+    chapters: [
+      {
+        name: 'Network Layers (OSI / TCP-IP)',
+        topics: [
+          'OSI Model — 7 layers, responsibilities, protocols at each layer',
+          'TCP/IP Model — 4 layers, comparison with OSI',
+          'Physical Layer — encoding, transmission media, multiplexing',
+          'Data Link Layer — framing, error detection (CRC), flow control, MAC',
+        ],
+      },
+      {
+        name: 'Network & Transport Layer',
+        topics: [
+          'IP Addressing — IPv4, subnetting, CIDR, NAT',
+          'IPv6 — address format, transition mechanisms',
+          'Routing — RIP, OSPF, BGP, distance vector vs link state',
+          'TCP vs UDP — connection management, congestion control, reliable delivery',
+          'Flow Control — sliding window, stop-and-wait, Go-Back-N, selective repeat',
+        ],
+      },
+      {
+        name: 'Application Layer & Security',
+        topics: [
+          'DNS — resolution, record types',
+          'HTTP/HTTPS — request/response, REST principles',
+          'SMTP, FTP, SSH — protocol basics',
+          'Network Security — SSL/TLS, public key cryptography, firewalls',
+          'Wireless — Wi-Fi standards, CSMA/CA',
+        ],
+      },
+    ],
+  },
+  {
+    name: 'System Design',
+    color: '#8b5cf6',
+    icon: 'LayoutDashboard',
+    chapters: [
+      {
+        name: 'Scalability Concepts',
+        topics: [
+          'Horizontal vs Vertical Scaling',
+          'Load Balancing — round robin, least connections, consistent hashing',
+          'Caching — cache invalidation, eviction policies, Redis vs Memcached',
+          'CDN — content delivery, edge caching',
+          'Database Sharding — range, hash, directory-based',
+        ],
+      },
+      {
+        name: 'Distributed Systems',
+        topics: [
+          'CAP Theorem — consistency, availability, partition tolerance',
+          'Eventual Consistency — BASE model',
+          'Message Queues — Kafka, RabbitMQ — pub/sub, producer-consumer',
+          'Service Discovery & API Gateway',
+          'Microservices vs Monolith — trade-offs',
+        ],
+      },
+      {
+        name: 'Design Case Studies',
+        topics: [
+          'URL Shortener (e.g. bit.ly)',
+          'Rate Limiter — token bucket, leaky bucket',
+          'Distributed Cache',
+          'Social Media Feed — fanout on write vs read',
+          'Search Autocomplete — trie, top-k',
+        ],
+      },
+    ],
+  },
+  {
+    name: 'Object-Oriented Programming',
+    color: '#ec4899',
+    icon: 'Boxes',
+    chapters: [
+      {
+        name: 'OOP Principles',
+        topics: [
+          'Encapsulation, Abstraction, Inheritance, Polymorphism',
+          'Classes & Objects — constructors, destructors, access modifiers',
+          'Interfaces & Abstract Classes',
+          'Method Overloading vs Overriding',
+          'SOLID Principles',
+        ],
+      },
+      {
+        name: 'Design Patterns',
+        topics: [
+          'Creational — Singleton, Factory, Builder, Prototype',
+          'Structural — Adapter, Decorator, Facade, Proxy',
+          'Behavioral — Observer, Strategy, Command, Iterator',
+        ],
+      },
+    ],
+  },
+  {
+    name: 'Theory of Computation',
+    color: '#14b8a6',
+    icon: 'BrainCircuit',
+    chapters: [
+      {
+        name: 'Automata Theory',
+        topics: [
+          'DFA — construction, minimization',
+          'NFA — equivalence to DFA, ε-NFA',
+          'Regular Expressions — to DFA/NFA conversion',
+          'Context-Free Grammars — derivations, parse trees',
+          'Pushdown Automata — acceptance by empty stack / final state',
+        ],
+      },
+      {
+        name: 'Computability & Complexity',
+        topics: [
+          'Turing Machines — variants, Church-Turing thesis',
+          'Decidability — halting problem, reduction',
+          'P vs NP — NP-complete, NP-hard problems',
+          'Complexity Classes — P, NP, PSPACE, co-NP',
+        ],
+      },
+    ],
+  },
+];
+
+/** Build a fresh AppData seeded for a given domain. */
+function buildSeed(syllabus: SeedSubject[]): AppData {
+  const subjects: Record<string, Subject> = {};
+  const chapters: Record<string, Chapter> = {};
+  const topics: Record<string, Topic> = {};
+  const subjectOrder: string[] = [];
+  const now = Date.now();
+
+  syllabus.forEach((subj, si) => {
+    const sid = makeId();
+    const chapterIds: string[] = [];
+    subj.chapters.forEach((ch, ci) => {
+      const cid = makeId();
+      const topicIds: string[] = [];
+      ch.topics.forEach((title, ti) => {
+        const tid = makeId();
+        topics[tid] = {
+          id: tid, chapterId: cid, title, notes: '', order: ti,
+          difficulty: 'Medium', priority: 'Medium',
+          revisionHistory: [], createdAt: now, updatedAt: now,
+        };
+        topicIds.push(tid);
+      });
+      chapters[cid] = {
+        id: cid, subjectId: sid, name: ch.name, order: ci,
+        difficulty: 'Medium', priority: 'Medium', topicIds,
+      };
+      chapterIds.push(cid);
+    });
+    subjects[sid] = { id: sid, name: subj.name, color: subj.color, icon: subj.icon, order: si, chapterIds };
+    subjectOrder.push(sid);
+  });
+
+  const { tags, tagOrder } = makeBuiltinTags();
+  return { subjects, chapters, topics, subjectOrder, tags, tagOrder };
+}
+
+/** Return a freshly seeded AppData appropriate for the user's exam domain. */
+export function seedDataForDomain(domain: string): AppData {
+  switch (domain) {
+    case 'civil-engineering':
+      return buildSeed(SYLLABUS);
+    case 'software-engineering':
+    case 'gate-cs':
+      return buildSeed(SE_SYLLABUS);
+    default:
+      // Unknown domain → empty store with only built-in tags
+      return buildSeed([]);
+  }
+}
+

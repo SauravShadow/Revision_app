@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { makeId } from '@/lib/domain/id';
 import { writeBlob } from '@/lib/repository/fileBlobStore';
+import { getSessionFromRequest } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,9 @@ const ALLOWED = new Set([
 ]);
 
 export async function POST(req: NextRequest) {
+  const session = getSessionFromRequest(req);
+  if (!session) return Response.json({ error: 'Not authenticated' }, { status: 401 });
+
   const form = await req.formData();
   const entry = form.get('file');
   // A text field is a string; a file is not. (Avoids referencing a global File.)
@@ -23,6 +27,7 @@ export async function POST(req: NextRequest) {
   const id = makeId();
   const bytes = Buffer.from(await entry.arrayBuffer());
   const name = entry.name || id;
-  await writeBlob(id, bytes, { name, mime, size: entry.size });
+  await writeBlob(id, bytes, { name, mime, size: entry.size }, session.userId);
   return Response.json({ id, url: `/api/files/${id}`, name, mime, size: entry.size });
 }
+
