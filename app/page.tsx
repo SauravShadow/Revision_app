@@ -26,7 +26,7 @@ export default function DashboardPage() {
         items={subjectOrder.filter((id) => subjects[id] && !subjects[id].archivedAt).map((id) => dragId('subject', id))}
         strategy={rectSortingStrategy}
       >
-        <motion.div layout className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <motion.div layout className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
           {subjectOrder.map((id) => subjects[id] && !subjects[id].archivedAt && (
             <SortableRow key={id} id={dragId('subject', id)}>
               <SubjectCard subject={subjects[id]} autoEdit={id === justAddedId} />
