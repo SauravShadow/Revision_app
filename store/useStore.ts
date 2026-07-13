@@ -50,7 +50,7 @@ interface StoreState extends AppData {
   saveState: SaveStatus;
   undo: () => void;
   redo: () => void;
-  flushSave: () => void;
+  flushSave: (keepalive?: boolean) => void;
 }
 
 function snapshot(s: StoreState): AppData {
@@ -406,7 +406,7 @@ export function createRevisionStore(repo: RevisionRepository) {
         set({ ...preserveSilentFields(res.present, snapshot(get())), history: res.history });
         persist();
       },
-      flushSave: () => queue.flush(),
+      flushSave: (keepalive = true) => queue.flush(keepalive),
     };
   });
 }

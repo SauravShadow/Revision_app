@@ -48,7 +48,7 @@ New module `store/saveQueue.ts`:
 
 - `schedule(snapshotFn)` — trailing debounce (800 ms) after the last mutation.
 - Single-flight: at most one PUT in flight. If mutations arrive during a flight, one follow-up save with the **latest** snapshot runs after the flight completes (coalescing). Requests can therefore never land out of order.
-- `flush()` — bypasses the debounce; wired to `beforeunload`/`pagehide` using `fetch` with `keepalive: true` (PUT is not supported by `sendBeacon`), so closing the tab inside the debounce window cannot lose edits.
+- `flush()` — bypasses the debounce; on `visibilitychange → hidden` a normal fetch flushes pending edits (not subject to the keepalive quota), and on `pagehide` a `fetch` with `keepalive: true` is the last-ditch attempt (browsers cap keepalive bodies at 64KiB, so this final hop only covers small snapshots; PUT is not supported by `sendBeacon`).
 - Status callback drives `saveState: 'idle' | 'saving' | 'saved' | 'error'`.
 
 `ApiRepository.save` stops swallowing errors: it throws on network failure **and** on non-2xx responses. The queue catches, sets `saveState: 'error'`, and retries on the next scheduled save. `components/layout/HeaderControls.tsx` renders the error state visibly (e.g. "save failed — retrying").

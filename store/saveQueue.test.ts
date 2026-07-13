@@ -82,6 +82,22 @@ describe('SaveQueue', () => {
     expect(calls).toHaveLength(1);
   });
 
+  it('flush(false) sends a pending save without keepalive', async () => {
+    const calls: { snap: string; keepalive: boolean }[] = [];
+    const q = new SaveQueue<string>(
+      async (snap, opts) => { calls.push({ snap, keepalive: opts.keepalive }); },
+      () => 'v',
+      () => {},
+      800,
+    );
+    q.schedule();
+    q.flush(false);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(calls).toEqual([{ snap: 'v', keepalive: false }]);
+    await vi.advanceTimersByTimeAsync(800); // debounce timer must be cancelled
+    expect(calls).toHaveLength(1);
+  });
+
   it('flush with nothing pending is a no-op', async () => {
     const calls: string[] = [];
     const q = new SaveQueue<string>(async (s) => { calls.push(s); }, () => 'v', () => {}, 800);

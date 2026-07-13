@@ -25,7 +25,10 @@ export class SaveQueue<T> {
     }, this.delayMs);
   }
 
-  // Send a pending save immediately (tab close). No-op when nothing is pending.
+  // Send a pending save immediately (tab close / hide). No-op when nothing
+  // is pending. keepalive defaults to true for the pagehide last-ditch case;
+  // pass false for a normal in-page flush (e.g. visibilitychange → hidden,
+  // where the page is still alive and the request isn't quota-bound).
   //
   // Safe to no-op when this.timer is null even if a save is currently in
   // flight: schedule() unconditionally (re)arms this.timer regardless of
@@ -33,11 +36,11 @@ export class SaveQueue<T> {
   // true is that no mutation has arrived since the in-flight run captured
   // its snapshot via getSnapshot(). That in-flight request therefore
   // already carries the latest data, so there is nothing new to flush.
-  flush(): void {
+  flush(keepalive = true): void {
     if (!this.timer) return;
     clearTimeout(this.timer);
     this.timer = null;
-    void this.run(true);
+    void this.run(keepalive);
   }
 
   private async run(keepalive: boolean): Promise<void> {

@@ -127,6 +127,18 @@ describe('useStore', () => {
     expect(useStore.getState().subjects[s].chapterIds).toHaveLength(2);
   });
 
+  it('redo after a silent edit keeps the edit (structure round-trips, typing survives)', () => {
+    const s = useStore.getState().addSubject('S');
+    const c = useStore.getState().addChapter(s, 'C');
+    const t = useStore.getState().addTopic(c, 'T');
+    useStore.getState().addChapter(s, 'C2'); // structural change
+    useStore.getState().undo(); // revert it
+    useStore.getState().updateTopicNotes(t, 'typed after undo'); // silent edit
+    useStore.getState().redo(); // re-apply structural change
+    expect(useStore.getState().subjects[s].chapterIds).toHaveLength(2);
+    expect(useStore.getState().topics[t].notes).toBe('typed after undo');
+  });
+
   it('editing notes does not create an undo entry', () => {
     const s = useStore.getState().addSubject('S');
     const c = useStore.getState().addChapter(s, 'C');

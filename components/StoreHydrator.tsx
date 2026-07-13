@@ -14,7 +14,14 @@ export function StoreHydrator({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const flush = () => useStore.getState().flushSave();
     window.addEventListener('pagehide', flush);
-    return () => window.removeEventListener('pagehide', flush);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') useStore.getState().flushSave(false);
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, []);
   if (!ready) {
     return <div className="grid min-h-screen place-items-center text-sm opacity-60">Loading…</div>;
