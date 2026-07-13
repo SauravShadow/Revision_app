@@ -64,7 +64,7 @@ export function AttachmentsPanel({ topic }: { topic: Topic }) {
         <ul className="grid gap-2 sm:grid-cols-2">
           {attachments.map((a) => (
               <li key={a.id} className="flex items-center justify-between gap-2 rounded-lg bg-white/5 p-2">
-                <a href={a.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 text-sm hover:underline">
+                <a href={addTokenToUrl(a.url)} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 text-sm hover:underline">
                   {a.kind === 'image' ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={addTokenToUrl(a.url)} alt={a.name} className="h-10 w-10 rounded object-cover" />

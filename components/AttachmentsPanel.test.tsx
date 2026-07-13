@@ -22,4 +22,7 @@ it('appends the stored file token to an internal attachment URL', () => {
   render(<AttachmentsPanel topic={topicWithAttachment()} />);
   const img = screen.getByAltText('diagram.png') as HTMLImageElement;
   expect(img.getAttribute('src')).toBe('/api/files/a1?token=file-tok');
+
+  const link = screen.getByText('diagram.png').closest('a') as HTMLAnchorElement;
+  expect(link.getAttribute('href')).toBe('/api/files/a1?token=file-tok');
 });
