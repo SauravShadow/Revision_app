@@ -79,7 +79,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="h-px w-full bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
       </header>
 
-      <div className="mx-auto flex max-w-7xl gap-4 px-4">
+      <div className="flex gap-4 px-4 sm:px-6 lg:px-8">
         <SidebarTree />
         <main className="min-w-0 flex-1 px-2 py-8">{children}</main>
       </div>
