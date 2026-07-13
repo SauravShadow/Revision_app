@@ -9,9 +9,11 @@ let dir: string;
 beforeEach(async () => {
   dir = await fs.mkdtemp(path.join(os.tmpdir(), 'ce-gc-'));
   process.env.DATA_FILE = path.join(dir, 'appdata.json');
+  process.env.DATA_DIR = dir;
 });
 afterEach(async () => {
   delete process.env.DATA_FILE;
+  delete process.env.DATA_DIR;
   await fs.rm(dir, { recursive: true, force: true });
 });
 
@@ -71,5 +73,23 @@ describe('sweepUnreferenced', () => {
   it('returns zeros when the files dir does not exist', async () => {
     const { sweepUnreferenced } = await import('./gc');
     expect(await sweepUnreferenced(new Set())).toEqual({ scanned: 0, deleted: 0 });
+  });
+});
+
+describe('sweepUnreferenced with a userId', () => {
+  it('only touches that user\'s files directory', async () => {
+    const { writeBlob, readBlob, GC_GRACE_MS } = await import('./fileBlobStore');
+    const { sweepUnreferenced } = await import('./gc');
+    const meta = { name: 'f', mime: 'image/png', size: 1 };
+    await writeBlob('u1-blob', Buffer.from('a'), meta, 'user-1');
+    await writeBlob('u2-blob', Buffer.from('b'), meta, 'user-2');
+    const old = new Date(Date.now() - GC_GRACE_MS - 60_000);
+    await fs.utimes(path.join(dir, 'users', 'user-1', 'files', 'u1-blob'), old, old);
+    await fs.utimes(path.join(dir, 'users', 'user-2', 'files', 'u2-blob'), old, old);
+
+    const result = await sweepUnreferenced(new Set(), Date.now(), 'user-1');
+    expect(result).toEqual({ scanned: 1, deleted: 1 });
+    expect(await readBlob('u1-blob', 'user-1')).toBeNull();
+    expect(await readBlob('u2-blob', 'user-2')).not.toBeNull();
   });
 });

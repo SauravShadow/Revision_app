@@ -22,8 +22,9 @@ export function referencedBlobIds(data: AppData | null): Set<string> {
 export async function sweepUnreferenced(
   referenced: Set<string>,
   now = Date.now(),
+  userId?: string,
 ): Promise<{ scanned: number; deleted: number }> {
-  const dir = filesDir();
+  const dir = filesDir(userId);
   let entries: string[];
   try {
     entries = await fs.readdir(dir);
@@ -37,7 +38,7 @@ export async function sweepUnreferenced(
     try {
       const stat = await fs.stat(path.join(dir, id));
       if (now - stat.mtimeMs < GC_GRACE_MS) continue;
-      await deleteBlob(id);
+      await deleteBlob(id, userId);
       deleted++;
     } catch {
       // Raced with another delete or unreadable entry — skip.
