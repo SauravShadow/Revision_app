@@ -1,5 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import { getPool } from './pool';
+
+afterAll(() => getPool().end());
 
 describe('schema', () => {
   it('creates the users table with a unique lowercase-username index', async () => {

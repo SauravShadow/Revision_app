@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import { getPool } from '@/lib/db/pool';
 
 beforeEach(async () => {
   await getPool().query('TRUNCATE users CASCADE');
 });
+
+afterAll(() => getPool().end());
 
 describe('userStore', () => {
   it('returns null for an unknown username', async () => {

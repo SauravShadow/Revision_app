@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import { getPool } from '@/lib/db/pool';
 
 beforeEach(async () => {
   await getPool().query('TRUNCATE users CASCADE');
 });
+
+afterAll(() => getPool().end());
 
 describe('POST /api/auth/register', () => {
   it('creates a user and returns a session token plus a separately-scoped file token, no Set-Cookie', async () => {
