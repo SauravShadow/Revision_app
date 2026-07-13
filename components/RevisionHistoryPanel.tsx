@@ -66,9 +66,9 @@ export function RevisionHistoryPanel({ topic }: { topic: Topic }) {
                     <span className="opacity-70">{d.toLocaleDateString()} {d.toLocaleTimeString()} · {relativeLabel(r.timestamp, now)}</span>
                   )}
                   <button aria-label="Edit revision time" onClick={() => setEditingId(r.id)}
-                    className="rounded p-1 opacity-0 transition-opacity hover:bg-white/10 group-hover:opacity-100"><Pencil size={13} /></button>
+                    className="rounded p-1 opacity-0 transition-opacity hover:bg-white/10 focus-visible:opacity-100 group-hover:opacity-100"><Pencil size={13} /></button>
                   <button aria-label="Delete revision" onClick={() => remove(r.id, n, r.timestamp)}
-                    className="rounded p-1 opacity-0 transition-opacity hover:bg-white/10 group-hover:opacity-100"><Trash2 size={13} /></button>
+                    className="rounded p-1 opacity-0 transition-opacity hover:bg-white/10 focus-visible:opacity-100 group-hover:opacity-100"><Trash2 size={13} /></button>
                 </span>
               </li>
             );
