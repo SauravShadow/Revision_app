@@ -276,4 +276,37 @@ describe('useStore', () => {
     useStore.getState().undo();
     expect(useStore.getState().topics[t].revisionHistory).toHaveLength(1);
   });
+
+  it('deleteRevision removes one entry silently (no undo entry)', () => {
+    const s = useStore.getState().addSubject('S');
+    const c = useStore.getState().addChapter(s, 'C');
+    const t = useStore.getState().addTopic(c, 'T');
+    useStore.getState().markTopicRevised(t);
+    useStore.getState().markTopicRevised(t);
+    const rid = useStore.getState().topics[t].revisionHistory[0].id;
+    const before = useStore.getState().history.past.length;
+    useStore.getState().deleteRevision(t, rid);
+    expect(useStore.getState().topics[t].revisionHistory).toHaveLength(1);
+    expect(useStore.getState().history.past.length).toBe(before);
+  });
+
+  it('updateRevisionTimestamp re-times an entry silently and keeps order sorted', () => {
+    const s = useStore.getState().addSubject('S');
+    const c = useStore.getState().addChapter(s, 'C');
+    const t = useStore.getState().addTopic(c, 'T');
+    useStore.getState().markTopicRevised(t);
+    useStore.getState().markTopicRevised(t);
+    const [first, second] = useStore.getState().topics[t].revisionHistory;
+    const before = useStore.getState().history.past.length;
+    useStore.getState().updateRevisionTimestamp(t, second.id, first.timestamp - 1000);
+    const h = useStore.getState().topics[t].revisionHistory;
+    expect(h[0].id).toBe(second.id); // re-sorted: edited entry is now oldest
+    expect(h[0].timestamp).toBe(first.timestamp - 1000);
+    expect(useStore.getState().history.past.length).toBe(before);
+  });
+
+  it('revision edits on a missing topic are no-ops', () => {
+    expect(() => useStore.getState().deleteRevision('missing', 'r')).not.toThrow();
+    expect(() => useStore.getState().updateRevisionTimestamp('missing', 'r', 1)).not.toThrow();
+  });
 });

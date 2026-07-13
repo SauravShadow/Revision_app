@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { AppData, Attachment, Chapter, Flashcard, Subject, Tag, Topic } from '@/lib/domain/types';
 import { makeId } from '@/lib/domain/id';
 import { normalizeData } from '@/lib/domain/normalize';
-import { markRevised } from '@/lib/revision/engine';
+import { markRevised, deleteRevision as engineDeleteRevision, updateRevisionTimestamp as engineUpdateRevisionTimestamp } from '@/lib/revision/engine';
 import { arrayMove } from '@/lib/util/array';
 import { emptyHistory, record, undo as undoHistory, redo as redoHistory, type History } from './history';
 import { SaveQueue, type SaveStatus } from './saveQueue';
@@ -25,6 +25,8 @@ interface StoreState extends AppData {
   deleteTopic: (id: string) => void;
   updateTopicNotes: (id: string, notes: string) => void;
   markTopicRevised: (id: string) => void;
+  deleteRevision: (topicId: string, revisionId: string) => void;
+  updateRevisionTimestamp: (topicId: string, revisionId: string, timestamp: number) => void;
   archiveSubject: (id: string) => void;
   restoreSubject: (id: string) => void;
   archiveChapter: (id: string) => void;
@@ -220,6 +222,20 @@ export function createRevisionStore(repo: RevisionRepository) {
         const topic = s.topics[id];
         if (!topic) return;
         commitSilent({ topics: { ...s.topics, [id]: markRevised(topic, Date.now()) } });
+      },
+
+      deleteRevision: (topicId, revisionId) => {
+        const s = get();
+        const topic = s.topics[topicId];
+        if (!topic) return;
+        commitSilent({ topics: { ...s.topics, [topicId]: engineDeleteRevision(topic, revisionId, Date.now()) } });
+      },
+
+      updateRevisionTimestamp: (topicId, revisionId, timestamp) => {
+        const s = get();
+        const topic = s.topics[topicId];
+        if (!topic) return;
+        commitSilent({ topics: { ...s.topics, [topicId]: engineUpdateRevisionTimestamp(topic, revisionId, timestamp, Date.now()) } });
       },
 
       archiveSubject: (id) => {
