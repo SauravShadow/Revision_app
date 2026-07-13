@@ -5,6 +5,8 @@ services:
     container_name: ce-revision
     ports:
       - "3200:3000"
+    environment:
+      - SESSION_SECRET=${SESSION_SECRET}
     volumes:
       - ce-revision-data:/app/data
     restart: unless-stopped
