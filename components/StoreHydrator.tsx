@@ -33,6 +33,13 @@ export function StoreHydrator({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  // Auth still resolving, or confirmed unauthenticated: render children
+  // immediately rather than blocking — AuthProvider/AppShell handle the
+  // redirect to /login, and there's no data to hydrate without a session.
+  if (!ready && (authLoading || !session)) {
+    return <>{children}</>;
+  }
+
   if (!ready) {
     return <div className="grid min-h-screen place-items-center text-sm opacity-60">Loading…</div>;
   }
