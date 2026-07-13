@@ -1,12 +1,11 @@
-import type { NextRequest } from 'next/server';
 import { createUser } from '@/lib/auth/userStore';
-import { signSession, sessionCookieHeader } from '@/lib/auth/session';
+import { signSession, signFileToken } from '@/lib/auth/session';
 import type { Domain } from '@/lib/auth/types';
 import { DOMAIN_LABELS } from '@/lib/auth/types';
 
 const ALLOW_REGISTRATION = process.env.ALLOW_REGISTRATION !== 'false';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   if (!ALLOW_REGISTRATION) {
     return Response.json({ error: 'Registration is disabled' }, { status: 403 });
   }
@@ -41,10 +40,8 @@ export async function POST(req: NextRequest) {
     const user = await createUser(username.trim(), password, domain as Domain);
     const session = { userId: user.id, username: user.username, domain: user.domain };
     const token = signSession(session);
-    return Response.json(session, {
-      status: 201,
-      headers: { 'Set-Cookie': sessionCookieHeader(token) },
-    });
+    const fileToken = signFileToken(user.id);
+    return Response.json({ ...session, token, fileToken }, { status: 201 });
   } catch (err) {
     if (err instanceof Error && err.message === 'USERNAME_TAKEN') {
       return Response.json({ error: 'Username is already taken' }, { status: 409 });

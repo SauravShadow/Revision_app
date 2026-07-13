@@ -1,8 +1,7 @@
-import type { NextRequest } from 'next/server';
 import { findByUsername, verifyPassword } from '@/lib/auth/userStore';
-import { signSession, sessionCookieHeader } from '@/lib/auth/session';
+import { signSession, signFileToken } from '@/lib/auth/session';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   let body: { username?: string; password?: string };
   try {
     body = await req.json();
@@ -28,7 +27,6 @@ export async function POST(req: NextRequest) {
 
   const session = { userId: user.id, username: user.username, domain: user.domain };
   const token = signSession(session);
-  return Response.json(session, {
-    headers: { 'Set-Cookie': sessionCookieHeader(token) },
-  });
+  const fileToken = signFileToken(user.id);
+  return Response.json({ ...session, token, fileToken });
 }
