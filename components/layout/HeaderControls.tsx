@@ -22,9 +22,9 @@ export function HeaderControls() {
         </span>
       )}
       <button aria-label="Undo" disabled={!canUndo} onClick={undo}
-        className="rounded-md border border-line p-2 text-ink-dim transition hover:border-line-strong hover:bg-panel hover:text-ink disabled:opacity-30"><Undo2 size={16} /></button>
+        className="rounded-md border border-line p-3 text-ink-dim transition hover:border-line-strong hover:bg-panel hover:text-ink disabled:opacity-30 md:p-2"><Undo2 size={16} /></button>
       <button aria-label="Redo" disabled={!canRedo} onClick={redo}
-        className="rounded-md border border-line p-2 text-ink-dim transition hover:border-line-strong hover:bg-panel hover:text-ink disabled:opacity-30"><Redo2 size={16} /></button>
+        className="rounded-md border border-line p-3 text-ink-dim transition hover:border-line-strong hover:bg-panel hover:text-ink disabled:opacity-30 md:p-2"><Redo2 size={16} /></button>
     </div>
   );
 }

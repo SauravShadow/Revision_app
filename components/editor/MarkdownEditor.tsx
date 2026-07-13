@@ -55,7 +55,7 @@ export function MarkdownEditor({ value, onChange, topicId }: { value: string; on
   };
 
   const Btn = ({ title, onClick, children }: { title: string; onClick: () => void; children: React.ReactNode }) => (
-    <button title={title} aria-label={title} onClick={onClick} className="rounded p-1.5 opacity-70 hover:bg-white/10 hover:opacity-100">{children}</button>
+    <button title={title} aria-label={title} onClick={onClick} className="rounded p-2 opacity-70 hover:bg-white/10 hover:opacity-100 md:p-1.5">{children}</button>
   );
 
   return (
