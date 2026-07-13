@@ -1,10 +1,12 @@
 'use client';
-import { DndContext, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { useStore } from '@/store/useStore';
 import { parseId } from './ids';
 
 export function DndProvider({ children }: { children: React.ReactNode }) {
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 6 } });
+  const touchSensor = useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } });
+  const sensors = useSensors(pointerSensor, touchSensor);
 
   function onDragEnd(e: DragEndEvent) {
     const { active, over } = e;
