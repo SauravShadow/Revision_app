@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/components/AuthProvider';
+import { authFetch } from '@/lib/auth/client';
 
 export function StoreHydrator({ children }: { children: React.ReactNode }) {
   const hydrate = useStore((s) => s.hydrate);
@@ -15,7 +16,7 @@ export function StoreHydrator({ children }: { children: React.ReactNode }) {
     hydratedRef.current = true;
     void hydrate().then(() => {
       setReady(true);
-      void fetch('/api/files/gc', { method: 'POST' }).catch(() => {});
+      void authFetch('/api/files/gc', { method: 'POST' }).catch(() => {});
     });
   }, [authLoading, session, hydrate]);
 

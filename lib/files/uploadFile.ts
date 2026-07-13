@@ -1,4 +1,5 @@
 import type { Attachment, AttachmentKind } from '@/lib/domain/types';
+import { authFetch } from '@/lib/auth/client';
 
 export function mimeToKind(mime: string): AttachmentKind {
   return mime === 'application/pdf' ? 'pdf' : 'image';
@@ -7,7 +8,7 @@ export function mimeToKind(mime: string): AttachmentKind {
 export async function uploadFile(file: File): Promise<Attachment> {
   const fd = new FormData();
   fd.append('file', file);
-  const res = await fetch('/api/files', { method: 'POST', body: fd });
+  const res = await authFetch('/api/files', { method: 'POST', body: fd });
   if (!res.ok) throw new Error(`Upload failed (${res.status})`);
   const data = (await res.json()) as { id: string; url: string; name: string; mime: string; size: number };
   return {

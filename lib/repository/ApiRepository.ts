@@ -1,5 +1,6 @@
 import type { AppData } from '@/lib/domain/types';
 import type { RevisionRepository } from './RevisionRepository';
+import { authFetch } from '@/lib/auth/client';
 
 export const DATA_ENDPOINT = '/api/data';
 
@@ -8,7 +9,7 @@ export const DATA_ENDPOINT = '/api/data';
 export class ApiRepository implements RevisionRepository {
   async load(): Promise<AppData | null> {
     try {
-      const res = await fetch(DATA_ENDPOINT, { cache: 'no-store' });
+      const res = await authFetch(DATA_ENDPOINT, { cache: 'no-store' });
       if (!res.ok) return null;
       const data = (await res.json()) as AppData | null;
       return data ?? null;
@@ -18,7 +19,7 @@ export class ApiRepository implements RevisionRepository {
   }
 
   async save(data: AppData, opts: { keepalive?: boolean } = {}): Promise<void> {
-    const res = await fetch(DATA_ENDPOINT, {
+    const res = await authFetch(DATA_ENDPOINT, {
       method: 'PUT',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(data),
