@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   totalRevisions, lastRevisedAt, nextDueDate, daysSince,
   badgeState, relativeLabel, inGoodStanding, markRevised,
+  deleteRevision, updateRevisionTimestamp,
 } from './engine';
 import type { Topic, Revision } from '@/lib/domain/types';
 
@@ -96,5 +97,53 @@ describe('markRevised', () => {
     expect(next.revisionHistory).toHaveLength(1);
     expect(next.revisionHistory[0].timestamp).toBe(now);
     expect(next.updatedAt).toBe(now);
+  });
+});
+
+describe('deleteRevision', () => {
+  it('removes the entry with the given id and bumps updatedAt', () => {
+    const t = baseTopic([{ id: 'r1', timestamp: 100 }, { id: 'r2', timestamp: 200 }]);
+    const out = deleteRevision(t, 'r1', 999);
+    expect(out.revisionHistory).toEqual([{ id: 'r2', timestamp: 200 }]);
+    expect(out.updatedAt).toBe(999);
+  });
+
+  it('returns the topic unchanged for an unknown id', () => {
+    const t = baseTopic([{ id: 'r1', timestamp: 100 }]);
+    expect(deleteRevision(t, 'nope', 999)).toBe(t);
+  });
+
+  it('deleting the latest entry shifts lastRevisedAt', () => {
+    const t = baseTopic([{ id: 'r1', timestamp: 100 }, { id: 'r2', timestamp: 200 }]);
+    const out = deleteRevision(t, 'r2', 999);
+    expect(lastRevisedAt(out.revisionHistory)).toBe(100);
+  });
+
+  it('deleting the only entry returns the topic to never-revised', () => {
+    const t = baseTopic([{ id: 'r1', timestamp: 100 }]);
+    const out = deleteRevision(t, 'r1', 999);
+    expect(out.revisionHistory).toEqual([]);
+    expect(lastRevisedAt(out.revisionHistory)).toBeUndefined();
+  });
+});
+
+describe('updateRevisionTimestamp', () => {
+  it('changes the timestamp and re-sorts ascending', () => {
+    const t = baseTopic([{ id: 'r1', timestamp: 100 }, { id: 'r2', timestamp: 200 }]);
+    const out = updateRevisionTimestamp(t, 'r1', 300, 1000);
+    expect(out.revisionHistory.map((r) => r.id)).toEqual(['r2', 'r1']);
+    expect(lastRevisedAt(out.revisionHistory)).toBe(300);
+    expect(out.updatedAt).toBe(1000);
+  });
+
+  it('clamps a future timestamp to now', () => {
+    const t = baseTopic([{ id: 'r1', timestamp: 100 }]);
+    const out = updateRevisionTimestamp(t, 'r1', 5000, 1000);
+    expect(out.revisionHistory[0].timestamp).toBe(1000);
+  });
+
+  it('returns the topic unchanged for an unknown id', () => {
+    const t = baseTopic([{ id: 'r1', timestamp: 100 }]);
+    expect(updateRevisionTimestamp(t, 'nope', 300, 1000)).toBe(t);
   });
 });

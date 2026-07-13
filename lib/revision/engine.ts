@@ -70,3 +70,23 @@ export function markRevised(topic: Topic, now: number): Topic {
     updatedAt: now,
   };
 }
+
+export function deleteRevision(topic: Topic, revisionId: string, now: number): Topic {
+  if (!topic.revisionHistory.some((r) => r.id === revisionId)) return topic;
+  return {
+    ...topic,
+    revisionHistory: topic.revisionHistory.filter((r) => r.id !== revisionId),
+    updatedAt: now,
+  };
+}
+
+// Clamps to now (a future "last revised" breaks days-since/badge math) and
+// re-sorts: the engine reads h[h.length - 1] as the latest revision.
+export function updateRevisionTimestamp(topic: Topic, revisionId: string, timestamp: number, now: number): Topic {
+  if (!topic.revisionHistory.some((r) => r.id === revisionId)) return topic;
+  const clamped = Math.min(timestamp, now);
+  const revisionHistory = topic.revisionHistory
+    .map((r) => (r.id === revisionId ? { ...r, timestamp: clamped } : r))
+    .sort((a, b) => a.timestamp - b.timestamp);
+  return { ...topic, revisionHistory, updatedAt: now };
+}
