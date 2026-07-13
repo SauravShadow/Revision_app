@@ -1,17 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
-import os from 'node:os';
-
-let dir: string;
+import { describe, it, expect, beforeEach } from 'vitest';
+import { getPool } from '@/lib/db/pool';
 
 beforeEach(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), 'ce-register-'));
-  process.env.DATA_DIR = dir;
-});
-afterEach(async () => {
-  delete process.env.DATA_DIR;
-  await fs.rm(dir, { recursive: true, force: true });
+  await getPool().query('TRUNCATE users CASCADE');
 });
 
 describe('POST /api/auth/register', () => {
@@ -19,13 +10,13 @@ describe('POST /api/auth/register', () => {
     const { POST } = await import('./route');
     const req = new Request('http://test/api/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ username: 'bob', password: 'password123', domain: 'civil-engineering' }),
+      body: JSON.stringify({ username: 'registertest1', password: 'password123', domain: 'civil-engineering' }),
     });
     const res = await POST(req);
     const body = await res.json();
 
     expect(res.status).toBe(201);
-    expect(body.username).toBe('bob');
+    expect(body.username).toBe('registertest1');
     expect(typeof body.token).toBe('string');
     expect(typeof body.fileToken).toBe('string');
     expect(body.token).not.toBe(body.fileToken);
@@ -36,7 +27,7 @@ describe('POST /api/auth/register', () => {
     const { POST } = await import('./route');
     const attempt = () => POST(new Request('http://test/api/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ username: 'bob', password: 'password123', domain: 'civil-engineering' }),
+      body: JSON.stringify({ username: 'registerduptest', password: 'password123', domain: 'civil-engineering' }),
     }));
     await attempt();
     const res = await attempt();
