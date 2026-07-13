@@ -5,6 +5,19 @@ import type { Topic } from '@/lib/domain/types';
 import { useStore } from '@/store/useStore';
 import { uploadFile } from '@/lib/files/uploadFile';
 import { makeId } from '@/lib/domain/id';
+import { getStoredFileToken } from '@/lib/auth/client';
+
+function addTokenToUrl(url?: string): string {
+  if (!url) return '';
+  if (url.startsWith('/api/')) {
+    const token = getStoredFileToken();
+    if (token) {
+      const separator = url.includes('?') ? '&' : '?';
+      return `${url}${separator}token=${encodeURIComponent(token)}`;
+    }
+  }
+  return url;
+}
 
 export function AttachmentsPanel({ topic }: { topic: Topic }) {
   const { addAttachment, removeAttachment } = useStore.getState();
@@ -54,7 +67,7 @@ export function AttachmentsPanel({ topic }: { topic: Topic }) {
                 <a href={a.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 text-sm hover:underline">
                   {a.kind === 'image' ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={a.url} alt={a.name} className="h-10 w-10 rounded object-cover" />
+                    <img src={addTokenToUrl(a.url)} alt={a.name} className="h-10 w-10 rounded object-cover" />
                   ) : a.kind === 'pdf' ? <FileText size={18} /> : <ExternalLink size={16} />}
                   <span className="truncate">{a.name}</span>
                 </a>

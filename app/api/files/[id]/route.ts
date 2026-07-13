@@ -1,14 +1,14 @@
 import { readBlob, deleteBlob, isValidBlobId } from '@/lib/repository/fileBlobStore';
-import { getSessionFromRequest } from '@/lib/auth/session';
+import { getSessionFromRequest, getFileAccessUserId } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = getSessionFromRequest(req);
-  if (!session) return new Response(null, { status: 401 });
+  const userId = getFileAccessUserId(req);
+  if (!userId) return new Response(null, { status: 401 });
   const { id } = await params;
   if (!isValidBlobId(id)) return new Response(null, { status: 400 });
-  const blob = await readBlob(id, session.userId);
+  const blob = await readBlob(id, userId);
   if (!blob) return new Response(null, { status: 404 });
   return new Response(new Uint8Array(blob.bytes), {
     headers: {
