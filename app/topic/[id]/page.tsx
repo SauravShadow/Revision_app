@@ -23,6 +23,12 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
   if (!topic) return notFound();
   const chapter = chapters[topic.chapterId];
   const subject = chapter ? subjects[chapter.subjectId] : undefined;
+  const insertMarkdown = (markdown: string) => {
+    const currentNotes = useStore.getState().topics[topic.id]?.notes ?? topic.notes;
+    const trimmed = currentNotes.trimEnd();
+    const separator = trimmed.length > 0 ? '\n\n' : '';
+    updateTopicNotes(topic.id, `${trimmed}${separator}${markdown.trim()}\n`);
+  };
   return (
     <div>
       <Breadcrumb items={[
@@ -49,7 +55,7 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
         <div className="space-y-4">
           <RevisionHistoryPanel topic={topic} />
           <TagPicker topic={topic} />
-          <AttachmentsPanel topic={topic} />
+          <AttachmentsPanel topic={topic} onInsertMarkdown={insertMarkdown} />
           <FlashcardsPanel topic={topic} />
         </div>
       </div>

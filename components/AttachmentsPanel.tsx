@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Paperclip, Upload, Link as LinkIcon, FileText, Trash2, ExternalLink } from 'lucide-react';
-import type { Topic } from '@/lib/domain/types';
+import type { Attachment, Topic } from '@/lib/domain/types';
 import { useStore } from '@/store/useStore';
 import { uploadFile } from '@/lib/files/uploadFile';
 import { makeId } from '@/lib/domain/id';
@@ -19,7 +19,15 @@ function addTokenToUrl(url?: string): string {
   return url;
 }
 
-export function AttachmentsPanel({ topic }: { topic: Topic }) {
+function escapeMarkdownAlt(text: string): string {
+  return text.replace(/[\\[\]]/g, '\\$&');
+}
+
+function imageMarkdown(attachment: Attachment): string {
+  return `![${escapeMarkdownAlt(attachment.name)}](${attachment.url})`;
+}
+
+export function AttachmentsPanel({ topic, onInsertMarkdown }: { topic: Topic; onInsertMarkdown?: (markdown: string) => void }) {
   const { addAttachment, removeAttachment } = useStore.getState();
   const [busy, setBusy] = useState(false);
   const [url, setUrl] = useState('');
@@ -29,7 +37,13 @@ export function AttachmentsPanel({ topic }: { topic: Topic }) {
     if (!files || files.length === 0) return;
     setBusy(true);
     try {
-      for (const f of Array.from(files)) addAttachment(topic.id, await uploadFile(f));
+      const insertedImages: string[] = [];
+      for (const f of Array.from(files)) {
+        const attachment = await uploadFile(f);
+        addAttachment(topic.id, attachment);
+        if (attachment.kind === 'image') insertedImages.push(imageMarkdown(attachment));
+      }
+      if (insertedImages.length > 0) onInsertMarkdown?.(insertedImages.join('\n\n'));
     } catch { window.alert('Upload failed.'); } finally { setBusy(false); }
   };
 
@@ -63,16 +77,28 @@ export function AttachmentsPanel({ topic }: { topic: Topic }) {
       ) : (
         <ul className="grid gap-2 sm:grid-cols-2">
           {attachments.map((a) => (
-              <li key={a.id} className="flex items-center justify-between gap-2 rounded-lg bg-white/5 p-2">
-                <a href={addTokenToUrl(a.url)} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 text-sm hover:underline">
-                  {a.kind === 'image' ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={addTokenToUrl(a.url)} alt={a.name} className="h-10 w-10 rounded object-cover" />
-                  ) : a.kind === 'pdf' ? <FileText size={18} /> : <ExternalLink size={16} />}
-                  <span className="truncate">{a.name}</span>
-                </a>
-                <button aria-label="Remove attachment" onClick={() => remove(a.id)} className="rounded p-1 hover:bg-white/10"><Trash2 size={14} /></button>
-              </li>
+            <li key={a.id} className="relative rounded-lg bg-white/5 p-2">
+              <a
+                href={addTokenToUrl(a.url)}
+                target="_blank"
+                rel="noreferrer"
+                className={a.kind === 'image' ? 'block text-sm hover:underline' : 'flex min-w-0 items-center gap-2 pr-8 text-sm hover:underline'}
+              >
+                {a.kind === 'image' ? (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={addTokenToUrl(a.url)} alt={a.name} className="mb-2 h-24 w-full rounded-md object-cover" />
+                    <span className="block truncate pr-8">{a.name}</span>
+                  </>
+                ) : (
+                  <>
+                    {a.kind === 'pdf' ? <FileText size={18} className="shrink-0" /> : <ExternalLink size={16} className="shrink-0" />}
+                    <span className="truncate">{a.name}</span>
+                  </>
+                )}
+              </a>
+              <button aria-label="Remove attachment" onClick={() => remove(a.id)} className="absolute right-2 top-2 rounded bg-black/30 p-1 hover:bg-white/10"><Trash2 size={14} /></button>
+            </li>
           ))}
         </ul>
       )}
