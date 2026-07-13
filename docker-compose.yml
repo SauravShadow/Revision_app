@@ -1,0 +1,14 @@
+services:
+  app:
+    image: ce-revision:latest
+    build: .
+    container_name: ce-revision
+    ports:
+      - "3200:3000"
+    volumes:
+      - ce-revision-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  ce-revision-data:
+    external: true
