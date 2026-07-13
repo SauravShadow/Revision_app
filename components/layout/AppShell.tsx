@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { ThemeToggle } from './ThemeToggle';
 import { SidebarTree } from './SidebarTree';
 import { HeaderControls } from './HeaderControls';
+import { MobileNavDrawer } from './MobileNavDrawer';
 import { CommandPalette } from '@/components/CommandPalette';
 import { useAuth } from '@/components/AuthProvider';
 import { DOMAIN_LABELS } from '@/lib/auth/types';
@@ -23,21 +24,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="relative z-10 min-h-screen">
       {/* Titleblock — the header strip of a drafting sheet */}
       <header className="sticky top-0 z-20 border-b border-line-strong bg-ground-deep/80 backdrop-blur-md">
-        <div className="flex items-center justify-between gap-3 px-6 py-3">
-          <Link href="/" className="group flex shrink-0 items-center gap-3">
-            {/* Registration mark */}
-            <span className="relative grid h-7 w-7 place-items-center rounded-sm border border-line-strong text-accent">
-              <span className="absolute inset-x-1 top-1/2 h-px -translate-y-1/2 bg-current opacity-40" />
-              <span className="absolute inset-y-1 left-1/2 w-px -translate-x-1/2 bg-current opacity-40" />
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-            </span>
-            <span className="flex flex-col leading-none">
-              <span className="text-sm font-semibold tracking-tight text-ink">REVISION OS</span>
-              <span className="tblabel mt-0.5 text-[0.58rem]">
-                {session ? DOMAIN_LABELS[session.domain] ?? session.domain : 'Loading…'}
+        <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <div className="flex min-w-0 items-center gap-2">
+            <MobileNavDrawer />
+            <Link href="/" className="group flex shrink-0 items-center gap-3">
+              {/* Registration mark */}
+              <span className="relative grid h-7 w-7 place-items-center rounded-sm border border-line-strong text-accent">
+                <span className="absolute inset-x-1 top-1/2 h-px -translate-y-1/2 bg-current opacity-40" />
+                <span className="absolute inset-y-1 left-1/2 w-px -translate-x-1/2 bg-current opacity-40" />
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
               </span>
-            </span>
-          </Link>
+              <span className="flex flex-col leading-none">
+                <span className="text-sm font-semibold tracking-tight text-ink">REVISION OS</span>
+                <span className="tblabel mt-0.5 text-[0.58rem]">
+                  {session ? DOMAIN_LABELS[session.domain] ?? session.domain : 'Loading…'}
+                </span>
+              </span>
+            </Link>
+          </div>
 
           <nav className="flex items-center gap-2">
             <CommandPalette />
