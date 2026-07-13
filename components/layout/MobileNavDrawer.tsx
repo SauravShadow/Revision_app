@@ -34,7 +34,7 @@ export function MobileNavDrawer() {
       </button>
       {open && (
         <div className="fixed inset-0 z-40 md:hidden">
-          <div className="absolute inset-0 bg-ground-deep/70 backdrop-blur-sm" onClick={close} />
+          <div className="absolute inset-0 bg-ground-deep/70 backdrop-blur-sm" onClick={close} data-testid="mobile-nav-backdrop" />
           <motion.aside
             initial={{ x: '-100%' }} animate={{ x: 0 }}
             transition={{ type: 'spring', stiffness: 320, damping: 32 }}

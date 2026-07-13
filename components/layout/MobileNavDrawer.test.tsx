@@ -40,3 +40,11 @@ it('closes when a nav link inside the tree is clicked', () => {
   fireEvent.click(screen.getByText('Structures'));
   expect(screen.queryByText('Structures')).not.toBeInTheDocument();
 });
+
+it('closes on backdrop click', () => {
+  useStore.getState().addSubject('Structures');
+  render(<DndContext><MobileNavDrawer /></DndContext>);
+  fireEvent.click(screen.getByLabelText('Open menu'));
+  fireEvent.click(screen.getByTestId('mobile-nav-backdrop'));
+  expect(screen.queryByText('Structures')).not.toBeInTheDocument();
+});
