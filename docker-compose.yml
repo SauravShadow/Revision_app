@@ -1,16 +1,16 @@
 services:
   app:
-    image: ce-revision:latest
+    image: revision_app:latest
     build: .
-    container_name: ce-revision
+    container_name: revision_app
     ports:
-      - "3200:3000"
+      - "127.0.0.1:3200:3000"
     environment:
       - SESSION_SECRET=${SESSION_SECRET}
     volumes:
-      - ce-revision-data:/app/data
+      - revision_app-data:/app/data
     restart: unless-stopped
 
 volumes:
-  ce-revision-data:
+  revision_app-data:
     external: true
