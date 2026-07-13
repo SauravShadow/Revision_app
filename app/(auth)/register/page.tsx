@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { register } from '@/lib/auth/client';
+import { useAuth } from '@/components/AuthProvider';
 import { DOMAIN_LABELS, DOMAIN_COLORS } from '@/lib/auth/types';
 import type { Domain } from '@/lib/auth/types';
 
@@ -36,6 +37,7 @@ const DOMAINS: { id: Domain; emoji: string; description: string }[] = [
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { setSession } = useAuth();
   const [step, setStep] = useState<'credentials' | 'domain'>('credentials');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -76,8 +78,8 @@ export default function RegisterPage() {
       setError(result.error);
       setStep('credentials');
     } else {
+      setSession(result.session);
       router.replace('/');
-      router.refresh();
     }
   }
 

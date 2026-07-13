@@ -16,12 +16,15 @@ interface AuthContextValue {
   /** true while the initial /api/auth/me check is in flight */
   loading: boolean;
   logout: () => Promise<void>;
+  /** Immediately inject a session after login/register — avoids a stale-session race on navigation */
+  setSession: (s: Session) => void;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   session: null,
   loading: true,
   logout: async () => {},
+  setSession: () => {},
 });
 
 export function useAuth() {
@@ -63,8 +66,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.replace('/login');
   }, [router]);
 
+  const injectSession = useCallback((s: Session) => {
+    setSession(s);
+    setLoading(false);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ session, loading, logout }}>
+    <AuthContext.Provider value={{ session, loading, logout, setSession: injectSession }}>
       {children}
     </AuthContext.Provider>
   );

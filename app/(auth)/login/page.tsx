@@ -3,9 +3,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { login } from '@/lib/auth/client';
+import { useAuth } from '@/components/AuthProvider';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { setSession } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -20,8 +22,8 @@ export default function LoginPage() {
     if ('error' in result) {
       setError(result.error);
     } else {
+      setSession(result.session);
       router.replace('/');
-      router.refresh();
     }
   }
 
