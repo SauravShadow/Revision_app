@@ -8,9 +8,7 @@ import { TagManager } from '@/components/TagManager';
 const STATUSES: { key: StatusFilter; label: string }[] = [
   { key: 'needs-revision', label: 'Needs Revision' },
   { key: 'never-revised', label: 'Never Revised' },
-  { key: 'bookmarked', label: 'Bookmarked' },
-  { key: 'has-flashcards', label: 'Has Flashcards' },
-  { key: 'has-attachments', label: 'Has Attachments' },
+  { key: 'has-attachments', label: 'Attachments' },
 ];
 
 export function FilterBar() {

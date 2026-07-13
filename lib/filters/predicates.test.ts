@@ -36,16 +36,16 @@ describe('filter predicates', () => {
       subjects: { s1: { id: 's1', name: 'S', color: '#000', icon: 'X', order: 0, chapterIds: ['c1'] } },
       chapters: { c1: { id: 'c1', subjectId: 's1', name: 'C', order: 0, difficulty: 'Medium', priority: 'Medium', topicIds: ['t1', 't2'] } },
       topics: {
-        t1: topic({ id: 't1', chapterId: 'c1', bookmarkedAt: 5 }),
+        t1: topic({ id: 't1', chapterId: 'c1', attachments: [{ id: 'a1', name: 'f.png', kind: 'image', url: '/api/files/a1', createdAt: 1 }] }),
         t2: topic({ id: 't2', chapterId: 'c1' }),
       },
       tags: {},
       tagOrder: [],
     };
-    const res = matchingTopics(data, { tagIds: [], statuses: ['bookmarked'] }, now);
+    const res = matchingTopics(data, { tagIds: [], statuses: ['has-attachments'] }, now);
     expect(res).toHaveLength(1);
     expect(res[0].topic.id).toBe('t1');
     expect(res[0].subject?.id).toBe('s1');
-    expect(matchingTopics(data, { tagIds: [], statuses: ['bookmarked'] }, now, { chapterId: 'cX' })).toHaveLength(0);
+    expect(matchingTopics(data, { tagIds: [], statuses: ['has-attachments'] }, now, { chapterId: 'cX' })).toHaveLength(0);
   });
 });

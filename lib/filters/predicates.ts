@@ -1,9 +1,7 @@
 import type { AppData, Chapter, Subject, Topic } from '@/lib/domain/types';
 import { badgeState } from '@/lib/revision/engine';
 
-export type StatusFilter =
-  | 'needs-revision' | 'never-revised' | 'bookmarked'
-  | 'has-flashcards' | 'has-attachments';
+export type StatusFilter = 'needs-revision' | 'never-revised' | 'has-attachments';
 
 export interface ActiveFilters {
   tagIds: string[];
@@ -21,8 +19,6 @@ export function topicMatchesStatus(topic: Topic, status: StatusFilter, now: numb
       return b === 'Overdue' || b === 'DueToday';
     }
     case 'never-revised': return topic.revisionHistory.length === 0;
-    case 'bookmarked': return !!topic.bookmarkedAt;
-    case 'has-flashcards': return (topic.flashcards?.length ?? 0) > 0;
     case 'has-attachments': return (topic.attachments?.length ?? 0) > 0;
   }
 }

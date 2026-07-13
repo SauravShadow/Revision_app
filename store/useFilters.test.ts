@@ -5,9 +5,9 @@ beforeEach(() => useFilters.getState().clear());
 
 it('toggles tags and statuses and clears', () => {
   useFilters.getState().toggleTag('a');
-  useFilters.getState().toggleStatus('bookmarked');
+  useFilters.getState().toggleStatus('has-attachments');
   expect(useFilters.getState().tagIds).toEqual(['a']);
-  expect(useFilters.getState().statuses).toEqual(['bookmarked']);
+  expect(useFilters.getState().statuses).toEqual(['has-attachments']);
   useFilters.getState().toggleTag('a'); // off
   expect(useFilters.getState().tagIds).toEqual([]);
   useFilters.getState().clear();
