@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { makeId } from '@revision-app/shared';
 import { writeBlob } from '@/lib/repository/fileBlobStore';
-import { getSessionFromRequest } from '@revision-app/shared';
+import { getSessionFromRequest } from '@revision-app/shared/server';
 
 export const dynamic = 'force-dynamic';
 

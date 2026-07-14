@@ -1,4 +1,5 @@
-import { referencedBlobIds, getSessionFromRequest } from '@revision-app/shared';
+import { referencedBlobIds } from '@revision-app/shared';
+import { getSessionFromRequest } from '@revision-app/shared/server';
 import { getAppData } from '@/lib/contentClient';
 import { sweepUnreferenced } from '@/lib/repository/gc';
 

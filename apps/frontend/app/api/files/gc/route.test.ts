@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { signSession } from '@revision-app/shared';
+import { signSession } from '@revision-app/shared/server';
 
 const USER_1_ID = '11111111-1111-1111-1111-111111111111';
 const USER_2_ID = '22222222-2222-2222-2222-222222222222';

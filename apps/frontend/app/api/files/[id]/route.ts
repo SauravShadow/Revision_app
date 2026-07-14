@@ -1,5 +1,5 @@
 import { readBlob, deleteBlob, isValidBlobId } from '@/lib/repository/fileBlobStore';
-import { getSessionFromRequest, getFileAccessUserId } from '@revision-app/shared';
+import { getSessionFromRequest, getFileAccessUserId } from '@revision-app/shared/server';
 
 export const dynamic = 'force-dynamic';
 

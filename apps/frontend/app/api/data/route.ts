@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import type { AppData } from '@revision-app/shared';
 import { getAppData, putAppData } from '@/lib/contentClient';
-import { getSessionFromRequest } from '@revision-app/shared';
+import { getSessionFromRequest } from '@revision-app/shared/server';
 import { seedDataForDomain } from '@/lib/repository/seed';
 
 // Reads/writes app data (local Postgres today; content-service over HTTP

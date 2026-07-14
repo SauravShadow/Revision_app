@@ -1,7 +1,8 @@
 import express from 'express';
 import { findByUsername, createUser, verifyPassword } from './userStore';
-import { signSession, signFileToken, verifySession, DOMAIN_LABELS } from '@revision-app/shared';
+import { DOMAIN_LABELS } from '@revision-app/shared';
 import type { Domain } from '@revision-app/shared';
+import { signSession, signFileToken, verifySession } from '@revision-app/shared/server';
 
 const ALLOW_REGISTRATION = process.env.ALLOW_REGISTRATION !== 'false';
 
