@@ -1,4 +1,4 @@
-import type { AppData } from '@/lib/domain/types';
+import type { AppData } from '@revision-app/shared';
 import { inGoodStanding, lastRevisedAt } from './engine';
 
 export function chapterProgress(data: AppData, chapterId: string, now: number): number {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { chapterProgress, subjectProgress } from './progress';
-import type { AppData } from '@/lib/domain/types';
+import type { AppData } from '@revision-app/shared';
 
 const now = new Date('2026-07-10T12:00:00Z').getTime();
 

@@ -1,4 +1,4 @@
-import type { AppData } from './types';
+import type { AppData } from '@revision-app/shared';
 import { makeBuiltinTags } from './builtinTags';
 
 // Single load-boundary migration: guarantees every AppData field exists so

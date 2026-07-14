@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { NavTree } from './NavTree';
 import { ThemeToggle } from './ThemeToggle';
 import { useAuth } from '@/components/AuthProvider';
-import { DOMAIN_LABELS } from '@/lib/auth/types';
+import { DOMAIN_LABELS } from '@revision-app/shared';
 
 export function MobileNavDrawer() {
   const [open, setOpen] = useState(false);

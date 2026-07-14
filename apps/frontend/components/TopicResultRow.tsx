@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import type { Chapter, Subject, Topic } from '@/lib/domain/types';
+import type { Chapter, Subject, Topic } from '@revision-app/shared';
 import { badgeState } from '@/lib/revision/engine';
 import { RevisionBadge } from '@/components/RevisionBadge';
 

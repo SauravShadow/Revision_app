@@ -1,5 +1,5 @@
 import { findByUsername, verifyPassword } from '@/lib/auth/userStore';
-import { signSession, signFileToken } from '@/lib/auth/session';
+import { signSession, signFileToken } from '@revision-app/shared';
 
 export async function POST(req: Request) {
   let body: { username?: string; password?: string };

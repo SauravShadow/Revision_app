@@ -1,7 +1,7 @@
 import { createUser } from '@/lib/auth/userStore';
-import { signSession, signFileToken } from '@/lib/auth/session';
-import type { Domain } from '@/lib/auth/types';
-import { DOMAIN_LABELS } from '@/lib/auth/types';
+import { signSession, signFileToken } from '@revision-app/shared';
+import type { Domain } from '@revision-app/shared';
+import { DOMAIN_LABELS } from '@revision-app/shared';
 
 const ALLOW_REGISTRATION = process.env.ALLOW_REGISTRATION !== 'false';
 

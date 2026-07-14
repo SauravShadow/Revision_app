@@ -7,7 +7,7 @@ import { HeaderControls } from './HeaderControls';
 import { MobileNavDrawer } from './MobileNavDrawer';
 import { CommandPalette } from '@/components/CommandPalette';
 import { useAuth } from '@/components/AuthProvider';
-import { DOMAIN_LABELS } from '@/lib/auth/types';
+import { DOMAIN_LABELS } from '@revision-app/shared';
 
 const AUTH_PATHS = ['/login', '/register'];
 

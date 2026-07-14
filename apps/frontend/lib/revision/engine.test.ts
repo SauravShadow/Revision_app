@@ -4,7 +4,7 @@ import {
   badgeState, relativeLabel, inGoodStanding, markRevised,
   deleteRevision, updateRevisionTimestamp,
 } from './engine';
-import type { Topic, Revision } from '@/lib/domain/types';
+import type { Topic, Revision } from '@revision-app/shared';
 
 const DAY = 24 * 60 * 60 * 1000;
 const at = (isoDay: string) => new Date(isoDay + 'T12:00:00Z').getTime();

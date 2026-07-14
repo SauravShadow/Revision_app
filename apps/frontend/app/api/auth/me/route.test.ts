@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { GET } from './route';
-import { signSession } from '@/lib/auth/session';
+import { signSession } from '@revision-app/shared';
 
 describe('GET /api/auth/me', () => {
   it('returns the session plus a fresh token and fileToken for a valid Authorization header', async () => {

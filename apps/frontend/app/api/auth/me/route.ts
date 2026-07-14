@@ -1,4 +1,4 @@
-import { getSessionFromRequest, signSession, signFileToken } from '@/lib/auth/session';
+import { getSessionFromRequest, signSession, signFileToken } from '@revision-app/shared';
 
 export const dynamic = 'force-dynamic';
 

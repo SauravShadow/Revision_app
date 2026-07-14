@@ -1,7 +1,7 @@
 // Server-only: manages the user registry in Postgres (see db/migrations/0001_init.sql).
 import crypto from 'node:crypto';
 import { getPool } from '@/lib/db/pool';
-import type { Domain, UserRecord } from './types';
+import type { Domain, UserRecord } from '@revision-app/shared';
 
 interface UserRow {
   id: string;

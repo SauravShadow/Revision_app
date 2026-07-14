@@ -1,4 +1,4 @@
-import type { AppData } from '@/lib/domain/types';
+import type { AppData } from '@revision-app/shared';
 
 // Notes edits and mark-revised are recorded without undo entries ("silent").
 // When undo/redo restores a structural snapshot, carry the present values of

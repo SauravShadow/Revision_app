@@ -1,4 +1,4 @@
-import type { Attachment, AttachmentKind } from '@/lib/domain/types';
+import type { Attachment, AttachmentKind } from '@revision-app/shared';
 import { authFetch } from '@/lib/auth/client';
 
 export function mimeToKind(mime: string): AttachmentKind {

@@ -1,5 +1,5 @@
-import type { AppData, Chapter, Subject, Topic } from '@/lib/domain/types';
-import { makeId } from '@/lib/domain/id';
+import type { AppData, Chapter, Subject, Topic } from '@revision-app/shared';
+import { makeId } from '@revision-app/shared';
 import { makeBuiltinTags } from '@/lib/domain/builtinTags';
 
 // Source of truth: docs/ESE-Civil-Engineering-Syllabus.md (UPSC ESE Civil, 2026).

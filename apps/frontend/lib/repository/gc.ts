@@ -1,21 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import type { AppData } from '@/lib/domain/types';
 import { filesDir, deleteBlob, GC_GRACE_MS } from './fileBlobStore';
-
-const UPLOAD_URL_RE = /^\/api\/files\/([A-Za-z0-9-]+)$/;
-
-export function referencedBlobIds(data: AppData | null): Set<string> {
-  const ids = new Set<string>();
-  if (!data) return ids;
-  for (const t of Object.values(data.topics)) {
-    for (const a of t.attachments ?? []) {
-      const m = a.url.match(UPLOAD_URL_RE);
-      if (m) ids.add(m[1]);
-    }
-  }
-  return ids;
-}
 
 // Delete blobs no longer referenced by any attachment. Blobs younger than
 // the grace period are kept so in-session undo can still restore them.

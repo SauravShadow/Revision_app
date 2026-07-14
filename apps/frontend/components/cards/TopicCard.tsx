@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
-import type { Topic } from '@/lib/domain/types';
+import type { Topic } from '@revision-app/shared';
 import { useStore } from '@/store/useStore';
 import { badgeState, totalRevisions, lastRevisedAt, relativeLabel } from '@/lib/revision/engine';
 import { RevisionBadge } from '@/components/RevisionBadge';

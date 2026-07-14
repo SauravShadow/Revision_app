@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { GET, DELETE } from './route';
-import { signSession, signFileToken } from '@/lib/auth/session';
+import { signSession, signFileToken } from '@revision-app/shared';
 
 const ctx = (id: string) => ({ params: Promise.resolve({ id }) });
 

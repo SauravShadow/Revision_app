@@ -1,4 +1,4 @@
-import type { AppData, Chapter, Subject, Topic } from '@/lib/domain/types';
+import type { AppData, Chapter, Subject, Topic } from '@revision-app/shared';
 import { badgeState } from '@/lib/revision/engine';
 
 export type StatusFilter = 'needs-revision' | 'never-revised' | 'has-attachments';

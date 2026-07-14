@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { topicMatchesFilters, hasActiveFilters, matchingTopics } from './predicates';
-import type { AppData, Topic } from '@/lib/domain/types';
+import type { AppData, Topic } from '@revision-app/shared';
 
 const now = new Date('2026-07-10T12:00:00Z').getTime();
 

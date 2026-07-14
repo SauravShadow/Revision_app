@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import type { Subject } from '@/lib/domain/types';
+import type { Subject } from '@revision-app/shared';
 import { useStore } from '@/store/useStore';
 import { subjectProgress, subjectStats } from '@/lib/revision/progress';
 import { relativeLabel } from '@/lib/revision/engine';

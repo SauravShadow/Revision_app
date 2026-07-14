@@ -1,6 +1,6 @@
 'use client';
 import { Tag as TagIcon } from 'lucide-react';
-import type { Topic } from '@/lib/domain/types';
+import type { Topic } from '@revision-app/shared';
 import { useStore } from '@/store/useStore';
 
 export function TagPicker({ topic }: { topic: Topic }) {

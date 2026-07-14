@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import type { AppData, Attachment, Chapter, Flashcard, Subject, Tag, Topic } from '@/lib/domain/types';
-import { makeId } from '@/lib/domain/id';
+import type { AppData, Attachment, Chapter, Flashcard, Subject, Tag, Topic } from '@revision-app/shared';
+import { makeId } from '@revision-app/shared';
 import { normalizeData } from '@/lib/domain/normalize';
 import { markRevised, deleteRevision as engineDeleteRevision, updateRevisionTimestamp as engineUpdateRevisionTimestamp } from '@/lib/revision/engine';
 import { arrayMove } from '@/lib/util/array';

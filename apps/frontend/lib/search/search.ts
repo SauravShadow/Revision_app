@@ -1,4 +1,4 @@
-import type { AppData } from '@/lib/domain/types';
+import type { AppData } from '@revision-app/shared';
 
 export type SearchKind = 'subject' | 'chapter' | 'topic' | 'tag';
 export interface SearchResult {

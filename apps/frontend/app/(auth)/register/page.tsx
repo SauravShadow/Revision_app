@@ -4,8 +4,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { register } from '@/lib/auth/client';
 import { useAuth } from '@/components/AuthProvider';
-import { DOMAIN_LABELS, DOMAIN_COLORS } from '@/lib/auth/types';
-import type { Domain } from '@/lib/auth/types';
+import { DOMAIN_LABELS, DOMAIN_COLORS } from '@revision-app/shared';
+import type { Domain } from '@revision-app/shared';
 
 const DOMAINS: { id: Domain; emoji: string; description: string }[] = [
   {

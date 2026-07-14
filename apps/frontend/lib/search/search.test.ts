@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { search } from './search';
-import type { AppData } from '@/lib/domain/types';
+import type { AppData } from '@revision-app/shared';
 
 function data(): AppData {
   return {

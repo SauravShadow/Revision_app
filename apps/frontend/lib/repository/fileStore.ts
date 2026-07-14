@@ -1,5 +1,5 @@
 import path from 'node:path';
-import type { AppData } from '@/lib/domain/types';
+import type { AppData } from '@revision-app/shared';
 import { getPool } from '@/lib/db/pool';
 
 // Snapshot data lives in the Postgres `app_data` table (see readData/writeData

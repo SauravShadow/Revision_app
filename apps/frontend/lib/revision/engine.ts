@@ -1,5 +1,5 @@
-import type { Revision, Topic } from '@/lib/domain/types';
-import { makeId } from '@/lib/domain/id';
+import type { Revision, Topic } from '@revision-app/shared';
+import { makeId } from '@revision-app/shared';
 import { nextInterval } from './ladder';
 
 const DAY_MS = 24 * 60 * 60 * 1000;

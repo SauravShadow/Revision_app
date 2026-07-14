@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Layers, Plus, Trash2, Play, X } from 'lucide-react';
-import type { Topic } from '@/lib/domain/types';
+import type { Topic } from '@revision-app/shared';
 import { useStore } from '@/store/useStore';
 
 export function FlashcardsPanel({ topic }: { topic: Topic }) {

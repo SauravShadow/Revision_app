@@ -1,5 +1,4 @@
-import type { Tag } from './types';
-import { makeId } from './id';
+import { makeId, type Tag } from '@revision-app/shared';
 
 export const BUILTIN_TAGS: { name: string; color: string; icon: string }[] = [
   { name: 'Formula', color: '#f59e0b', icon: 'Sigma' },

@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import type { Chapter } from '@/lib/domain/types';
+import type { Chapter } from '@revision-app/shared';
 import { useStore } from '@/store/useStore';
 import { chapterProgress } from '@/lib/revision/progress';
 import { RowActions } from '@/components/RowActions';

@@ -1,4 +1,4 @@
-import type { AppData } from '@/lib/domain/types';
+import type { AppData } from '@revision-app/shared';
 import type { RevisionRepository } from './RevisionRepository';
 
 // In-memory repository for tests (and a template for future backends).

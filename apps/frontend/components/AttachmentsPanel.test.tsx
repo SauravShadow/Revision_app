@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { AttachmentsPanel } from './AttachmentsPanel';
 import { useStore } from '@/store/useStore';
 import { uploadFile } from '@/lib/files/uploadFile';
-import type { Attachment, Topic } from '@/lib/domain/types';
+import type { Attachment, Topic } from '@revision-app/shared';
 
 vi.mock('@/lib/auth/client', () => ({ getStoredFileToken: () => 'file-tok' }));
 vi.mock('@/lib/files/uploadFile', () => ({ uploadFile: vi.fn() }));

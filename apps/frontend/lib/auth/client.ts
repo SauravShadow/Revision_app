@@ -1,5 +1,5 @@
 // Client-side auth helpers — thin fetch wrappers over /api/auth/*.
-import type { Domain } from './types';
+import type { Domain } from '@revision-app/shared';
 
 export interface Session {
   userId: string;

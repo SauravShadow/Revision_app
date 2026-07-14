@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { preserveSilentFields } from './silentFields';
-import type { AppData, Topic } from '@/lib/domain/types';
+import type { AppData, Topic } from '@revision-app/shared';
 
 function topic(id: string, notes: string, revisions = 0): Topic {
   return {

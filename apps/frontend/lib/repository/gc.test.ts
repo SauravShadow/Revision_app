@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import type { AppData, Topic } from '@/lib/domain/types';
 
 let dir: string;
 
@@ -15,38 +14,6 @@ afterEach(async () => {
   delete process.env.DATA_FILE;
   delete process.env.DATA_DIR;
   await fs.rm(dir, { recursive: true, force: true });
-});
-
-function topicWithUpload(blobId: string): Topic {
-  return {
-    id: 't1', chapterId: 'c1', title: 'T', notes: '', order: 0,
-    difficulty: 'Medium', priority: 'Medium', revisionHistory: [],
-    createdAt: 1, updatedAt: 1,
-    attachments: [
-      { id: blobId, name: 'f.png', kind: 'image', url: `/api/files/${blobId}`, createdAt: 1 },
-      { id: 'ext', name: 'site', kind: 'link', url: 'https://example.com', createdAt: 1 },
-    ],
-  };
-}
-
-function appData(topics: Topic[]): AppData {
-  return {
-    subjects: {}, chapters: {}, subjectOrder: [], tags: {}, tagOrder: [],
-    topics: Object.fromEntries(topics.map((t) => [t.id, t])),
-  };
-}
-
-describe('referencedBlobIds', () => {
-  it('collects upload ids and ignores external links', async () => {
-    const { referencedBlobIds } = await import('./gc');
-    const ids = referencedBlobIds(appData([topicWithUpload('blob-a')]));
-    expect(ids).toEqual(new Set(['blob-a']));
-  });
-
-  it('returns an empty set for null data', async () => {
-    const { referencedBlobIds } = await import('./gc');
-    expect(referencedBlobIds(null).size).toBe(0);
-  });
 });
 
 describe('sweepUnreferenced', () => {

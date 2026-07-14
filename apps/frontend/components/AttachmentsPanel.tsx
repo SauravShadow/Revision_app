@@ -1,10 +1,10 @@
 'use client';
 import { useState } from 'react';
 import { Paperclip, Upload, Link as LinkIcon, FileText, Trash2, ExternalLink } from 'lucide-react';
-import type { Attachment, Topic } from '@/lib/domain/types';
+import type { Attachment, Topic } from '@revision-app/shared';
 import { useStore } from '@/store/useStore';
 import { uploadFile } from '@/lib/files/uploadFile';
-import { makeId } from '@/lib/domain/id';
+import { makeId } from '@revision-app/shared';
 import { getStoredFileToken } from '@/lib/auth/client';
 
 function addTokenToUrl(url?: string): string {
