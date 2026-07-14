@@ -10,8 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrate": "node scripts/migrate.mjs",
-    "db:migrate:test": "node scripts/migrate.mjs --test",
-    "db:migrate-legacy-data": "node scripts/migrate-legacy-data.mjs"
+    "db:migrate:test": "node scripts/migrate.mjs --test"
   },
   "dependencies": {
     "@revision-app/shared": "*",
