@@ -1,13 +1,11 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { filesDir, deleteBlob, GC_GRACE_MS } from './fileBlobStore';
+import { filesDir, deleteBlob, GC_GRACE_MS } from './blobStore';
 
-// Delete blobs no longer referenced by any attachment. Blobs younger than
-// the grace period are kept so in-session undo can still restore them.
 export async function sweepUnreferenced(
   referenced: Set<string>,
+  userId: string,
   now = Date.now(),
-  userId?: string,
 ): Promise<{ scanned: number; deleted: number }> {
   const dir = filesDir(userId);
   let entries: string[];
