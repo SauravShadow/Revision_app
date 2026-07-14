@@ -6,3 +6,4 @@ Dockerfile
 .dockerignore
 docs
 *.md
+**/.env
