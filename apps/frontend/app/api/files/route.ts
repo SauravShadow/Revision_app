@@ -1,33 +1,8 @@
-import type { NextRequest } from 'next/server';
-import { makeId } from '@revision-app/shared';
-import { writeBlob } from '@/lib/repository/fileBlobStore';
-import { getSessionFromRequest } from '@revision-app/shared/server';
+import { proxyRequest } from '@/lib/serviceProxy';
 
+const FILES_SERVICE_URL = process.env.FILES_SERVICE_URL ?? 'http://127.0.0.1:4003';
 export const dynamic = 'force-dynamic';
 
-const MAX_UPLOAD = 25 * 1024 * 1024;
-const ALLOWED = new Set([
-  'image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml', 'application/pdf',
-]);
-
-export async function POST(req: NextRequest) {
-  const session = getSessionFromRequest(req);
-  if (!session) return Response.json({ error: 'Not authenticated' }, { status: 401 });
-
-  const form = await req.formData();
-  const entry = form.get('file');
-  // A text field is a string; a file is not. (Avoids referencing a global File.)
-  if (!entry || typeof entry === 'string') {
-    return Response.json({ error: 'no file' }, { status: 400 });
-  }
-  const mime = entry.type;
-  if (!ALLOWED.has(mime)) return Response.json({ error: 'unsupported type' }, { status: 400 });
-  if (entry.size > MAX_UPLOAD) return Response.json({ error: 'too large' }, { status: 400 });
-
-  const id = makeId();
-  const bytes = Buffer.from(await entry.arrayBuffer());
-  const name = entry.name || id;
-  await writeBlob(id, bytes, { name, mime, size: entry.size }, session.userId);
-  return Response.json({ id, url: `/api/files/${id}`, name, mime, size: entry.size });
+export async function POST(req: Request) {
+  return proxyRequest(req, `${FILES_SERVICE_URL}/upload`);
 }
-
