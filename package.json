@@ -5,5 +5,8 @@
     "apps/*",
     "services/*",
     "packages/*"
-  ]
+  ],
+  "scripts": {
+    "smoke-test": "node scripts/smoke-test.mjs"
+  }
 }
