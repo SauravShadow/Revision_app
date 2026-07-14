@@ -27,17 +27,17 @@ services:
       - "127.0.0.1:3200:3000"
     environment:
       - SESSION_SECRET=${SESSION_SECRET}
-      - DATABASE_URL=postgres://revision:${POSTGRES_PASSWORD}@db:5432/revision_app
       - AUTH_SERVICE_URL=http://auth-service:4001
       - FILES_SERVICE_URL=http://files-service:4003
-    volumes:
-      - revision_app-data:/repo/apps/frontend/data
+      - CONTENT_SERVICE_URL=http://content-service:4002
     depends_on:
       db:
         condition: service_healthy
       auth-service:
         condition: service_started
       files-service:
+        condition: service_started
+      content-service:
         condition: service_started
     restart: unless-stopped
 
@@ -66,9 +66,20 @@ services:
       - revision_files-data:/data/files
     restart: unless-stopped
 
+  content-service:
+    build:
+      context: .
+      dockerfile: services/content-service/Dockerfile
+    container_name: revision_content_service
+    environment:
+      - DATABASE_URL=postgres://revision:${POSTGRES_PASSWORD}@db:5432/revision_content
+      - SESSION_SECRET=${SESSION_SECRET}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
-  revision_app-data:
-    external: true
   revision_app-db:
     external: true
   revision_files-data:
