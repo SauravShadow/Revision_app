@@ -19,6 +19,8 @@
 - New services are plain Express apps run with `tsx src/server.ts` — no separate `tsc` build stage, to keep this split's Docker setup simple.
 - Every Docker Compose service that owns a Postgres database gets its own database name; no two services share a database.
 
+**Fresh-environment provisioning:** A fresh environment (new deploy, disaster recovery, second engineer setting up locally) has an empty Postgres volume — no service's tables exist until its migrations run. Each DB-backed service's `Dockerfile` `CMD` runs `npm run db:migrate` before `npm start` (idempotent — safe on every container start/restart), so `docker compose up -d --build` against an empty volume is sufficient to provision tables. Outside Docker (e.g. running a service directly), run `npm run db:migrate -w <service>` once before first use. CI must also create and migrate each DB-backed service's own test database before running that service's tests (see Task 18/CI notes) — a shared `revision_test` database with no migrations run is not sufficient.
+
 ---
 
 ## Phase 0: Reconcile & Merge the In-Flight Postgres Migration
@@ -2096,19 +2098,42 @@ Confirm nothing else in `apps/frontend` imports `lib/db/pool`:
 grep -rl "lib/db/pool" apps/frontend || echo "clean"
 ```
 
-- [ ] **Step 4: One-off data migration — copy existing `app_data` rows from `revision_app` into `revision_content`**
+- [ ] **Step 4: One-off data migration — copy existing `users` and `app_data` rows out of `revision_app`**
+
+`auth-service` (Tasks 6/7) was built against a fresh, empty `revision_auth` database — it never received the `users` rows that accumulated in `revision_app` before this split. Those rows (real accounts, referenced by `app_data.user_id`) must be migrated to `revision_auth` in this same step, preserving exact `id` values, or they are lost when `revision_app` is dropped in Step 5.
 
 ```bash
+# users: revision_app -> revision_auth (must run BEFORE the app_data copy below,
+# and BEFORE Step 5's drop — app_data.user_id references these same UUIDs)
+docker compose exec db psql -U revision -d revision_app -c \
+  "\copy (SELECT id, username, password_hash, domain, created_at FROM users) TO '/tmp/users.csv' CSV"
+docker compose exec db psql -U revision -d revision_auth -c \
+  "\copy users (id, username, password_hash, domain, created_at) FROM '/tmp/users.csv' CSV"
+
+# app_data: revision_app -> revision_content
 docker compose exec db psql -U revision -d revision_app -c \
   "\copy (SELECT user_id, data, updated_at FROM app_data) TO '/tmp/app_data.csv' CSV"
 docker compose exec db psql -U revision -d revision_content -c \
   "\copy app_data (user_id, data, updated_at) FROM '/tmp/app_data.csv' CSV"
 ```
 
-- [ ] **Step 5: Run tests, then drop the now-unused `revision_app` database**
+(Adjust the `users` column list above to match `revision_app`'s actual `users` schema at the time this step is run.)
+
+- [ ] **Step 5: Run tests, back up, then drop the now-unused `revision_app` database**
+
+Back up both `revision_app` databases before dropping them — this is the last point at which their data exists independently of `revision_auth`/`revision_content`, so a mistake in Step 4's copy is still recoverable here:
 
 ```bash
 npm test -w apps/frontend
+docker compose exec db pg_dump -U revision -d revision_app -F c -f /tmp/revision_app-final-backup.dump
+docker compose exec db pg_dump -U revision -d revision_app_test -F c -f /tmp/revision_app_test-final-backup.dump
+docker compose cp db:/tmp/revision_app-final-backup.dump ./revision_app-final-backup.dump
+docker compose cp db:/tmp/revision_app_test-final-backup.dump ./revision_app_test-final-backup.dump
+```
+
+Confirm `revision_auth.users` and `revision_content.app_data` row counts match `revision_app`'s pre-drop counts, then drop:
+
+```bash
 docker compose exec db psql -U revision -d postgres -c "DROP DATABASE revision_app;"
 docker compose exec db psql -U revision -d postgres -c "DROP DATABASE revision_app_test;"
 ```
