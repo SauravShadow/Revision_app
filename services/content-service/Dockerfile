@@ -7,6 +7,7 @@ COPY services/content-service/package.json services/content-service/package.json
 RUN npm ci
 COPY packages/shared packages/shared
 COPY services/content-service services/content-service
+COPY scripts scripts
 WORKDIR /repo/services/content-service
 EXPOSE 4002
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npm run db:migrate && npm start"]

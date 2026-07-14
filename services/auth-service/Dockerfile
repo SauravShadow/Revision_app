@@ -7,6 +7,7 @@ COPY services/auth-service/package.json services/auth-service/package.json
 RUN npm ci
 COPY packages/shared packages/shared
 COPY services/auth-service services/auth-service
+COPY scripts scripts
 WORKDIR /repo/services/auth-service
 EXPOSE 4001
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npm run db:migrate && npm start"]

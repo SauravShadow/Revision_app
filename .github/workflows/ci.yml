@@ -42,8 +42,10 @@ jobs:
             condition: frontend
           - workspace: services/auth-service
             condition: auth
+            db: revision_auth_test
           - workspace: services/content-service
             condition: content
+            db: revision_content_test
           - workspace: services/files-service
             condition: files
           - workspace: packages/shared
@@ -56,8 +58,19 @@ jobs:
           node-version: 20
       - if: needs.changes.outputs[matrix.condition] == 'true' || needs.changes.outputs.shared == 'true'
         run: npm ci
+      # auth-service and content-service each own their database (revision_auth /
+      # revision_content in real environments). The shared Postgres service container
+      # only creates `revision_test` via POSTGRES_DB, so create+migrate this
+      # matrix entry's own test database here before `npm test` runs against it.
+      - if: matrix.db != '' && (needs.changes.outputs[matrix.condition] == 'true' || needs.changes.outputs.shared == 'true')
+        name: Create and migrate ${{ matrix.workspace }}'s test database
+        run: |
+          PGPASSWORD=changeme psql -h localhost -U revision -d postgres -c "CREATE DATABASE ${{ matrix.db }};"
+          npm run db:migrate -w ${{ matrix.workspace }}
+        env:
+          DATABASE_URL: postgres://revision:changeme@localhost:5432/${{ matrix.db }}
       - if: needs.changes.outputs[matrix.condition] == 'true' || needs.changes.outputs.shared == 'true'
         run: npm test -w ${{ matrix.workspace }}
         env:
-          DATABASE_URL: postgres://revision:changeme@localhost:5432/revision_test
+          DATABASE_URL: postgres://revision:changeme@localhost:5432/${{ matrix.db || 'revision_test' }}
           SESSION_SECRET: ci-secret
