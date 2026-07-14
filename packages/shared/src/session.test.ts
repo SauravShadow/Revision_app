@@ -3,7 +3,7 @@ import {
   signSession, verifySession, signFileToken, verifyFileToken,
   getSessionFromRequest, getFileAccessUserId,
 } from './session';
-import type { Session } from './types';
+import type { Session } from './authTypes';
 
 const session: Session = { userId: 'u1', username: 'alice', domain: 'civil-engineering' };
 

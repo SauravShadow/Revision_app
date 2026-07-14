@@ -3,7 +3,7 @@
 // so different users can be signed in simultaneously in separate tabs of the
 // same browser.
 import crypto from 'node:crypto';
-import type { Session } from './types';
+import type { Session } from './authTypes';
 
 function secret(): string {
   const s = process.env.SESSION_SECRET;
