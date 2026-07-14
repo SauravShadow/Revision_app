@@ -28,8 +28,24 @@ services:
     environment:
       - SESSION_SECRET=${SESSION_SECRET}
       - DATABASE_URL=postgres://revision:${POSTGRES_PASSWORD}@db:5432/revision_app
+      - AUTH_SERVICE_URL=http://auth-service:4001
     volumes:
       - revision_app-data:/repo/apps/frontend/data
+    depends_on:
+      db:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    restart: unless-stopped
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: services/auth-service/Dockerfile
+    container_name: revision_auth_service
+    environment:
+      - DATABASE_URL=postgres://revision:${POSTGRES_PASSWORD}@db:5432/revision_auth
+      - SESSION_SECRET=${SESSION_SECRET}
     depends_on:
       db:
         condition: service_healthy
