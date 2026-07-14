@@ -1,0 +1,9 @@
+# .github/CODEOWNERS
+# packages/shared is the one real coupling point between services — all
+# owners must review changes there. (Solo project: @SauravShadow owns
+# every path.)
+/packages/shared/          @SauravShadow
+/services/auth-service/    @SauravShadow
+/services/files-service/   @SauravShadow
+/services/content-service/ @SauravShadow
+/apps/frontend/            @SauravShadow

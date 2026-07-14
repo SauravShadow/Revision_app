@@ -1,0 +1,63 @@
+# .github/workflows/ci.yml
+name: CI
+on: [pull_request]
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      auth: ${{ steps.filter.outputs.auth }}
+      content: ${{ steps.filter.outputs.content }}
+      files: ${{ steps.filter.outputs.files }}
+      shared: ${{ steps.filter.outputs.shared }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend: ['apps/frontend/**']
+            auth: ['services/auth-service/**']
+            content: ['services/content-service/**']
+            files: ['services/files-service/**']
+            shared: ['packages/shared/**']
+
+  test:
+    needs: changes
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: revision
+          POSTGRES_PASSWORD: changeme
+          POSTGRES_DB: revision_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 3s --health-retries 5
+    strategy:
+      matrix:
+        include:
+          - workspace: apps/frontend
+            condition: frontend
+          - workspace: services/auth-service
+            condition: auth
+          - workspace: services/content-service
+            condition: content
+          - workspace: services/files-service
+            condition: files
+          - workspace: packages/shared
+            condition: shared
+    steps:
+      - uses: actions/checkout@v4
+      - if: needs.changes.outputs[matrix.condition] == 'true' || needs.changes.outputs.shared == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - if: needs.changes.outputs[matrix.condition] == 'true' || needs.changes.outputs.shared == 'true'
+        run: npm ci
+      - if: needs.changes.outputs[matrix.condition] == 'true' || needs.changes.outputs.shared == 'true'
+        run: npm test -w ${{ matrix.workspace }}
+        env:
+          DATABASE_URL: postgres://revision:changeme@localhost:5432/revision_test
+          SESSION_SECRET: ci-secret
