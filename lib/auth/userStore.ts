@@ -1,49 +1,42 @@
-// Server-only: manages the user registry persisted at data/auth.json.
-// Uses the same atomic-write pattern as fileStore.ts.
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
+// Server-only: manages the user registry in Postgres (see db/migrations/0001_init.sql).
 import crypto from 'node:crypto';
+import { getPool } from '@/lib/db/pool';
 import type { Domain, UserRecord } from './types';
 
-function authFilePath(): string {
-  const dataDir = process.env.DATA_DIR ?? path.join(process.cwd(), 'data');
-  return path.join(dataDir, 'auth.json');
+interface UserRow {
+  id: string;
+  username: string;
+  password_hash: string;
+  domain: Domain;
+  created_at: Date;
 }
 
-interface AuthStore {
-  users: UserRecord[];
-}
-
-async function readStore(): Promise<AuthStore> {
-  try {
-    const raw = await fs.readFile(authFilePath(), 'utf8');
-    return JSON.parse(raw) as AuthStore;
-  } catch {
-    return { users: [] };
-  }
-}
-
-async function writeStore(store: AuthStore): Promise<void> {
-  const file = authFilePath();
-  await fs.mkdir(path.dirname(file), { recursive: true });
-  const tmp = `${file}.tmp`;
-  await fs.writeFile(tmp, JSON.stringify(store, null, 2), 'utf8');
-  await fs.rename(tmp, file);
+function rowToUser(row: UserRow): UserRecord {
+  return {
+    id: row.id,
+    username: row.username,
+    passwordHash: row.password_hash,
+    domain: row.domain,
+    createdAt: row.created_at.getTime(),
+  };
 }
 
 export async function listUsers(): Promise<UserRecord[]> {
-  const store = await readStore();
-  return store.users;
+  const { rows } = await getPool().query<UserRow>('SELECT * FROM users ORDER BY created_at');
+  return rows.map(rowToUser);
 }
 
 export async function findByUsername(username: string): Promise<UserRecord | null> {
-  const store = await readStore();
-  return store.users.find((u) => u.username.toLowerCase() === username.toLowerCase()) ?? null;
+  const { rows } = await getPool().query<UserRow>(
+    'SELECT * FROM users WHERE username_lower = lower($1)',
+    [username],
+  );
+  return rows[0] ? rowToUser(rows[0]) : null;
 }
 
 export async function findById(id: string): Promise<UserRecord | null> {
-  const store = await readStore();
-  return store.users.find((u) => u.id === id) ?? null;
+  const { rows } = await getPool().query<UserRow>('SELECT * FROM users WHERE id = $1', [id]);
+  return rows[0] ? rowToUser(rows[0]) : null;
 }
 
 export async function createUser(
@@ -51,18 +44,19 @@ export async function createUser(
   password: string,
   domain: Domain,
 ): Promise<UserRecord> {
-  const store = await readStore();
-  const existing = store.users.find(
-    (u) => u.username.toLowerCase() === username.toLowerCase(),
-  );
-  if (existing) throw new Error('USERNAME_TAKEN');
-
-  const id = crypto.randomUUID();
   const passwordHash = await hashPassword(password);
-  const user: UserRecord = { id, username, passwordHash, domain, createdAt: Date.now() };
-  store.users.push(user);
-  await writeStore(store);
-  return user;
+  // ON CONFLICT DO NOTHING + RETURNING makes the uniqueness check atomic:
+  // under concurrent signups with the same username, exactly one INSERT
+  // returns a row and the other returns none — no read-modify-write race.
+  const { rows } = await getPool().query<UserRow>(
+    `INSERT INTO users (username, password_hash, domain)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (username_lower) DO NOTHING
+     RETURNING *`,
+    [username, passwordHash, domain],
+  );
+  if (rows.length === 0) throw new Error('USERNAME_TAKEN');
+  return rowToUser(rows[0]);
 }
 
 // ── Password hashing (PBKDF2-SHA256 via Node crypto, no extra deps) ──────────

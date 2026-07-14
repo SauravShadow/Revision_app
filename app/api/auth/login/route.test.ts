@@ -1,33 +1,26 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
-import os from 'node:os';
-
-let dir: string;
+import { describe, it, expect, beforeEach, afterAll } from 'vitest';
+import { getPool } from '@/lib/db/pool';
 
 beforeEach(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), 'ce-login-'));
-  process.env.DATA_DIR = dir;
+  await getPool().query('TRUNCATE users CASCADE');
 });
-afterEach(async () => {
-  delete process.env.DATA_DIR;
-  await fs.rm(dir, { recursive: true, force: true });
-});
+
+afterAll(() => getPool().end());
 
 describe('POST /api/auth/login', () => {
   it('returns a session token and a separately-scoped file token, and no Set-Cookie header', async () => {
     const { createUser } = await import('@/lib/auth/userStore');
     const { POST } = await import('./route');
-    await createUser('alice', 'password123', 'civil-engineering');
+    await createUser('logintest1', 'password123', 'civil-engineering');
 
     const req = new Request('http://test/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username: 'alice', password: 'password123' }),
+      body: JSON.stringify({ username: 'logintest1', password: 'password123' }),
     });
     const res = await POST(req);
     const body = await res.json();
 
-    expect(body.username).toBe('alice');
+    expect(body.username).toBe('logintest1');
     expect(typeof body.token).toBe('string');
     expect(typeof body.fileToken).toBe('string');
     expect(body.token).not.toBe(body.fileToken);
@@ -37,11 +30,11 @@ describe('POST /api/auth/login', () => {
   it('rejects a wrong password', async () => {
     const { createUser } = await import('@/lib/auth/userStore');
     const { POST } = await import('./route');
-    await createUser('alice', 'password123', 'civil-engineering');
+    await createUser('logintest2', 'password123', 'civil-engineering');
 
     const req = new Request('http://test/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username: 'alice', password: 'wrong' }),
+      body: JSON.stringify({ username: 'logintest2', password: 'wrong' }),
     });
     const res = await POST(req);
     expect(res.status).toBe(401);
