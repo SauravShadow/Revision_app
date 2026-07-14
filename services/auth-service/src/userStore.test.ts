@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
-import { getPool } from '@/lib/db/pool';
+import { getPool } from './db';
 
 beforeEach(async () => {
   await getPool().query('TRUNCATE users CASCADE');
