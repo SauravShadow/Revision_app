@@ -1,13 +1,8 @@
-import { getSessionFromRequest, signSession, signFileToken } from '@revision-app/shared';
+import { proxyRequest } from '@/lib/serviceProxy';
 
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL ?? 'http://127.0.0.1:4001';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
-  const session = getSessionFromRequest(req);
-  if (!session) {
-    return Response.json({ error: 'Not authenticated' }, { status: 401 });
-  }
-  const token = signSession(session);
-  const fileToken = signFileToken(session.userId);
-  return Response.json({ ...session, token, fileToken });
+  return proxyRequest(req, `${AUTH_SERVICE_URL}/me`);
 }
