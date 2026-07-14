@@ -12,12 +12,19 @@ describe('useStore', () => {
   beforeEach(reset);
 
   it('hydrate seeds 13 subjects on first run', async () => {
-    await useStore.getState().hydrate();
+    await useStore.getState().hydrate('civil-engineering');
     expect(useStore.getState().subjectOrder).toHaveLength(13);
   });
 
+  it('hydrate seeds domain-appropriate content, not always civil-engineering', async () => {
+    await useStore.getState().hydrate('software-engineering');
+    const names = Object.values(useStore.getState().subjects).map((s) => s.name);
+    expect(names).toContain('Data Structures & Algorithms');
+    expect(names).not.toContain('Building Materials');
+  });
+
   it('adds a chapter under a subject', async () => {
-    await useStore.getState().hydrate();
+    await useStore.getState().hydrate('civil-engineering');
     const subjectId = useStore.getState().subjectOrder[0];
     const chapterId = useStore.getState().addChapter(subjectId, 'Flow through Pipes');
     const state = useStore.getState();
@@ -222,7 +229,7 @@ describe('useStore', () => {
     const repo = new MemoryRepository();
     await repo.save(seedData());
     const store = createRevisionStore(repo);
-    await store.getState().hydrate();
+    await store.getState().hydrate('civil-engineering');
     expect(store.getState().subjectOrder).toHaveLength(13);
   });
 

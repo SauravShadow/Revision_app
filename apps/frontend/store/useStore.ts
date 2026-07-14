@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { AppData, Attachment, Chapter, Flashcard, Subject, Tag, Topic } from '@revision-app/shared';
+import type { AppData, Attachment, Chapter, Domain, Flashcard, Subject, Tag, Topic } from '@revision-app/shared';
 import { makeId } from '@revision-app/shared';
 import { normalizeData } from '@/lib/domain/normalize';
 import { markRevised, deleteRevision as engineDeleteRevision, updateRevisionTimestamp as engineUpdateRevisionTimestamp } from '@/lib/revision/engine';
@@ -7,12 +7,12 @@ import { arrayMove } from '@/lib/util/array';
 import { emptyHistory, record, undo as undoHistory, redo as redoHistory, type History } from './history';
 import { SaveQueue, type SaveStatus } from './saveQueue';
 import { ApiRepository } from '@/lib/repository/ApiRepository';
-import { seedData } from '@/lib/repository/seed';
+import { seedDataForDomain } from '@/lib/repository/seed';
 import type { RevisionRepository } from '@/lib/repository/RevisionRepository';
 import { preserveSilentFields } from './silentFields';
 
 interface StoreState extends AppData {
-  hydrate: () => Promise<void>;
+  hydrate: (domain: Domain) => Promise<void>;
   addSubject: (name: string) => string;
   renameSubject: (id: string, name: string) => void;
   deleteSubject: (id: string) => void;
@@ -82,10 +82,10 @@ export function createRevisionStore(repo: RevisionRepository) {
       history: emptyHistory<AppData>(),
       saveState: 'idle',
 
-      hydrate: async () => {
+      hydrate: async (domain: Domain) => {
         const loaded = await repo.load();
         if (loaded) { set({ ...normalizeData(loaded), history: emptyHistory<AppData>() }); return; }
-        const seeded = seedData();
+        const seeded = seedDataForDomain(domain);
         set({ ...seeded, history: emptyHistory<AppData>() });
         try {
           await repo.save(seeded);

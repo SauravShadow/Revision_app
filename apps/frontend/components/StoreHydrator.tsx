@@ -14,7 +14,7 @@ export function StoreHydrator({ children }: { children: React.ReactNode }) {
     // Don't hydrate until auth is settled and we have a valid session
     if (authLoading || !session || hydratedRef.current) return;
     hydratedRef.current = true;
-    void hydrate().then(() => {
+    void hydrate(session.domain).then(() => {
       setReady(true);
       void authFetch('/api/files/gc', { method: 'POST' }).catch(() => {});
     });
