@@ -15,7 +15,7 @@ graph TB
     UI["apps/frontend<br/>Next.js 15 · React 19"]
 
     subgraph Services
-        AUTH["auth-service<br/>login · sessions · file tokens"]
+        AUTH["auth-service<br/>login · sessions · file tokens<br/>email verification · password reset"]
         CONTENT["content-service<br/>per-user revision data"]
         FILES["files-service<br/>attachments + GC"]
     end
@@ -158,3 +158,4 @@ Planned components:
 - **Personal statistics dashboard** — the single-student version of the activity chart above, which the coaching dashboard builds on
 - **Calendar view** — due/overdue topics laid out on a calendar
 - **Notifications** — reminders when a topic becomes due
+- **Google Sign-In** — Phase 2 of account/email work; builds on the email verification + password reset shipped in auth-service (Resend behind an `EmailSender` seam; with `RESEND_API_KEY` unset, links are logged to auth-service stdout instead of emailed)
