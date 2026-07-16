@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { AppData } from '@revision-app/shared';
 import { useStore } from '@/store/useStore';
 import { calendarMonth, type CalendarDay } from '@/lib/insights/calendar';
+import { startOfDay } from '@/lib/insights/day';
 import { TopicResultRow } from '@/components/TopicResultRow';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -27,19 +28,27 @@ function SelectedDayTopics({ cell, data }: { cell: CalendarDay; data: AppData })
 
 export function MonthCalendar() {
   const data = useStore();
-  const now = Date.now();
-  const todayMidnight = new Date(now);
-  todayMidnight.setHours(0, 0, 0, 0);
+  // Freeze "now" for the component's lifetime: a calendar view doesn't need a live-ticking
+  // clock, and a stable value keeps the cells memo from recomputing on unrelated re-renders.
+  const [now] = useState(() => Date.now());
+  const todayStart = startOfDay(now);
+  const todayDate = new Date(todayStart);
 
-  const [view, setView] = useState({ year: todayMidnight.getFullYear(), month: todayMidnight.getMonth() });
-  const [selected, setSelected] = useState<number>(todayMidnight.getTime());
+  const [view, setView] = useState({ year: todayDate.getFullYear(), month: todayDate.getMonth() });
+  const [selected, setSelected] = useState<number>(todayStart);
 
   const cells = useMemo(() => calendarMonth(data, view.year, view.month, now), [data, view, now]);
   const selectedCell = cells.find((c) => c.day === selected);
 
   const step = (delta: number) => {
     const d = new Date(view.year, view.month + delta, 1);
-    setView({ year: d.getFullYear(), month: d.getMonth() });
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    setView({ year, month });
+    // Re-anchor the selected day into the newly-viewed month so the day panel never
+    // silently disappears: land on today when navigating to the current month, else the 1st.
+    const isCurrentMonth = year === todayDate.getFullYear() && month === todayDate.getMonth();
+    setSelected(isCurrentMonth ? todayStart : startOfDay(new Date(year, month, 1).getTime()));
   };
 
   return (
