@@ -14,12 +14,25 @@ async function makeUser(name = 'tokenuser') {
 }
 
 describe('tokenStore', () => {
-  it('issues a 64-hex token and consuming it verifies exactly once', async () => {
+  it('issues a 64-hex token; repeat consumption stays successful inside the grace window', async () => {
     const user = await makeUser();
     const raw = await issueToken('verification', user.id);
     expect(raw).toMatch(/^[a-f0-9]{64}$/);
     expect(await consumeVerificationToken(raw)).toBe(user.id);
-    expect(await consumeVerificationToken(raw)).toBeNull(); // single-use
+    // Mail-app preview browsers and double clicks re-open the link — the
+    // user-visible attempt must still succeed shortly after the first hit.
+    expect(await consumeVerificationToken(raw)).toBe(user.id);
+  });
+
+  it('rejects a verification token first used longer than the grace window ago', async () => {
+    const user = await makeUser();
+    const raw = await issueToken('verification', user.id);
+    await getPool().query(
+      `UPDATE email_verification_tokens SET used_at = now() - interval '16 minutes'
+       WHERE token_hash = $1`,
+      [hashToken(raw)],
+    );
+    expect(await consumeVerificationToken(raw)).toBeNull();
   });
 
   it('rejects an expired verification token', async () => {

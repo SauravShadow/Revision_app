@@ -32,12 +32,20 @@ export async function issueToken(kind: keyof typeof KINDS, userId: string): Prom
   return raw;
 }
 
+// Verification links get opened more than once (mail-app preview browsers,
+// double clicks, client re-mounts), so consumption is idempotent for a grace
+// window after first use — the visit the user actually sees must not report
+// "expired" when an invisible earlier hit already verified them.
+const VERIFY_REUSE_GRACE_MS = 15 * 60 * 1000;
+
 export async function consumeVerificationToken(raw: string): Promise<string | null> {
   const { rows } = await getPool().query<{ user_id: string }>(
-    `DELETE FROM email_verification_tokens
+    `UPDATE email_verification_tokens
+     SET used_at = COALESCE(used_at, now())
      WHERE token_hash = $1 AND expires_at > now()
+       AND (used_at IS NULL OR used_at > now() - make_interval(secs => $2))
      RETURNING user_id`,
-    [hashToken(raw)],
+    [hashToken(raw), VERIFY_REUSE_GRACE_MS / 1000],
   );
   return rows[0]?.user_id ?? null;
 }

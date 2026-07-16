@@ -72,6 +72,9 @@ function VerifyEmailInner() {
           <>
             <h1 className="auth-title">Link problem</h1>
             <p className="auth-error">{message}</p>
+            <p className="auth-subtitle">
+              If you already verified earlier, just sign in — otherwise request a new link below.
+            </p>
             <form onSubmit={handleResend} className="auth-form" noValidate>
               <div className="auth-field">
                 <label htmlFor="verify-identifier" className="auth-label">Username or email</label>
