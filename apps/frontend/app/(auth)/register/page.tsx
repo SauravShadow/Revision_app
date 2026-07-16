@@ -1,9 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { register } from '@/lib/auth/client';
-import { useAuth } from '@/components/AuthProvider';
+import { register, resendVerification } from '@/lib/auth/client';
 import { DOMAIN_LABELS, DOMAIN_COLORS } from '@revision-app/shared';
 import type { Domain } from '@revision-app/shared';
 
@@ -36,15 +34,15 @@ const DOMAINS: { id: Domain; emoji: string; description: string }[] = [
 ];
 
 export default function RegisterPage() {
-  const router = useRouter();
-  const { setSession } = useAuth();
-  const [step, setStep] = useState<'credentials' | 'domain'>('credentials');
+  const [step, setStep] = useState<'credentials' | 'domain' | 'done'>('credentials');
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPwd, setConfirmPwd] = useState('');
   const [selectedDomain, setSelectedDomain] = useState<Domain | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resendNotice, setResendNotice] = useState('');
 
   function handleCredentialsSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,6 +53,10 @@ export default function RegisterPage() {
     }
     if (!/^[a-zA-Z0-9_]+$/.test(username.trim())) {
       setError('Only letters, numbers, and underscores allowed');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Enter a valid email address');
       return;
     }
     if (password.length < 6) {
@@ -72,15 +74,20 @@ export default function RegisterPage() {
     if (!selectedDomain) return;
     setError('');
     setLoading(true);
-    const result = await register(username.trim(), password, selectedDomain);
+    const result = await register(username.trim(), password, selectedDomain, email.trim());
     setLoading(false);
     if ('error' in result) {
       setError(result.error);
       setStep('credentials');
     } else {
-      setSession(result.session);
-      router.replace('/');
+      setStep('done');
     }
+  }
+
+  async function handleResend() {
+    setResendNotice('');
+    const r = await resendVerification(username.trim());
+    setResendNotice(r.error ?? r.message ?? '');
   }
 
   return (
@@ -121,6 +128,20 @@ export default function RegisterPage() {
               </div>
 
               <div className="auth-field">
+                <label htmlFor="reg-email" className="auth-label">Email</label>
+                <input
+                  id="reg-email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="auth-input"
+                  placeholder="you@example.com"
+                  required
+                />
+              </div>
+
+              <div className="auth-field">
                 <label htmlFor="reg-password" className="auth-label">Password</label>
                 <input
                   id="reg-password"
@@ -154,7 +175,7 @@ export default function RegisterPage() {
                 type="submit"
                 id="reg-next-btn"
                 className="auth-btn"
-                disabled={!username || !password || !confirmPwd}
+                disabled={!username || !email || !password || !confirmPwd}
               >
                 Continue →
               </button>
@@ -165,7 +186,7 @@ export default function RegisterPage() {
               <Link href="/login" className="auth-link">Sign in</Link>
             </p>
           </>
-        ) : (
+        ) : step === 'domain' ? (
           <>
             <h1 className="auth-title">Choose your domain</h1>
             <p className="auth-subtitle">
@@ -212,6 +233,21 @@ export default function RegisterPage() {
                 {loading ? <span className="auth-spinner" /> : 'Create Account'}
               </button>
             </div>
+          </>
+        ) : (
+          <>
+            <h1 className="auth-title">Check your email</h1>
+            <p className="auth-subtitle">
+              We sent a verification link to <strong>{email.trim()}</strong>.
+              Click it, then sign in.
+            </p>
+            {resendNotice && <p className="auth-footer">{resendNotice}</p>}
+            <button type="button" id="reg-resend" className="auth-btn-ghost" onClick={handleResend}>
+              Resend email
+            </button>
+            <p className="auth-footer">
+              <Link href="/login" className="auth-link">Go to sign in</Link>
+            </p>
           </>
         )}
       </div>

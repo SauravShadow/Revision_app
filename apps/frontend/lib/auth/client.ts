@@ -74,7 +74,7 @@ export async function getSession(): Promise<Session | null> {
 export async function login(
   username: string,
   password: string,
-): Promise<{ session: Session } | { error: string }> {
+): Promise<{ session: Session } | { error: string; code?: string }> {
   try {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
@@ -82,7 +82,10 @@ export async function login(
       body: JSON.stringify({ username, password }),
     });
     const body = await res.json();
-    if (!res.ok) return { error: (body as { error: string }).error ?? 'Login failed' };
+    if (!res.ok) {
+      const errBody = body as { error?: string; code?: string };
+      return { error: errBody.error ?? 'Login failed', code: errBody.code };
+    }
     const session = body as Session;
     storeTokens(session);
     return { session };
@@ -91,22 +94,80 @@ export async function login(
   }
 }
 
+async function postJson(
+  url: string,
+  body: unknown,
+): Promise<{ message?: string; error?: string; code?: string }> {
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = (await res.json().catch(() => ({}))) as { message?: string; error?: string; code?: string };
+    if (!res.ok) return { error: data.error ?? 'Request failed', code: data.code };
+    return data;
+  } catch {
+    return { error: 'Network error' };
+  }
+}
+
+// Registration no longer returns a session — the account must verify its
+// email before the first login (grandfathered pre-email accounts excepted).
 export async function register(
   username: string,
   password: string,
   domain: Domain,
-): Promise<{ session: Session } | { error: string }> {
+  email: string,
+): Promise<{ message: string } | { error: string }> {
+  const result = await postJson('/api/auth/register', { username, password, domain, email });
+  if (result.error) return { error: result.error };
+  return { message: result.message ?? 'Check your email to verify your account.' };
+}
+
+export async function verifyEmail(token: string): Promise<{ message?: string; error?: string }> {
   try {
-    const res = await fetch('/api/auth/register', {
+    const res = await fetch(`/api/auth/verify-email?token=${encodeURIComponent(token)}`);
+    const data = (await res.json().catch(() => ({}))) as { message?: string; error?: string };
+    if (!res.ok) return { error: data.error ?? 'Verification failed' };
+    return data;
+  } catch {
+    return { error: 'Network error' };
+  }
+}
+
+export function resendVerification(identifier: string) {
+  return postJson('/api/auth/resend-verification', { identifier });
+}
+
+export function forgotPassword(email: string) {
+  return postJson('/api/auth/forgot-password', { email });
+}
+
+export function resetPassword(token: string, newPassword: string) {
+  return postJson('/api/auth/reset-password', { token, newPassword });
+}
+
+export async function getEmailStatus(): Promise<{ email: string | null; verified: boolean } | null> {
+  try {
+    const res = await authFetch('/api/auth/email-status', { cache: 'no-store' });
+    if (!res.ok) return null;
+    return (await res.json()) as { email: string | null; verified: boolean };
+  } catch {
+    return null;
+  }
+}
+
+export async function updateEmail(email: string): Promise<{ message?: string; error?: string }> {
+  try {
+    const res = await authFetch('/api/auth/set-email', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ username, password, domain }),
+      body: JSON.stringify({ email }),
     });
-    const body = await res.json();
-    if (!res.ok) return { error: (body as { error: string }).error ?? 'Registration failed' };
-    const session = body as Session;
-    storeTokens(session);
-    return { session };
+    const data = (await res.json().catch(() => ({}))) as { message?: string; error?: string };
+    if (!res.ok) return { error: data.error ?? 'Request failed' };
+    return data;
   } catch {
     return { error: 'Network error' };
   }
