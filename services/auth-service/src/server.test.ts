@@ -178,3 +178,52 @@ describe('password reset', () => {
     expect(res.status).toBe(429);
   });
 });
+
+describe('email-status / set-email (settings)', () => {
+  async function grandfatheredToken(name = 'settler') {
+    await createUser(name, 'password123', 'civil-engineering');
+    const login = await request(app).post('/login').send({ username: name, password: 'password123' });
+    return login.body.token as string;
+  }
+
+  it('requires authentication', async () => {
+    expect((await request(app).get('/email-status')).status).toBe(401);
+    expect((await request(app).post('/set-email').send({ email: 'a@b.co' })).status).toBe(401);
+  });
+
+  it('reports none → unverified → verified as a grandfathered account adds an email', async () => {
+    const token = await grandfatheredToken();
+    const auth = { Authorization: `Bearer ${token}` };
+
+    let status = await request(app).get('/email-status').set(auth);
+    expect(status.body).toEqual({ email: null, verified: false });
+
+    const set = await request(app).post('/set-email').set(auth).send({ email: 'settler@example.com' });
+    expect(set.status).toBe(200);
+    expect(emails.sent.at(-1)?.to).toBe('settler@example.com');
+
+    status = await request(app).get('/email-status').set(auth);
+    expect(status.body).toEqual({ email: 'settler@example.com', verified: false });
+
+    await request(app).get(`/verify-email?token=${emails.lastToken()}`);
+    status = await request(app).get('/email-status').set(auth);
+    expect(status.body).toEqual({ email: 'settler@example.com', verified: true });
+  });
+
+  it('refuses to overwrite a verified email and rejects taken emails', async () => {
+    const token = await grandfatheredToken('taken1');
+    const auth = { Authorization: `Bearer ${token}` };
+    await request(app).post('/set-email').set(auth).send({ email: 'taken1@example.com' });
+    await request(app).get(`/verify-email?token=${emails.lastToken()}`);
+
+    const overwrite = await request(app).post('/set-email').set(auth).send({ email: 'new@example.com' });
+    expect(overwrite.status).toBe(409);
+
+    const token2 = await grandfatheredToken('taken2');
+    const dup = await request(app)
+      .post('/set-email')
+      .set({ Authorization: `Bearer ${token2}` })
+      .send({ email: 'TAKEN1@example.com' });
+    expect(dup.status).toBe(409);
+  });
+});

@@ -1,5 +1,5 @@
 import express from 'express';
-import { findByUsername, findByEmail, createUser, verifyPassword, markEmailVerified, updatePassword } from './userStore';
+import { findByUsername, findByEmail, findById, createUser, verifyPassword, markEmailVerified, setEmail, updatePassword } from './userStore';
 import { issueToken, consumeVerificationToken, consumeResetToken } from './tokenStore';
 import { createDefaultEmailSender, verificationEmail, passwordResetEmail } from './email';
 import type { EmailSender } from './email';
@@ -118,15 +118,60 @@ export function createApp(emailSender: EmailSender = createDefaultEmailSender())
     res.json({ ...session, token: signSession(session), fileToken: signFileToken(user.id) });
   });
 
-  app.get('/me', (req, res) => {
+  function sessionFrom(req: express.Request) {
     // Express's req.headers.authorization is a plain string, not a Fetch
     // Request — getSessionFromRequest (Fetch-shaped) doesn't apply here, so
     // this reads the header directly and calls verifySession itself.
     const authHeader = req.headers.authorization ?? '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
-    const session = token ? verifySession(token) : null;
+    return token ? verifySession(token) : null;
+  }
+
+  app.get('/me', (req, res) => {
+    const session = sessionFrom(req);
     if (!session) return res.status(401).json({ error: 'Not authenticated' });
     res.json({ ...session, token: signSession(session), fileToken: signFileToken(session.userId) });
+  });
+
+  app.get('/email-status', async (req, res) => {
+    const session = sessionFrom(req);
+    if (!session) return res.status(401).json({ error: 'Not authenticated' });
+    try {
+      const user = await findById(session.userId);
+      if (!user) return res.status(401).json({ error: 'Not authenticated' });
+      res.json({ email: user.email, verified: user.emailVerifiedAt !== null });
+    } catch (err) {
+      console.error('[email-status]', err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+
+  app.post('/set-email', async (req, res) => {
+    const session = sessionFrom(req);
+    if (!session) return res.status(401).json({ error: 'Not authenticated' });
+    const { email } = req.body ?? {};
+    if (!email || typeof email !== 'string' || !EMAIL_RE.test(email.trim())) {
+      return res.status(400).json({ error: 'A valid email address is required' });
+    }
+    try {
+      const user = await findById(session.userId);
+      if (!user) return res.status(401).json({ error: 'Not authenticated' });
+      if (user.email && user.emailVerifiedAt) {
+        return res.status(409).json({ error: 'This account already has a verified email' });
+      }
+      await setEmail(user.id, email.trim());
+      await sendVerification(user.id, email.trim());
+      res.json({ message: 'Verification email sent — check your inbox.' });
+    } catch (err) {
+      if (err instanceof Error && err.message === 'EMAIL_TAKEN') {
+        return res.status(409).json({ error: 'An account with that email already exists' });
+      }
+      if (err instanceof Error && err.message === 'COOLDOWN') {
+        return res.status(429).json({ error: 'Please wait a minute before requesting another email.' });
+      }
+      console.error('[set-email]', err);
+      res.status(500).json({ error: 'Server error' });
+    }
   });
 
   app.post('/forgot-password', async (req, res) => {
