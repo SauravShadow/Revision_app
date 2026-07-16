@@ -17,6 +17,21 @@ function data(history: Revision[], archived = false): AppData {
     tags: {}, tagOrder: [],
   };
 }
+
+// Non-cascading archive: only the SUBJECT carries archivedAt, the topic and its
+// chapter do not. The topic must still be excluded because its subject is archived.
+function dataWithArchivedSubject(history: Revision[]): AppData {
+  return {
+    subjectOrder: ['s1'],
+    subjects: { s1: { id: 's1', name: 'S', color: '#000', icon: 'X', order: 0, chapterIds: ['c1'], archivedAt: 1 } },
+    chapters: { c1: { id: 'c1', subjectId: 's1', name: 'C', order: 0, difficulty: 'Medium', priority: 'Medium', topicIds: ['t1'] } },
+    topics: {
+      t1: { id: 't1', chapterId: 'c1', title: 'A', notes: '', order: 0, difficulty: 'Medium', priority: 'Medium',
+        revisionHistory: history, createdAt: 0, updatedAt: 0 },
+    },
+    tags: {}, tagOrder: [],
+  };
+}
 const rev = (ts: number, i = 0): Revision => ({ id: `r${ts}-${i}`, timestamp: ts });
 
 describe('currentStreak', () => {
@@ -40,6 +55,11 @@ describe('currentStreak', () => {
   it('ignores archived topics', () => {
     const h = [rev(at(2026, 6, 15))];
     expect(currentStreak(data(h, true), now)).toBe(0);
+  });
+
+  it('ignores topics whose subject is archived, even when the topic itself is not', () => {
+    const h = [rev(at(2026, 6, 15))];
+    expect(currentStreak(dataWithArchivedSubject(h), now)).toBe(0);
   });
 });
 

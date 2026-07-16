@@ -1,6 +1,7 @@
 import type { AppData } from '@revision-app/shared';
 import { badgeState, inGoodStanding, lastRevisedAt } from '@/lib/revision/engine';
 import { DAY_MS } from './day';
+import { activeTopics } from './topics';
 
 export interface OverallStats {
   totalTopics: number;
@@ -26,7 +27,7 @@ function round1(n: number): number {
 }
 
 export function overallStats(data: AppData, now: number): OverallStats {
-  const topics = Object.values(data.topics).filter((t) => !t.archivedAt);
+  const topics = activeTopics(data);
   const total = topics.length;
   if (total === 0) {
     return { totalTopics: 0, completionPct: 0, neverRevised: 0, dueToday: 0, overdue: 0, avgRevisionsPerTopic: 0 };
@@ -67,11 +68,9 @@ export function overallStats(data: AppData, now: number): OverallStats {
 
 export function topicsByRevisionCount(data: AppData, limit = 5): { most: TopicRevisionRank[]; least: TopicRevisionRank[] } {
   const ranks: TopicRevisionRank[] = [];
-  for (const t of Object.values(data.topics)) {
-    if (t.archivedAt) continue;
+  for (const t of activeTopics(data)) {
     const chapter = data.chapters[t.chapterId];
-    if (!chapter || chapter.archivedAt) continue;
-    if (data.subjects[chapter.subjectId]?.archivedAt) continue;
+    if (!chapter) continue;
     ranks.push({
       topicId: t.id,
       title: t.title,

@@ -1,10 +1,10 @@
 import type { AppData } from '@revision-app/shared';
 import { startOfDay, addDays } from './day';
+import { activeTopics } from './topics';
 
 function revisedDays(data: AppData): Set<number> {
   const days = new Set<number>();
-  for (const topic of Object.values(data.topics)) {
-    if (topic.archivedAt) continue;
+  for (const topic of activeTopics(data)) {
     for (const rev of topic.revisionHistory) days.add(startOfDay(rev.timestamp));
   }
   return days;
