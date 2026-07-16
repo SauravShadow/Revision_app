@@ -4,7 +4,7 @@ import { nextInterval } from './ladder';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-function startOfDay(ts: number): number {
+export function startOfDay(ts: number): number {
   const d = new Date(ts);
   d.setHours(0, 0, 0, 0);
   return d.getTime();
