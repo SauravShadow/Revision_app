@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { login } from '@/lib/auth/client';
+import { login, resendVerification } from '@/lib/auth/client';
 import { useAuth } from '@/components/AuthProvider';
 
 export default function LoginPage() {
@@ -12,15 +12,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [unverified, setUnverified] = useState(false);
+  const [notice, setNotice] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    setNotice('');
     setLoading(true);
     const result = await login(username.trim(), password);
     setLoading(false);
     if ('error' in result) {
       setError(result.error);
+      setUnverified(result.code === 'EMAIL_UNVERIFIED');
     } else {
       setSession(result.session);
       router.replace('/');
@@ -80,6 +84,20 @@ export default function LoginPage() {
 
           {error && <p className="auth-error">{error}</p>}
 
+          {unverified && (
+            <button
+              type="button"
+              className="auth-btn-ghost"
+              onClick={async () => {
+                const r = await resendVerification(username.trim());
+                setNotice(r.error ?? r.message ?? '');
+              }}
+            >
+              Resend verification email
+            </button>
+          )}
+          {notice && <p className="auth-footer">{notice}</p>}
+
           <button
             type="submit"
             id="login-submit"
@@ -97,6 +115,9 @@ export default function LoginPage() {
         <p className="auth-footer">
           Don&apos;t have an account?{' '}
           <Link href="/register" className="auth-link">Create one</Link>
+        </p>
+        <p className="auth-footer">
+          <Link href="/forgot-password" className="auth-link">Forgot password?</Link>
         </p>
       </div>
     </div>
