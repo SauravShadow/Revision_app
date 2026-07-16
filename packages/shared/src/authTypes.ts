@@ -38,6 +38,9 @@ export interface UserRecord {
   passwordHash: string;
   domain: Domain;
   createdAt: number;
+  /** null for grandfathered accounts created before email existed */
+  email: string | null;
+  emailVerifiedAt: number | null;
 }
 
 /** Safe subset sent to the client (no password). */
