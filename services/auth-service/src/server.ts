@@ -1,7 +1,7 @@
 import express from 'express';
-import { findByUsername, findByEmail, createUser, verifyPassword, markEmailVerified } from './userStore';
-import { issueToken, consumeVerificationToken } from './tokenStore';
-import { createDefaultEmailSender, verificationEmail } from './email';
+import { findByUsername, findByEmail, createUser, verifyPassword, markEmailVerified, updatePassword } from './userStore';
+import { issueToken, consumeVerificationToken, consumeResetToken } from './tokenStore';
+import { createDefaultEmailSender, verificationEmail, passwordResetEmail } from './email';
 import type { EmailSender } from './email';
 import { DOMAIN_LABELS } from '@revision-app/shared';
 import type { Domain } from '@revision-app/shared';
@@ -127,6 +127,55 @@ export function createApp(emailSender: EmailSender = createDefaultEmailSender())
     const session = token ? verifySession(token) : null;
     if (!session) return res.status(401).json({ error: 'Not authenticated' });
     res.json({ ...session, token: signSession(session), fileToken: signFileToken(session.userId) });
+  });
+
+  app.post('/forgot-password', async (req, res) => {
+    const { email } = req.body ?? {};
+    const generic = { message: 'If an account with that email exists, a password-reset link has been sent.' };
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+    try {
+      const user = await findByEmail(email.trim());
+      if (!user?.email) return res.json(generic); // same answer — no enumeration
+      const raw = await issueToken('reset', user.id);
+      const { subject, html } = passwordResetEmail(`${FRONTEND_URL}/reset-password?token=${raw}`);
+      try {
+        await emailSender.send(user.email, subject, html);
+      } catch (err) {
+        console.error('[email] failed to send reset email', err);
+      }
+      res.json(generic);
+    } catch (err) {
+      if (err instanceof Error && err.message === 'COOLDOWN') {
+        return res.status(429).json({ error: 'Please wait a minute before requesting another email.' });
+      }
+      console.error('[forgot-password]', err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+
+  app.post('/reset-password', async (req, res) => {
+    const { token, newPassword } = req.body ?? {};
+    if (!token || typeof token !== 'string') {
+      return res.status(400).json({ error: 'Missing token' });
+    }
+    if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+    try {
+      const userId = await consumeResetToken(token);
+      if (!userId) {
+        return res.status(400).json({ error: 'This link is invalid or has expired.', code: 'TOKEN_INVALID' });
+      }
+      // Deliberately does NOT revoke existing sessions — stateless HMAC
+      // tokens aren't revocable without rotating SESSION_SECRET (spec scope).
+      await updatePassword(userId, newPassword);
+      res.json({ message: 'Password updated — you can now sign in.' });
+    } catch (err) {
+      console.error('[reset-password]', err);
+      res.status(500).json({ error: 'Server error' });
+    }
   });
 
   app.post('/logout', (_req, res) => {

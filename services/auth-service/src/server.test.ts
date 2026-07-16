@@ -124,3 +124,57 @@ describe('POST /resend-verification', () => {
     expect(emails.sent).toHaveLength(0);
   });
 });
+
+describe('password reset', () => {
+  async function registerAndVerify() {
+    await request(app).post('/register').send(REG);
+    await request(app).get(`/verify-email?token=${emails.lastToken()}`);
+    emails.sent = [];
+  }
+
+  it('forgot-password answers generically for unknown emails and sends nothing', async () => {
+    const res = await request(app).post('/forgot-password').send({ email: 'ghost@example.com' });
+    expect(res.status).toBe(200);
+    expect(emails.sent).toHaveLength(0);
+  });
+
+  it('emails a reset link that changes the password exactly once', async () => {
+    await registerAndVerify();
+
+    const forgot = await request(app).post('/forgot-password').send({ email: 'alice@example.com' });
+    expect(forgot.status).toBe(200);
+    expect(emails.sent).toHaveLength(1);
+    expect(emails.sent[0].html).toContain('/reset-password?token=');
+    const token = emails.lastToken();
+
+    const reset = await request(app).post('/reset-password').send({ token, newPassword: 'newpassword1' });
+    expect(reset.status).toBe(200);
+
+    expect((await request(app).post('/login').send({ username: 'alice', password: 'password123' })).status).toBe(401);
+    expect((await request(app).post('/login').send({ username: 'alice', password: 'newpassword1' })).status).toBe(200);
+
+    // token is single-use
+    const again = await request(app).post('/reset-password').send({ token, newPassword: 'anotherpass' });
+    expect(again.status).toBe(400);
+    expect(again.body.code).toBe('TOKEN_INVALID');
+  });
+
+  it('rejects a too-short new password without consuming the token', async () => {
+    await registerAndVerify();
+    await request(app).post('/forgot-password').send({ email: 'alice@example.com' });
+    const token = emails.lastToken();
+
+    const short = await request(app).post('/reset-password').send({ token, newPassword: 'tiny' });
+    expect(short.status).toBe(400);
+
+    const ok = await request(app).post('/reset-password').send({ token, newPassword: 'longenough' });
+    expect(ok.status).toBe(200);
+  });
+
+  it('forgot-password enforces the cooldown', async () => {
+    await registerAndVerify();
+    await request(app).post('/forgot-password').send({ email: 'alice@example.com' });
+    const res = await request(app).post('/forgot-password').send({ email: 'alice@example.com' });
+    expect(res.status).toBe(429);
+  });
+});
