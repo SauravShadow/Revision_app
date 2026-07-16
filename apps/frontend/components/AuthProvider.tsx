@@ -31,7 +31,11 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-const PUBLIC_PATHS = ['/login', '/register'];
+const PUBLIC_PATHS = ['/login', '/register', '/verify-email', '/forgot-password', '/reset-password'];
+// Only bounce signed-in users off the pure sign-in/sign-up pages —
+// /verify-email must stay reachable while logged in (a grandfathered account
+// adding an email from /settings clicks its link in the same browser).
+const AUTH_REDIRECT_PATHS = ['/login', '/register'];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -55,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Redirect authenticated users away from auth pages
   useEffect(() => {
-    if (!loading && session && PUBLIC_PATHS.includes(pathname)) {
+    if (!loading && session && AUTH_REDIRECT_PATHS.includes(pathname)) {
       router.replace('/');
     }
   }, [loading, session, pathname, router]);

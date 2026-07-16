@@ -49,6 +49,9 @@ services:
     environment:
       - DATABASE_URL=postgres://revision:${POSTGRES_PASSWORD}@db:5432/revision_auth
       - SESSION_SECRET=${SESSION_SECRET}
+      - FRONTEND_URL=${FRONTEND_URL:-http://127.0.0.1:3200}
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+      - FROM_EMAIL=${FROM_EMAIL:-}
     depends_on:
       db:
         condition: service_healthy
