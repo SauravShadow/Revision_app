@@ -47,6 +47,7 @@ export function MobileNavDrawer() {
 
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <Link href="/filtered" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Filtered</Link>
+              <Link href="/insights" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Insights</Link>
               <Link href="/bookmarks" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Bookmarks</Link>
               <Link href="/archive" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Archive</Link>
             </div>

@@ -48,6 +48,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <HeaderControls />
             <span className="mx-1 hidden h-5 w-px bg-line sm:block" />
             <Link href="/filtered" className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Filtered</Link>
+            <Link href="/insights" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Insights</Link>
             <Link href="/bookmarks" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Bookmarks</Link>
             <Link href="/archive" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Archive</Link>
             <ThemeToggle />
