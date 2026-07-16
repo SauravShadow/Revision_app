@@ -10,9 +10,29 @@ import { TopicResultRow } from '@/components/TopicResultRow';
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+// Status → semantic drafting colour (matches RevisionBadge: overdue redline,
+// due amber annotation, completed green "go").
+const LEGEND = [
+  { key: 'overdue', label: 'Overdue', color: 'var(--alarm)' },
+  { key: 'due', label: 'Due', color: 'var(--annotation)' },
+  { key: 'completed', label: 'Completed', color: 'var(--go)' },
+] as const;
+
+function StatusDots({ cell }: { cell: CalendarDay }) {
+  return (
+    <div className="mt-1 flex min-h-[6px] justify-center gap-1">
+      {cell.overdueTopicIds.length > 0 && <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'var(--alarm)' }} title="Overdue" />}
+      {cell.dueTopicIds.length > 0 && <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'var(--annotation)' }} title="Due" />}
+      {cell.completedTopicIds.length > 0 && <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'var(--go)' }} title="Completed" />}
+    </div>
+  );
+}
+
 function SelectedDayTopics({ cell, data }: { cell: CalendarDay; data: AppData }) {
   const ids = [...new Set([...cell.overdueTopicIds, ...cell.dueTopicIds, ...cell.completedTopicIds])];
-  if (ids.length === 0) return <p className="text-sm opacity-50">Nothing scheduled or completed on this day.</p>;
+  if (ids.length === 0) {
+    return <p className="text-sm text-ink-faint">Nothing scheduled or completed on this day.</p>;
+  }
   return (
     <div className="grid gap-2">
       {ids.map((id) => {
@@ -40,52 +60,105 @@ export function MonthCalendar() {
   const cells = useMemo(() => calendarMonth(data, view.year, view.month, now), [data, view, now]);
   const selectedCell = cells.find((c) => c.day === selected);
 
+  const goto = (year: number, month: number, day: number) => {
+    setView({ year, month });
+    setSelected(day);
+  };
+
   const step = (delta: number) => {
     const d = new Date(view.year, view.month + delta, 1);
     const year = d.getFullYear();
     const month = d.getMonth();
-    setView({ year, month });
     // Re-anchor the selected day into the newly-viewed month so the day panel never
     // silently disappears: land on today when navigating to the current month, else the 1st.
     const isCurrentMonth = year === todayDate.getFullYear() && month === todayDate.getMonth();
-    setSelected(isCurrentMonth ? todayStart : startOfDay(new Date(year, month, 1).getTime()));
+    goto(year, month, isCurrentMonth ? todayStart : startOfDay(new Date(year, month, 1).getTime()));
   };
 
+  const jumpToday = () => goto(todayDate.getFullYear(), todayDate.getMonth(), todayStart);
+
+  // Month totals across in-month cells (overdue is only surfaced on today's cell).
+  const totals = cells.reduce(
+    (a, c) => (c.inMonth
+      ? { due: a.due + c.dueTopicIds.length, over: a.over + c.overdueTopicIds.length, done: a.done + c.completedTopicIds.length }
+      : a),
+    { due: 0, over: 0, done: 0 },
+  );
+
   return (
-    <div>
-      <div className="mb-3 flex items-center justify-between">
-        <button onClick={() => step(-1)} aria-label="Previous month" className="rounded p-1 transition hover:bg-panel"><ChevronLeft size={16} /></button>
-        <div className="font-medium">{MONTHS[view.month]} {view.year}</div>
-        <button onClick={() => step(1)} aria-label="Next month" className="rounded p-1 transition hover:bg-panel"><ChevronRight size={16} /></button>
-      </div>
-
-      <div className="grid grid-cols-7 gap-1 text-center">
-        {DOW.map((d) => <div key={d} className="tblabel py-1">{d}</div>)}
-        {cells.map((c) => {
-          const isSelected = c.day === selected;
-          return (
-            <button
-              key={c.day}
-              onClick={() => setSelected(c.day)}
-              className={`aspect-square rounded-lg p-1 text-xs transition ${c.inMonth ? 'bg-panel hover:bg-panel-2' : 'opacity-30'} ${isSelected ? 'ring-1 ring-accent' : ''}`}
-            >
-              <div>{new Date(c.day).getDate()}</div>
-              <div className="mt-0.5 flex justify-center gap-0.5">
-                {c.overdueTopicIds.length > 0 && <span className="h-1 w-1 rounded-full bg-red-400" title="Overdue" />}
-                {c.dueTopicIds.length > 0 && <span className="h-1 w-1 rounded-full bg-amber-400" title="Due" />}
-                {c.completedTopicIds.length > 0 && <span className="h-1 w-1 rounded-full bg-emerald-400" title="Completed" />}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {selectedCell && (
-        <div className="mt-4">
-          <div className="tblabel mb-2">{new Date(selectedCell.day).toLocaleDateString()}</div>
-          <SelectedDayTopics cell={selectedCell} data={data} />
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+      {/* Calendar sheet */}
+      <div className="glass bp-ticks relative rounded-xl p-4">
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <button onClick={() => step(-1)} aria-label="Previous month" className="rounded-lg border border-line p-1.5 text-ink-dim transition hover:border-accent hover:text-accent"><ChevronLeft size={16} /></button>
+          <div className="flex items-baseline gap-2">
+            <span className="text-lg font-semibold tracking-tight text-ink">{MONTHS[view.month]}</span>
+            <span className="bp-figure text-lg text-ink-dim">{view.year}</span>
+          </div>
+          <button onClick={() => step(1)} aria-label="Next month" className="rounded-lg border border-line p-1.5 text-ink-dim transition hover:border-accent hover:text-accent"><ChevronRight size={16} /></button>
         </div>
-      )}
+
+        <div className="grid grid-cols-7 gap-1.5 text-center">
+          {DOW.map((d) => <div key={d} className="tblabel py-1 text-[10px]">{d}</div>)}
+          {cells.map((c) => {
+            const isSelected = c.day === selected;
+            const isToday = c.day === todayStart;
+            const has = c.overdueTopicIds.length + c.dueTopicIds.length + c.completedTopicIds.length > 0;
+            return (
+              <button
+                key={c.day}
+                onClick={() => setSelected(c.day)}
+                aria-current={isToday ? 'date' : undefined}
+                className={`group relative flex aspect-square flex-col items-center justify-center rounded-lg border text-xs transition
+                  ${c.inMonth ? 'border-line bg-ground-deep/40 hover:border-line-strong hover:bg-panel-2' : 'border-transparent text-ink-faint opacity-40'}
+                  ${isSelected ? 'border-accent bg-panel-2' : ''}
+                  ${isToday ? 'bp-today' : ''}`}
+              >
+                <span className={`bp-figure ${isToday ? 'text-accent' : c.inMonth ? 'text-ink' : 'text-ink-faint'}`}>
+                  {new Date(c.day).getDate()}
+                </span>
+                <StatusDots cell={c} />
+                {has && c.inMonth && (
+                  <span className="pointer-events-none absolute right-1 top-1 h-1 w-1 rounded-full bg-accent opacity-0 transition group-hover:opacity-60" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Legend + month totals */}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {LEGEND.map((l) => (
+              <span key={l.key} className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full" style={{ background: l.color }} />
+                <span className="tblabel text-[10px]">{l.label}</span>
+              </span>
+            ))}
+          </div>
+          <div className="flex gap-2 text-[10px]">
+            <span className="dim-chip" style={{ color: 'var(--alarm)' }}>{totals.over} overdue</span>
+            <span className="dim-chip" style={{ color: 'var(--annotation)' }}>{totals.due} due</span>
+            <span className="dim-chip" style={{ color: 'var(--go)' }}>{totals.done} done</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Selected-day detail rail */}
+      <div className="glass rounded-xl p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <div className="tblabel mb-1">Selected day</div>
+            {selectedCell && (
+              <div className="text-sm font-medium text-ink">
+                {new Date(selectedCell.day).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}
+              </div>
+            )}
+          </div>
+          <button onClick={jumpToday} className="dim-chip text-ink-dim transition hover:border-accent hover:text-accent">Today</button>
+        </div>
+        {selectedCell && <SelectedDayTopics cell={selectedCell} data={data} />}
+      </div>
     </div>
   );
 }

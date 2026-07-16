@@ -171,6 +171,43 @@ body::after {
 .hljs-type, .hljs-class .hljs-title { color: #ffcb6b; }
 
 /* ============================================================================
+   INSIGHTS / CALENDAR — analytical drafting sheet
+   ========================================================================== */
+
+/* Big tabular mono readout — the instrument figure. */
+.bp-figure {
+  font-family: var(--font-mono), monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+/* One orchestrated page-load reveal: blocks rise + fade in, staggered by
+   inline animation-delay. */
+@keyframes bpRise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.bp-rise {
+  opacity: 0;
+  animation: bpRise 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+
+/* Measure bars / gauges grow from their origin on first paint. */
+@keyframes bpGrowX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.bp-grow { transform-origin: left center; animation: bpGrowX 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
+
+/* Today's marker on the calendar — a soft drafting-lamp halo. */
+.bp-today {
+  box-shadow: 0 0 0 1px var(--accent), 0 0 14px -2px var(--accent-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bp-rise, .bp-grow { animation: none; opacity: 1; transform: none; }
+}
+
+/* ============================================================================
    AUTH PAGES — login / register
    ========================================================================== */
 
