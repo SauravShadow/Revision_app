@@ -29,10 +29,13 @@ graph TB
     UI -- "Authorization: Bearer <token>" --> AUTH
     UI -- "Authorization: Bearer <token>" --> CONTENT
     UI -- "scoped file token" --> FILES
+    CONTENT -- "X-Service-Secret" --> AUTH
     AUTH --> DBA
     CONTENT --> DBC
     FILES --> DISK
 ```
+
+The one exception to "frontend never touches Postgres, services never touch each other" is the coaching dashboard: `content-service` calls `auth-service`'s internal roster API (authenticated with a shared `SERVICE_SECRET` via the `X-Service-Secret` header) to resolve which students belong to a cohort before it aggregates their revision stats.
 
 The frontend never touches Postgres directly — every request goes over HTTP to one of the three services, each owning its own database and its own migrations under `services/*/db/migrations`. `packages/shared` holds types used across all of them.
 
@@ -90,16 +93,20 @@ stateDiagram-v2
 | **Bookmarks & tags** | Tag-based filtering, search, and a dedicated bookmarks view |
 | **Drag-and-drop** | Reordering via `@dnd-kit` |
 | **Multi-user auth** | Per-user accounts scoped to an engineering domain (civil, mechanical, electrical), fully isolated data and file storage per user |
+| **Coaching dashboard** | Organisations → groups with invite-code joining; heads/admins see cohort completion, activity, per-student drill-down (revision status only — notes/attachments stay private) at `/coaching` |
 
 ## Getting started
 
 ```bash
 cp .env.example .env
 openssl rand -hex 32          # paste into SESSION_SECRET
+openssl rand -hex 32          # paste into SERVICE_SECRET (content-service -> auth-service roster calls)
 # fill in POSTGRES_PASSWORD, then:
 docker volume create revision_app-db
 docker volume create revision_files-data
 docker compose up -d
+# one-off: backfill revision stats for users who existed before the coaching dashboard
+docker compose exec content-service npm run backfill:stats
 ```
 
 App → `http://127.0.0.1:3200` · Postgres → `127.0.0.1:5433` (for migrations/tests run outside Docker). Full variable breakdown, including per-service `DATABASE_URL` overrides, is in `.env.example`.
@@ -111,47 +118,6 @@ npm test              # per-workspace Vitest suites
 npx tsc --noEmit      # type check
 npm run lint          # lint
 ```
-
-## Roadmap: Coaching Dashboard
-
-Not yet built. A `head`/coach role that sees a cohort-wide view instead of just their own data — today every query in `content-service` is scoped to the requesting user by design, so this needs a role field on `users`, an authorization check gating the aggregate endpoints, and read-only cross-user queries.
-
-Rough mockup of the intended layout:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  Coaching Dashboard                              cohort: civil  │
-├─────────────────────────────────────────────────────────────────┤
-│  Cohort completion            Due today        Overdue          │
-│  ████████████░░░░  68%             12               5           │
-├─────────────────────────────────────────────────────────────────┤
-│  Revision activity (last 30 days)                                │
-│  30│                                     ▄▄                      │
-│  20│                    ▄▄        ▄▄     ██   ▄▄                │
-│  10│   ▄▄        ▄▄     ██  ▄▄    ██  ▄▄ ██   ██     ▄▄         │
-│   0└───██────▄▄───██──▄▄██──██──▄▄██──██─██──▄▄██────██──────▶  │
-│        W1     W2      W3      W4      W5     W6     W7          │
-├─────────────────────────────────────────────────────────────────┤
-│  Student           Completion   Streak   Status                 │
-│  ─────────────────────────────────────────────────────          │
-│  A. Sharma         ████████░░ 82%   12d   ● On track             │
-│  R. Verma          ██████░░░░ 61%    3d   ● On track             │
-│  P. Nair           ███░░░░░░░ 34%    0d   ● Overdue (4 topics)   │
-│  ...                                              [drill-down →] │
-├─────────────────────────────────────────────────────────────────┤
-│  Subject/chapter coverage heatmap                                │
-│         Soil Mech  Structures  Hydraulics  Transport             │
-│  Sharma   ▓▓▓▓▓        ▓▓▓▓░       ▓▓▓░░       ▓▓▓▓▓             │
-│  Verma    ▓▓▓░░        ▓▓▓▓▓       ▓▓░░░       ▓▓▓░░             │
-│  Nair     ▓░░░░        ▓▓░░░       ▓░░░░       ▓▓░░░             │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-Planned components:
-- Cohort completion %, streaks, and due/overdue counts (rollup of each student's existing badge states)
-- Time-series chart of cohort-wide revision activity
-- Per-student summary table with drill-down into their full history
-- Subject/chapter coverage heatmap across the cohort
 
 ## Also on the roadmap
 
