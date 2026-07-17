@@ -59,6 +59,16 @@ describe('orgStore', () => {
     expect(await hasOrgMembership(org.id, carol.id)).toBe(true);
   });
 
+  it('addMembership never downgrades an existing head back to member', async () => {
+    const alice = await user('alice');
+    const carol = await user('carol');
+    const org = await createOrganisation('XYZ', alice.id);
+    const g = await createGroup(org.id, 'Batch A');
+    await addMembership(org.id, g.id, carol.id, 'head');
+    await addMembership(org.id, g.id, carol.id, 'member'); // simulates re-join via still-valid invite code
+    expect(await getGroupRole(g.id, carol.id)).toBe('head');
+  });
+
   it('lists memberships for a user with org and group names', async () => {
     const alice = await user('alice');
     const org = await createOrganisation('XYZ', alice.id);

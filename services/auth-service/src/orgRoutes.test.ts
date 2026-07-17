@@ -76,6 +76,20 @@ describe('org routes', () => {
     expect((await request(app).post(`/groups/${group.id}/heads`).set(auth(admin.token)).send({ username: 'stranger' })).status).toBe(400);
   });
 
+  it('re-joining via a still-valid invite code after promotion does not demote a head back to member', async () => {
+    const { admin, group, invite } = await coachedGroup();
+    const coach = await actor('coach1');
+    await request(app).post('/orgs/join').set(auth(coach.token)).send({ code: invite.code });
+    const promote = await request(app).post(`/groups/${group.id}/heads`).set(auth(admin.token)).send({ username: 'coach1' });
+    expect(promote.status).toBe(200);
+    // Re-submit the join with the same still-valid (multi-use) invite code — e.g. a stale
+    // bookmark or client retry — which must not silently downgrade the head back to member.
+    const rejoin = await request(app).post('/orgs/join').set(auth(coach.token)).send({ code: invite.code });
+    expect(rejoin.status).toBe(200);
+    // Still head: a head-or-admin-only endpoint must still succeed, not 403.
+    expect((await request(app).post(`/groups/${group.id}/invite-codes`).set(auth(coach.token)).send({})).status).toBe(201);
+  });
+
   it('revokes an invite code, after which joining fails uniformly', async () => {
     const { admin, invite } = await coachedGroup();
     expect((await request(app).delete(`/invite-codes/${invite.code}`).set(auth(admin.token))).status).toBe(204);

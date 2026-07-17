@@ -60,13 +60,19 @@ export async function listGroups(orgId: string): Promise<{ id: string; name: str
 }
 
 export async function addMembership(orgId: string, groupId: string | null, userId: string, role: OrgRole): Promise<void> {
-  // Upsert on role: re-joining with the same role is a no-op, but this also
+  // Upsert on role: re-joining with the same role is a no-op, and this also
   // lets promotion (e.g. member → head) update an existing row in place
-  // instead of silently doing nothing.
+  // instead of silently doing nothing. The WHERE clause ensures the upsert
+  // can only ever raise privilege, never lower it: once a group-scoped row
+  // is 'head', the DO UPDATE is skipped entirely on conflict (a genuine
+  // Postgres no-op, row left untouched), so a later re-join with role
+  // 'member' (e.g. a still-valid multi-use invite code) can never silently
+  // downgrade a head back to member.
   await getPool().query(
     `INSERT INTO org_memberships (org_id, group_id, user_id, role)
      VALUES ($1, $2, $3, $4)
-     ON CONFLICT (org_id, group_id, user_id) DO UPDATE SET role = EXCLUDED.role`,
+     ON CONFLICT (org_id, group_id, user_id) DO UPDATE SET role = EXCLUDED.role
+     WHERE org_memberships.role <> 'head'`,
     [orgId, groupId, userId, role],
   );
 }
