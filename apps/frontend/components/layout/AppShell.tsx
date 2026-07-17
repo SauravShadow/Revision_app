@@ -7,6 +7,7 @@ import { HeaderControls } from './HeaderControls';
 import { MobileNavDrawer } from './MobileNavDrawer';
 import { CommandPalette } from '@/components/CommandPalette';
 import { useAuth } from '@/components/AuthProvider';
+import { useMemberships } from '@/lib/orgs/useMemberships';
 import { DOMAIN_LABELS } from '@revision-app/shared';
 
 const AUTH_PATHS = ['/login', '/register'];
@@ -14,6 +15,7 @@ const AUTH_PATHS = ['/login', '/register'];
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { session, loading, logout } = useAuth();
+  const { isCoach } = useMemberships();
 
   // On auth pages or while loading without a session, just render children
   if (AUTH_PATHS.includes(pathname) || (loading && !session)) {
@@ -49,6 +51,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="mx-1 hidden h-5 w-px bg-line sm:block" />
             <Link href="/filtered" className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Filtered</Link>
             <Link href="/insights" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Insights</Link>
+            {isCoach && (
+              <Link href="/coaching" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Coaching</Link>
+            )}
             <Link href="/calendar" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Calendar</Link>
             <Link href="/bookmarks" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Bookmarks</Link>
             <Link href="/archive" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Archive</Link>
