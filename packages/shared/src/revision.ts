@@ -74,7 +74,10 @@ export function currentStreak(data: AppData, now: number): number {
   let cursor = anchor;
   while (days.has(cursor)) {
     streak += 1;
-    cursor -= DAY_MS;
+    // DST-safe day stepping: advance the local calendar date backward, then snap to local midnight.
+    const d = new Date(cursor);
+    d.setDate(d.getDate() - 1);
+    cursor = startOfDay(d.getTime());
   }
   return streak;
 }

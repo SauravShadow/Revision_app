@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  LADDER, DAY_MS, nextInterval, nextDueDate, badgeState, activeTopics, currentStreak,
+  LADDER, DAY_MS, nextInterval, nextDueDate, badgeState, activeTopics, currentStreak, startOfDay,
 } from './revision';
 import type { AppData, Revision, Topic } from './types';
 
@@ -57,5 +57,31 @@ describe('revision math', () => {
     expect(currentStreak(data, now)).toBe(3);
     const stale = appData([topic('t1', 'c1', [rev(5, now)])]);
     expect(currentStreak(stale, now)).toBe(0);
+  });
+
+  it('counts streaks consistently using calendar-based day stepping (DST-safe)', () => {
+    // Regression test: verify that calendar-based setDate() stepping (not raw ms subtraction)
+    // counts multi-day streaks correctly. The DST-safety property is structural: setDate()
+    // respects calendar day boundaries even across DST transitions, whereas subtracting exactly
+    // 24h can land a cursor an hour into the wrong calendar day on spring-forward boundaries.
+    const now = Date.UTC(2026, 6, 16, 12); // July 16, 2026, noon UTC
+    const history = [rev(5, now), rev(4, now), rev(3, now), rev(2, now), rev(1, now), rev(0, now)];
+    const data = appData([topic('t1', 'c1', history)]);
+    // Should count all 6 consecutive days (today + 5 days back)
+    expect(currentStreak(data, now)).toBe(6);
+
+    // Verify that stepping backward through days via setDate produces consistent results:
+    // each day when stepped backward then forward should produce the same startOfDay value.
+    let testCursor = startOfDay(now);
+    for (let i = 0; i < 5; i++) {
+      const d = new Date(testCursor);
+      d.setDate(d.getDate() - 1);
+      const prevDay = startOfDay(d.getTime());
+      // Stepping back then forward again should land on the original day
+      const dd = new Date(prevDay);
+      dd.setDate(dd.getDate() + 1);
+      expect(startOfDay(dd.getTime())).toBe(testCursor);
+      testCursor = prevDay;
+    }
   });
 });
