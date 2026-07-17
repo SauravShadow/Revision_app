@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { NavTree } from './NavTree';
-import { ThemeToggle } from './ThemeToggle';
 import { useAuth } from '@/components/AuthProvider';
 import { useMemberships } from '@/lib/orgs/useMemberships';
 import { DOMAIN_LABELS } from '@revision-app/shared';
@@ -65,7 +64,6 @@ export function MobileNavDrawer() {
                   <div className="tblabel text-[0.58rem]">{DOMAIN_LABELS[session.domain] ?? session.domain}</div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <ThemeToggle />
                   <button onClick={() => { close(); logout(); }} className="sidebar-logout-btn" title="Sign out" aria-label="Sign out">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

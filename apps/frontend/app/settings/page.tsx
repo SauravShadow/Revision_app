@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { getEmailStatus, updateEmail } from '@/lib/auth/client';
 import { OrganisationCard } from '@/components/settings/OrganisationCard';
+import { ThemePicker } from '@/components/theme/ThemePicker';
 
 type EmailStatus = { email: string | null; verified: boolean };
 
@@ -83,6 +84,10 @@ export default function SettingsPage() {
             </button>
           </form>
         )}
+
+        <div className="mt-6 border-t border-line pt-5">
+          <ThemePicker />
+        </div>
 
         <p className="auth-footer">
           <Link href="/" className="auth-link">← Back to the app</Link>
