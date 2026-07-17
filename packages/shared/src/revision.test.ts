@@ -59,29 +59,36 @@ describe('revision math', () => {
     expect(currentStreak(stale, now)).toBe(0);
   });
 
-  it('counts streaks consistently using calendar-based day stepping (DST-safe)', () => {
-    // Regression test: verify that calendar-based setDate() stepping (not raw ms subtraction)
-    // counts multi-day streaks correctly. The DST-safety property is structural: setDate()
-    // respects calendar day boundaries even across DST transitions, whereas subtracting exactly
-    // 24h can land a cursor an hour into the wrong calendar day on spring-forward boundaries.
-    const now = Date.UTC(2026, 6, 16, 12); // July 16, 2026, noon UTC
-    const history = [rev(5, now), rev(4, now), rev(3, now), rev(2, now), rev(1, now), rev(0, now)];
-    const data = appData([topic('t1', 'c1', history)]);
-    // Should count all 6 consecutive days (today + 5 days back)
-    expect(currentStreak(data, now)).toBe(6);
+  it('counts streaks correctly across a DST boundary (spring-forward)', () => {
+    // Regression test for DST-unsafe anchor check bug.
+    // US Eastern spring-forward: 2026-03-08 (clocks jump from 2:00 AM EST to 3:00 AM EDT at UTC-5 to UTC-4).
+    // The old anchor check `days.has(today - DAY_MS)` is vulnerable:
+    // - today (March 9) = 2026-03-09 00:00:00 EDT (UTC-4) = 2026-03-09T04:00:00Z
+    // - today - DAY_MS = 2026-03-09T04:00:00Z - 24h = 2026-03-08T04:00:00Z
+    // - When interpreted in local time: 2026-03-08T04:00:00Z is 01:00 AM EST (UTC-5, before the 2 AM transition)
+    // - startOfDay(today - DAY_MS) would set hours to 0, yielding 2026-03-08T00:00:00 EST = 2026-03-08T05:00:00Z
+    // - But the actual revision's startOfDay on March 8 is 00:00 EDT = 04:00 UTC (after interpreting with the correct EDT offset)
+    // - These don't match, so the old code would fail to find yesterday and incorrectly return 0.
+    // The fixed code uses stepDayBack() which respects calendar day boundaries and correctly finds the revision.
 
-    // Verify that stepping backward through days via setDate produces consistent results:
-    // each day when stepped backward then forward should produce the same startOfDay value.
-    let testCursor = startOfDay(now);
-    for (let i = 0; i < 5; i++) {
-      const d = new Date(testCursor);
-      d.setDate(d.getDate() - 1);
-      const prevDay = startOfDay(d.getTime());
-      // Stepping back then forward again should land on the original day
-      const dd = new Date(prevDay);
-      dd.setDate(dd.getDate() + 1);
-      expect(startOfDay(dd.getTime())).toBe(testCursor);
-      testCursor = prevDay;
+    // Save original TZ and restore it after the test
+    const originalTZ = process.env.TZ;
+    try {
+      process.env.TZ = 'America/New_York';
+
+      // Create a revision on 2026-03-08 (the DST transition day), at a time well after 3 AM EDT
+      // to ensure it's unambiguously in the post-transition period
+      const marchEightRevisionTime = new Date('2026-03-08T15:00:00').getTime(); // 3 PM local on March 8
+      const marchNineNoon = new Date('2026-03-09T12:00:00').getTime(); // Noon on March 9
+
+      const data = appData([topic('t1', 'c1', [{ id: 'r1', timestamp: marchEightRevisionTime }])]);
+      const streak = currentStreak(data, marchNineNoon);
+
+      // The streak should be 1 (yesterday's single revision should be counted).
+      // With the old buggy anchor check `days.has(today - DAY_MS)`, this would incorrectly return 0.
+      expect(streak).toBe(1);
+    } finally {
+      process.env.TZ = originalTZ;
     }
   });
 });

@@ -59,6 +59,12 @@ export function activeTopics(data: AppData): Topic[] {
   });
 }
 
+function stepDayBack(ts: number): number {
+  const d = new Date(ts);
+  d.setDate(d.getDate() - 1);
+  return startOfDay(d.getTime());
+}
+
 export function currentStreak(data: AppData, now: number): number {
   const days = new Set<number>();
   for (const topic of activeTopics(data)) {
@@ -67,7 +73,7 @@ export function currentStreak(data: AppData, now: number): number {
   const today = startOfDay(now);
   let anchor: number;
   if (days.has(today)) anchor = today;
-  else if (days.has(today - DAY_MS)) anchor = today - DAY_MS;
+  else if (days.has(stepDayBack(today))) anchor = stepDayBack(today);
   else return 0;
 
   let streak = 0;
@@ -75,9 +81,7 @@ export function currentStreak(data: AppData, now: number): number {
   while (days.has(cursor)) {
     streak += 1;
     // DST-safe day stepping: advance the local calendar date backward, then snap to local midnight.
-    const d = new Date(cursor);
-    d.setDate(d.getDate() - 1);
-    cursor = startOfDay(d.getTime());
+    cursor = stepDayBack(cursor);
   }
   return streak;
 }
