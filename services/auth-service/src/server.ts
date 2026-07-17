@@ -5,7 +5,9 @@ import { createDefaultEmailSender, verificationEmail, passwordResetEmail } from 
 import type { EmailSender } from './email';
 import { DOMAIN_LABELS } from '@revision-app/shared';
 import type { Domain } from '@revision-app/shared';
-import { signSession, signFileToken, verifySession } from '@revision-app/shared/server';
+import { signSession, signFileToken } from '@revision-app/shared/server';
+import { sessionFrom } from './session';
+import { orgRouter } from './orgRoutes';
 
 const ALLOW_REGISTRATION = process.env.ALLOW_REGISTRATION !== 'false';
 const FRONTEND_URL = process.env.FRONTEND_URL ?? 'http://127.0.0.1:3200';
@@ -118,15 +120,6 @@ export function createApp(emailSender: EmailSender = createDefaultEmailSender())
     res.json({ ...session, token: signSession(session), fileToken: signFileToken(user.id) });
   });
 
-  function sessionFrom(req: express.Request) {
-    // Express's req.headers.authorization is a plain string, not a Fetch
-    // Request — getSessionFromRequest (Fetch-shaped) doesn't apply here, so
-    // this reads the header directly and calls verifySession itself.
-    const authHeader = req.headers.authorization ?? '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
-    return token ? verifySession(token) : null;
-  }
-
   app.get('/me', (req, res) => {
     const session = sessionFrom(req);
     if (!session) return res.status(401).json({ error: 'Not authenticated' });
@@ -226,6 +219,11 @@ export function createApp(emailSender: EmailSender = createDefaultEmailSender())
   app.post('/logout', (_req, res) => {
     res.status(204).end();
   });
+
+  // Mounted last: the org router's blanket auth-check middleware would
+  // otherwise intercept the public routes above (register, login, etc.)
+  // before they ever run.
+  app.use(orgRouter());
 
   return app;
 }

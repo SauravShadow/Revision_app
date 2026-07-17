@@ -60,10 +60,13 @@ export async function listGroups(orgId: string): Promise<{ id: string; name: str
 }
 
 export async function addMembership(orgId: string, groupId: string | null, userId: string, role: OrgRole): Promise<void> {
+  // Upsert on role: re-joining with the same role is a no-op, but this also
+  // lets promotion (e.g. member → head) update an existing row in place
+  // instead of silently doing nothing.
   await getPool().query(
     `INSERT INTO org_memberships (org_id, group_id, user_id, role)
      VALUES ($1, $2, $3, $4)
-     ON CONFLICT (org_id, group_id, user_id) DO NOTHING`,
+     ON CONFLICT (org_id, group_id, user_id) DO UPDATE SET role = EXCLUDED.role`,
     [orgId, groupId, userId, role],
   );
 }
