@@ -1,0 +1,407 @@
+<title>Revision OS — Theme Explorer</title>
+<style>
+  /* ==========================================================================
+     SHELL — a quiet, theme-aware neutral chrome so the previewed themes are the
+     stars. Its tokens are namespaced (--sh-*) to never collide with the app
+     palette the stage renders.
+     ========================================================================== */
+  :root {
+    --sh-bg:        #eceef1;
+    --sh-panel:     #f7f8fa;
+    --sh-ink:       #1c2126;
+    --sh-ink-dim:   #5c6672;
+    --sh-line:      #d5dae0;
+    --sh-line-2:    #c2c9d1;
+    --sh-active:    #1c2126;
+    --sh-active-fg: #f7f8fa;
+    --sh-radius:    11px;
+    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --sh-bg:#14171b; --sh-panel:#1c2026; --sh-ink:#e7eaee; --sh-ink-dim:#97a1ac;
+      --sh-line:#2a2f36; --sh-line-2:#3a414a; --sh-active:#e7eaee; --sh-active-fg:#14171b;
+    }
+  }
+  :root[data-theme="light"] {
+    --sh-bg:#eceef1; --sh-panel:#f7f8fa; --sh-ink:#1c2126; --sh-ink-dim:#5c6672;
+    --sh-line:#d5dae0; --sh-line-2:#c2c9d1; --sh-active:#1c2126; --sh-active-fg:#f7f8fa;
+  }
+  :root[data-theme="dark"] {
+    --sh-bg:#14171b; --sh-panel:#1c2026; --sh-ink:#e7eaee; --sh-ink-dim:#97a1ac;
+    --sh-line:#2a2f36; --sh-line-2:#3a414a; --sh-active:#e7eaee; --sh-active-fg:#14171b;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--sh-bg);
+    color: var(--sh-ink);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: clamp(1.25rem, 3vw, 2.5rem) clamp(1rem, 3vw, 2rem) 4rem; }
+
+  /* ----- page header -------------------------------------------------------- */
+  .masthead { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.75rem; }
+  .masthead h1 { font-size: clamp(1.4rem, 3.4vw, 2rem); font-weight: 700; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+  .masthead .kicker { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sh-ink-dim); margin: 0 0 0.35rem; }
+  .masthead p { margin: 0.4rem 0 0; color: var(--sh-ink-dim); font-size: 0.9rem; max-width: 48ch; }
+
+  /* ----- control rail ------------------------------------------------------- */
+  .controls {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.5rem;
+    background: var(--sh-panel);
+    border: 1px solid var(--sh-line);
+    border-radius: var(--sh-radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .ctl-label { font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--sh-ink-dim); }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .chip {
+    font: inherit; font-size: 0.82rem; line-height: 1;
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.5rem 0.72rem;
+    border: 1px solid var(--sh-line-2);
+    background: transparent; color: var(--sh-ink);
+    border-radius: 8px; cursor: pointer;
+    transition: background .16s, border-color .16s, color .16s, transform .12s;
+  }
+  .chip:hover { border-color: var(--sh-ink-dim); }
+  .chip:active { transform: translateY(1px); }
+  .chip[aria-pressed="true"] { background: var(--sh-active); color: var(--sh-active-fg); border-color: var(--sh-active); }
+  .chip:focus-visible { outline: 2px solid var(--sh-active); outline-offset: 2px; }
+  .dot { width: 11px; height: 11px; border-radius: 3px; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.18); }
+
+  /* ==========================================================================
+     STAGE — the framed device that renders the actual app palette.
+     Every var below mirrors the real globals.css names so this doubles as the
+     Phase-0 spec.
+     ========================================================================== */
+  .stage-frame {
+    border: 1px solid var(--sh-line);
+    border-radius: 16px;
+    padding: 12px;
+    background: var(--sh-panel);
+    box-shadow: 0 24px 60px -34px rgba(0,0,0,.45);
+  }
+
+  .stage {
+    /* defaults (blueprint dark, gridless) — overridden by [data-theme] blocks */
+    --ground:#0a1a2b; --ground-deep:#06111d; --panel:#0e2135; --panel-2:#123049;
+    --line:rgba(120,178,222,.16); --line-strong:rgba(120,178,222,.34);
+    --grid-minor:transparent; --grid-major:transparent; --grid-size:26px;
+    --ink:#e7f1f9; --ink-dim:#92aec6; --ink-faint:#5f7c94;
+    --accent:#4fc3f7; --accent-soft:rgba(79,195,247,.14);
+    --annotation:#f4a63b; --alarm:#ff6b6b; --go:#4fd6a6;
+    --lamp:rgba(79,195,247,.10);
+
+    position: relative;
+    border-radius: 9px;
+    overflow: hidden;
+    background-color: var(--ground);
+    background-image:
+      linear-gradient(var(--grid-minor) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px),
+      linear-gradient(var(--grid-major) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-major) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size),
+                     calc(var(--grid-size)*5) calc(var(--grid-size)*5), calc(var(--grid-size)*5) calc(var(--grid-size)*5);
+    color: var(--ink);
+    min-height: 560px;
+  }
+  .stage::after {
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
+    background:
+      radial-gradient(130% 80% at 50% -18%, var(--lamp), transparent 55%),
+      radial-gradient(120% 120% at 50% 120%, rgba(0,0,0,.28), transparent 62%);
+  }
+
+  /* --- theme palettes ------------------------------------------------------- */
+  .stage[data-theme="blueprint"] {} /* == defaults: navy palette, no grid */
+
+  .stage[data-theme="engpad"] {
+    --ground:#faf7ef; --ground-deep:#f0ecdf; --panel:#fffdf6; --panel-2:#f3efe2;
+    --line:rgba(58,110,72,.22); --line-strong:rgba(58,110,72,.40);
+    --grid-minor:rgba(58,110,72,.09); --grid-major:rgba(58,110,72,.16); --grid-size:22px;
+    --ink:#2a2a28; --ink-dim:#5b5a52; --ink-faint:#8f8d80;
+    --accent:#c0392b; --accent-soft:rgba(192,57,43,.12);
+    --annotation:#c98a1a; --alarm:#c0392b; --go:#3a6e48;
+    --lamp:rgba(192,57,43,.05);
+  }
+
+  .stage[data-theme="slate"] {
+    --ground:#fafafa; --ground-deep:#f0f1f3; --panel:#ffffff; --panel-2:#f4f5f7;
+    --line:rgba(24,28,35,.10); --line-strong:rgba(24,28,35,.20);
+    --grid-minor:transparent; --grid-major:transparent; --grid-size:26px;
+    --ink:#181c23; --ink-dim:#5a626e; --ink-faint:#9aa1ac;
+    --accent:#4f46e5; --accent-soft:rgba(79,70,229,.10);
+    --annotation:#b45309; --alarm:#dc2626; --go:#059669;
+    --lamp:rgba(79,70,229,.05);
+  }
+
+  /* ----- app content inside the stage -------------------------------------- */
+  .app { position: relative; z-index: 1; }
+
+  .titleblock {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid var(--line-strong);
+    background: color-mix(in srgb, var(--ground-deep) 80%, transparent);
+    backdrop-filter: blur(6px);
+  }
+  .brand { display: flex; align-items: center; gap: 0.7rem; min-width: 0; }
+  .regmark { position: relative; display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid var(--line-strong); border-radius: 3px; color: var(--accent); flex: none; }
+  .regmark::before, .regmark::after { content:""; position:absolute; background: currentColor; opacity:.4; }
+  .regmark::before { left:4px; right:4px; height:1px; top:50%; transform:translateY(-.5px); }
+  .regmark::after  { top:4px; bottom:4px; width:1px; left:50%; transform:translateX(-.5px); }
+  .regmark span { width:6px; height:6px; border-radius:50%; background: var(--accent); }
+  .brand-name { font-size: 0.82rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.1; }
+  .brand-sub { font-family: var(--font-mono); font-size: 0.56rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-dim); margin-top: 2px; }
+  .titlenav { display: flex; align-items: center; gap: 0.4rem; }
+  .tico { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 7px; color: var(--ink-dim); border: 1px solid transparent; }
+  .tico:hover { border-color: var(--line); color: var(--accent); }
+  .tico svg { width: 16px; height: 16px; }
+
+  .sheet { padding: 1.2rem 1.1rem 1.5rem; }
+  .sheet-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 0.9rem; }
+  .tblabel { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-dim); }
+  .sheet-head h2 { margin: 0.3rem 0 0; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; }
+  .fab {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font: inherit; font-size: 0.76rem; font-weight: 600;
+    padding: 0.45rem 0.7rem; border-radius: 9px; cursor: pointer;
+    color: var(--ground-deep); background: var(--accent); border: none;
+    box-shadow: 0 6px 18px -6px var(--accent);
+  }
+
+  /* search + filter chips (proposed additions) */
+  .searchbar {
+    display: flex; align-items: center; gap: 0.55rem;
+    background: var(--ground-deep); border: 1px solid var(--line-strong);
+    border-radius: 999px; padding: 0.5rem 0.85rem; margin-bottom: 0.85rem;
+    color: var(--ink-faint); font-size: 0.82rem;
+  }
+  .searchbar svg { width: 15px; height: 15px; flex: none; }
+  .searchbar .kbd { margin-left: auto; font-family: var(--font-mono); font-size: 0.62rem; border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; color: var(--ink-dim); }
+
+  .filterchips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.1rem; }
+  .fchip {
+    font-family: var(--font-mono); font-size: 0.63rem; letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 0.32rem 0.62rem; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--ink-dim);
+    display: inline-flex; align-items: center; gap: 0.35rem;
+  }
+  .fchip[data-on="true"] { background: var(--accent); color: var(--ground-deep); border-color: var(--accent); font-weight: 600; }
+  .fchip .cnt { font-variant-numeric: tabular-nums; }
+
+  /* subject cards — no left colour rail */
+  .subgrid { display: grid; gap: 0.8rem; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); margin-bottom: 1.4rem; }
+  .subcard {
+    position: relative; border-radius: 12px; padding: 0.95rem 1rem;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--panel-2) 55%, transparent), color-mix(in srgb, var(--ground) 55%, transparent));
+    border: 1px solid var(--line);
+    transition: transform .18s, border-color .18s;
+  }
+  .subcard:hover { transform: translateY(-3px); border-color: var(--line-strong); }
+  .subcard-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; }
+  .subcard h3 { margin: 0; font-size: 0.94rem; font-weight: 600; letter-spacing: -0.01em; }
+  .pct { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 600; color: var(--accent); line-height: 1; }
+  .pct small { font-size: 0.62rem; color: var(--ink-dim); }
+  .rail { margin-top: 0.8rem; height: 6px; border-radius: 999px; background: var(--ground-deep); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+  .rail > i { display: block; height: 100%; border-radius: 999px; background: var(--subc); box-shadow: 0 0 10px color-mix(in srgb, var(--subc) 55%, transparent); width: var(--w); transform-origin: left; }
+  .subcard-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.8rem; padding-top: 0.6rem; border-top: 1px solid var(--line); }
+  .subcard-foot .tblabel b { color: var(--ink); font-weight: 600; }
+  .subcard-foot .pend b { color: var(--annotation); }
+
+  /* topic list — compact hairline rows only */
+  .listlabel { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-dim); margin: 0.2rem 0 0.6rem; }
+  .toplist { display: flex; flex-direction: column; }
+
+  .trow {
+    display: flex; align-items: center; gap: 0.7rem;
+    padding: 0.7rem 0.8rem;
+    text-decoration: none; color: inherit;
+    border-bottom: 1px solid var(--line);
+    transition: background .16s;
+  }
+  .trow:last-child { border-bottom: none; }
+  .trow:hover { background: var(--accent-soft); }
+
+  /* leading avatar with status ring */
+  .avatar { position: relative; flex: none; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; font-weight: 700; font-size: 0.85rem; color: var(--ground-deep); }
+  .avatar::before { content:""; position:absolute; inset:-3px; border-radius:50%; border: 2px solid var(--ring); }
+  .trow-main { min-width: 0; flex: 1; }
+  .trow-title { font-size: 0.9rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.4rem; }
+  .trow-meta { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-dim); margin-top: 3px; }
+  .trow-meta .rev { color: var(--accent); }
+  .star { color: var(--annotation); width: 13px; height: 13px; flex: none; }
+  .trow-right { display: flex; align-items: center; gap: 0.55rem; flex: none; }
+  /* circular count badge */
+  .count { min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; display: grid; place-items: center; font-family: var(--font-mono); font-size: 0.66rem; font-weight: 600; font-variant-numeric: tabular-nums; background: var(--accent); color: var(--ground-deep); }
+  .count[data-muted="true"] { background: transparent; color: var(--ink-faint); box-shadow: inset 0 0 0 1px var(--line-strong); }
+  .rstate { font-family: var(--font-mono); font-size: 0.56rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 6px; border-radius: 5px; }
+  .rstate[data-s="due"] { color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .rstate[data-s="over"] { color: var(--alarm); box-shadow: inset 0 0 0 1px var(--alarm); }
+  .rstate[data-s="ok"] { color: var(--go); box-shadow: inset 0 0 0 1px var(--go); }
+
+  /* footnote / legend */
+  .legend { margin-top: 1.5rem; display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .legend-card { border: 1px solid var(--sh-line); border-radius: 10px; padding: 0.8rem 0.9rem; background: var(--sh-panel); }
+  .legend-card h4 { margin: 0 0 0.25rem; font-size: 0.82rem; display: flex; align-items: center; gap: 0.5rem; }
+  .legend-card p { margin: 0; font-size: 0.76rem; color: var(--sh-ink-dim); line-height: 1.45; }
+  .sw { width: 12px; height: 12px; border-radius: 3px; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.2); }
+  .note { margin-top: 1.5rem; font-size: 0.78rem; color: var(--sh-ink-dim); border-top: 1px solid var(--sh-line); padding-top: 1rem; }
+  .note code { font-family: var(--font-mono); font-size: 0.72rem; background: color-mix(in srgb, var(--sh-ink) 8%, transparent); padding: 1px 5px; border-radius: 4px; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .anim { opacity: 0; animation: rise .5s cubic-bezier(.2,.7,.2,1) forwards; }
+  @media (prefers-reduced-motion: reduce) { .anim { animation: none; opacity: 1; } }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <p class="kicker">Revision OS · Phase 0 spec</p>
+      <h1>Theme Explorer</h1>
+      <p>A live preview of the redesigned home screen — three shortlisted themes, compact hairline lists, and no subject colour rail. Every value maps to a real CSS variable in <code style="font-family:var(--font-mono);font-size:.8em">globals.css</code>.</p>
+    </div>
+  </header>
+
+  <section class="controls" aria-label="Preview controls">
+    <span class="ctl-label">Theme</span>
+    <div class="chips" id="theme-chips" role="group" aria-label="Theme">
+      <button class="chip" data-val="blueprint" aria-pressed="true"><span class="dot" style="background:#0a1a2b"></span>Blueprint Dark</button>
+      <button class="chip" data-val="engpad" aria-pressed="false"><span class="dot" style="background:#faf7ef"></span>Engineering Pad</button>
+      <button class="chip" data-val="slate" aria-pressed="false"><span class="dot" style="background:#fafafa"></span>Slate Minimal</button>
+    </div>
+  </section>
+
+  <div class="stage-frame">
+    <div class="stage" id="stage" data-theme="blueprint">
+      <div class="app">
+
+        <div class="titleblock">
+          <div class="brand">
+            <span class="regmark"><span></span></span>
+            <span>
+              <div class="brand-name">REVISION OS</div>
+              <div class="brand-sub">Civil Engineering</div>
+            </span>
+          </div>
+          <div class="titlenav">
+            <span class="tico" title="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+            <span class="tico" title="Insights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+            <span class="tico" title="Calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span>
+          </div>
+        </div>
+
+        <div class="sheet">
+          <div class="sheet-head">
+            <div>
+              <div class="tblabel">Index · Sheet 01</div>
+              <h2>Subjects</h2>
+            </div>
+            <button class="fab">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Subject
+            </button>
+          </div>
+
+          <div class="searchbar anim" style="animation-delay:.02s">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            Search subjects, chapters, topics
+            <span class="kbd">/</span>
+          </div>
+
+          <div class="filterchips anim" style="animation-delay:.05s">
+            <span class="fchip" data-on="true">All <span class="cnt">18</span></span>
+            <span class="fchip">Due <span class="cnt">5</span></span>
+            <span class="fchip">Overdue <span class="cnt">2</span></span>
+            <span class="fchip">Bookmarked <span class="cnt">4</span></span>
+            <span class="fchip">Not revised <span class="cnt">3</span></span>
+          </div>
+
+          <div class="subgrid">
+            <div class="subcard anim" style="--subc:#e15b64; animation-delay:.06s">
+              <div class="subcard-top"><h3>Structural Analysis</h3><span class="pct">72<small>%</small></span></div>
+              <div class="rail"><i style="--w:72%"></i></div>
+              <div class="subcard-foot"><span class="tblabel">CH&nbsp;<b>06</b></span><span class="tblabel pend">PEND&nbsp;<b>02</b></span><span class="tblabel" style="text-transform:none;letter-spacing:0">2d ago</span></div>
+            </div>
+            <div class="subcard anim" style="--subc:#4fc3f7; animation-delay:.1s">
+              <div class="subcard-top"><h3>Geotechnical Eng.</h3><span class="pct">45<small>%</small></span></div>
+              <div class="rail"><i style="--w:45%"></i></div>
+              <div class="subcard-foot"><span class="tblabel">CH&nbsp;<b>08</b></span><span class="tblabel pend">PEND&nbsp;<b>05</b></span><span class="tblabel" style="text-transform:none;letter-spacing:0">6d ago</span></div>
+            </div>
+            <div class="subcard anim" style="--subc:#7bd88f; animation-delay:.14s">
+              <div class="subcard-top"><h3>Fluid Mechanics</h3><span class="pct">88<small>%</small></span></div>
+              <div class="rail"><i style="--w:88%"></i></div>
+              <div class="subcard-foot"><span class="tblabel">CH&nbsp;<b>05</b></span><span class="tblabel pend">PEND&nbsp;<b>00</b></span><span class="tblabel" style="text-transform:none;letter-spacing:0">today</span></div>
+            </div>
+          </div>
+
+          <div class="listlabel">Structural Analysis · Topics</div>
+          <div class="toplist">
+            <a class="trow anim" style="animation-delay:.16s">
+              <span class="avatar" style="background:#e15b64; --ring:var(--alarm)">SA</span>
+              <span class="trow-main">
+                <span class="trow-title">Moment Distribution Method <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3L22 9.2l-5 4.9 1.2 7L12 17.8 5.8 21l1.2-7-5-4.9 7.1-.9z"/></svg></span>
+                <span class="trow-meta"><span class="rev">05</span> REV · overdue by 3d</span>
+              </span>
+              <span class="trow-right"><span class="rstate" data-s="over">OVERDUE</span><span class="count">3</span></span>
+            </a>
+            <a class="trow anim" style="animation-delay:.2s">
+              <span class="avatar" style="background:#4fc3f7; --ring:var(--accent)">SA</span>
+              <span class="trow-main">
+                <span class="trow-title">Influence Lines for Beams</span>
+                <span class="trow-meta"><span class="rev">02</span> REV · due today</span>
+              </span>
+              <span class="trow-right"><span class="rstate" data-s="due">DUE</span><span class="count">1</span></span>
+            </a>
+            <a class="trow anim" style="animation-delay:.24s">
+              <span class="avatar" style="background:#7bd88f; --ring:var(--go)">SA</span>
+              <span class="trow-main">
+                <span class="trow-title">Slope Deflection Equations</span>
+                <span class="trow-meta"><span class="rev">08</span> REV · revised 1d ago</span>
+              </span>
+              <span class="trow-right"><span class="rstate" data-s="ok">FRESH</span><span class="count" data-muted="true">0</span></span>
+            </a>
+            <a class="trow anim" style="animation-delay:.28s">
+              <span class="avatar" style="background:#c8a24f; --ring:var(--line-strong)">SA</span>
+              <span class="trow-main">
+                <span class="trow-title">Matrix Stiffness Method</span>
+                <span class="trow-meta"><span class="rev">00</span> REV · not revised yet</span>
+              </span>
+              <span class="trow-right"><span class="count" data-muted="true">0</span></span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-card"><h4><span class="sw" style="background:#0a1a2b"></span>Blueprint Dark</h4><p>The current navy + cyan palette, but with the CAD grid removed for a cleaner, Slate-style minimal ground.</p></div>
+    <div class="legend-card"><h4><span class="sw" style="background:#faf7ef"></span>Engineering Pad</h4><p>Cream graph paper, green rules, graphite ink, red-pencil accent. Warm study-notebook feel.</p></div>
+    <div class="legend-card"><h4><span class="sw" style="background:#fafafa"></span>Slate Minimal</h4><p>No grid, neutral zinc, single indigo accent. The calm, non-thematic light option.</p></div>
+  </div>
+
+  <p class="note">Everything renders from CSS variables named exactly as in <code>globals.css</code> — <code>--ground</code>, <code>--panel</code>, <code>--ink</code>, <code>--accent</code>, <code>--line</code>, <code>--annotation</code>, <code>--alarm</code>, <code>--go</code>. In the app these move from <code>:root</code> onto <code>[data-theme]</code> blocks; the <code>@theme inline</code> map and every component stay untouched. Lists are compact hairline rows, subject cards have no colour rail, and accents use each theme's default. The rows also preview the proposed additions — inline search, filter chips, avatar status rings, and circular count badges.</p>
+</div>
+
+<script>
+  (function () {
+    var stage = document.getElementById('stage');
+    var group = document.getElementById('theme-chips');
+    group.addEventListener('click', function (e) {
+      var btn = e.target.closest('.chip');
+      if (!btn) return;
+      group.querySelectorAll('.chip').forEach(function (c) { c.setAttribute('aria-pressed', String(c === btn)); });
+      stage.setAttribute('data-theme', btn.dataset.val);
+    });
+  })();
+</script>
