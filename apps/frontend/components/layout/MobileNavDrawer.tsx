@@ -6,11 +6,13 @@ import { motion } from 'framer-motion';
 import { NavTree } from './NavTree';
 import { ThemeToggle } from './ThemeToggle';
 import { useAuth } from '@/components/AuthProvider';
+import { useMemberships } from '@/lib/orgs/useMemberships';
 import { DOMAIN_LABELS } from '@revision-app/shared';
 
 export function MobileNavDrawer() {
   const [open, setOpen] = useState(false);
   const { session, logout } = useAuth();
+  const { isCoach } = useMemberships();
   const close = () => setOpen(false);
 
   useEffect(() => {
@@ -48,6 +50,9 @@ export function MobileNavDrawer() {
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <Link href="/filtered" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Filtered</Link>
               <Link href="/insights" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Insights</Link>
+              {isCoach && (
+                <Link href="/coaching" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Coaching</Link>
+              )}
               <Link href="/calendar" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Calendar</Link>
               <Link href="/bookmarks" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Bookmarks</Link>
               <Link href="/archive" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Archive</Link>

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { getEmailStatus, updateEmail } from '@/lib/auth/client';
+import { OrganisationCard } from '@/components/settings/OrganisationCard';
 
 type EmailStatus = { email: string | null; verified: boolean };
 
@@ -87,6 +88,8 @@ export default function SettingsPage() {
           <Link href="/" className="auth-link">← Back to the app</Link>
         </p>
       </div>
+
+      <OrganisationCard />
     </div>
   );
 }

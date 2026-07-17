@@ -1,49 +1,15 @@
 import type { Revision, Topic } from '@revision-app/shared';
 import { makeId } from '@revision-app/shared';
-import { nextInterval } from './ladder';
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-export function startOfDay(ts: number): number {
-  const d = new Date(ts);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
-}
+import {
+  startOfDay, lastRevisedAt, nextDueDate, daysSince, badgeState, DAY_MS,
+} from '@revision-app/shared';
+export {
+  startOfDay, lastRevisedAt, nextDueDate, daysSince, badgeState,
+} from '@revision-app/shared';
+export type { BadgeState } from '@revision-app/shared';
 
 export function totalRevisions(h: Revision[]): number {
   return h.length;
-}
-
-export function lastRevisedAt(h: Revision[]): number | undefined {
-  return h.length === 0 ? undefined : h[h.length - 1].timestamp;
-}
-
-export function nextDueDate(h: Revision[]): number | undefined {
-  const last = lastRevisedAt(h);
-  if (last === undefined) return undefined;
-  return last + nextInterval(h.length) * DAY_MS;
-}
-
-export function daysSince(h: Revision[], now: number): number | undefined {
-  const last = lastRevisedAt(h);
-  if (last === undefined) return undefined;
-  return Math.floor((now - last) / DAY_MS);
-}
-
-export type BadgeState =
-  | 'NeverRevised' | 'Overdue' | 'DueToday'
-  | 'DueTomorrow' | 'RecentlyRevised' | 'Upcoming';
-
-export function badgeState(h: Revision[], now: number): BadgeState {
-  const due = nextDueDate(h);
-  if (due === undefined) return 'NeverRevised';
-  const dayDiff = Math.round((startOfDay(due) - startOfDay(now)) / DAY_MS);
-  if (dayDiff < 0) return 'Overdue';
-  if (dayDiff === 0) return 'DueToday';
-  const since = daysSince(h, now);
-  if (since !== undefined && since <= 1) return 'RecentlyRevised';
-  if (dayDiff === 1) return 'DueTomorrow';
-  return 'Upcoming';
 }
 
 export function relativeLabel(ts: number, now: number): string {

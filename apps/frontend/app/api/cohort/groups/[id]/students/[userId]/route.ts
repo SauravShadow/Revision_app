@@ -1,0 +1,9 @@
+import { proxyRequest } from '@/lib/serviceProxy';
+
+const CONTENT_SERVICE_URL = process.env.CONTENT_SERVICE_URL ?? 'http://127.0.0.1:4002';
+export const dynamic = 'force-dynamic';
+
+export async function GET(req: Request, { params }: { params: Promise<{ id: string; userId: string }> }) {
+  const { id, userId } = await params;
+  return proxyRequest(req, `${CONTENT_SERVICE_URL}/cohort/groups/${id}/students/${userId}`);
+}

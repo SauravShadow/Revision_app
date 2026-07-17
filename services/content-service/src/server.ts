@@ -1,19 +1,13 @@
 import express from 'express';
 import { appDataSchema } from '@revision-app/shared';
-import { verifySession } from '@revision-app/shared/server';
 import { readData, writeData } from './appDataStore';
-
-function sessionUserId(req: express.Request): { userId: string; domain: string } | null {
-  const authHeader = req.headers.authorization ?? '';
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
-  if (!token) return null;
-  const session = verifySession(token);
-  return session ? { userId: session.userId, domain: session.domain } : null;
-}
+import { sessionUserId } from './session';
+import { cohortRouter } from './cohort';
 
 export function createApp() {
   const app = express();
   app.use(express.json({ limit: '5mb' }));
+  app.use(cohortRouter());
 
   app.get('/app-data', async (req, res) => {
     const session = sessionUserId(req);

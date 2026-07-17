@@ -6,18 +6,32 @@ const mocks = vi.hoisted(() => ({
   getEmailStatus: vi.fn(),
   updateEmail: vi.fn(),
   useAuth: vi.fn(),
+  fetchMemberships: vi.fn(),
 }));
 vi.mock('@/lib/auth/client', () => ({
   getEmailStatus: mocks.getEmailStatus,
   updateEmail: mocks.updateEmail,
 }));
 vi.mock('@/components/AuthProvider', () => ({ useAuth: mocks.useAuth }));
+// SettingsPage renders <OrganisationCard>, which calls fetchMemberships on
+// mount; mock it here too so it doesn't reach the real (unmocked) authFetch.
+vi.mock('@/lib/orgs/client', () => ({
+  fetchMemberships: mocks.fetchMemberships,
+  createOrganisation: vi.fn(),
+  joinWithCode: vi.fn(),
+  createGroup: vi.fn(),
+  listGroups: vi.fn(),
+  createInviteCode: vi.fn(),
+  assignHead: vi.fn(),
+  leaveGroup: vi.fn(),
+}));
 
 import SettingsPage from './page';
 
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.useAuth.mockReturnValue({ session: { userId: 'u1', username: 'oldtimer', domain: 'civil-engineering' }, loading: false });
+  mocks.fetchMemberships.mockResolvedValue({ memberships: [] });
 });
 
 it('lets a grandfathered account submit an email for verification', async () => {
