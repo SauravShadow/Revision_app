@@ -8,6 +8,7 @@ import type { Domain } from '@revision-app/shared';
 import { signSession, signFileToken } from '@revision-app/shared/server';
 import { sessionFrom } from './session';
 import { orgRouter } from './orgRoutes';
+import { internalRouter } from './internalRoutes';
 
 const ALLOW_REGISTRATION = process.env.ALLOW_REGISTRATION !== 'false';
 const FRONTEND_URL = process.env.FRONTEND_URL ?? 'http://127.0.0.1:3200';
@@ -219,6 +220,11 @@ export function createApp(emailSender: EmailSender = createDefaultEmailSender())
   app.post('/logout', (_req, res) => {
     res.status(204).end();
   });
+
+  // Mounted before orgRouter: its blanket auth-check middleware matches
+  // every path that reaches it, so /internal/* (secret-authed, not
+  // session-authed) must be handled first or it'd be wrongly 401'd.
+  app.use(internalRouter());
 
   // Mounted last: the org router's blanket auth-check middleware would
   // otherwise intercept the public routes above (register, login, etc.)
