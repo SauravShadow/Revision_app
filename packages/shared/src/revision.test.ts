@@ -61,15 +61,13 @@ describe('revision math', () => {
 
   it('counts streaks correctly across a DST boundary (spring-forward)', () => {
     // Regression test for DST-unsafe anchor check bug.
-    // US Eastern spring-forward: 2026-03-08 (clocks jump from 2:00 AM EST to 3:00 AM EDT at UTC-5 to UTC-4).
-    // The old anchor check `days.has(today - DAY_MS)` is vulnerable:
-    // - today (March 9) = 2026-03-09 00:00:00 EDT (UTC-4) = 2026-03-09T04:00:00Z
-    // - today - DAY_MS = 2026-03-09T04:00:00Z - 24h = 2026-03-08T04:00:00Z
-    // - When interpreted in local time: 2026-03-08T04:00:00Z is 01:00 AM EST (UTC-5, before the 2 AM transition)
-    // - startOfDay(today - DAY_MS) would set hours to 0, yielding 2026-03-08T00:00:00 EST = 2026-03-08T05:00:00Z
-    // - But the actual revision's startOfDay on March 8 is 00:00 EDT = 04:00 UTC (after interpreting with the correct EDT offset)
-    // - These don't match, so the old code would fail to find yesterday and incorrectly return 0.
-    // The fixed code uses stepDayBack() which respects calendar day boundaries and correctly finds the revision.
+    // US Eastern spring-forward: 2026-03-08 (clocks jump from 2:00 AM EST to 3:00 AM EDT; UTC-5 becomes UTC-4).
+    // The old anchor check `days.has(today - DAY_MS)` does raw UTC timestamp subtraction (24h = 86.4M ms).
+    // This fails to account for calendar day boundaries when DST transitions occurs: subtracting 24 hours
+    // from midnight EDT March 9 (2026-03-09T04:00:00Z) gives 2026-03-08T04:00:00Z, but that UTC time
+    // corresponds to midnight EDT March 8 only if the entire day of March 8 is in EDT—not true when the
+    // day spans both EST and EDT. The fix uses stepDayBack(), which correctly steps back one calendar day
+    // in local time (respecting DST rules) then snaps to midnight, ensuring anchor matches startOfDay(revision).
 
     // Save original TZ and restore it after the test
     const originalTZ = process.env.TZ;
@@ -88,7 +86,11 @@ describe('revision math', () => {
       // With the old buggy anchor check `days.has(today - DAY_MS)`, this would incorrectly return 0.
       expect(streak).toBe(1);
     } finally {
-      process.env.TZ = originalTZ;
+      if (originalTZ === undefined) {
+        delete process.env.TZ;
+      } else {
+        process.env.TZ = originalTZ;
+      }
     }
   });
 });
