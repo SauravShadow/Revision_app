@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { Breadcrumb } from '@/components/layout/Breadcrumb';
 import { StatTile } from '@/components/insights/StatTile';
+import { FilterChips } from '@/components/filters/FilterChips';
 import type { CohortStudentRow, CohortSummary, MembershipSummary } from '@revision-app/shared';
 import { fetchMemberships, listGroups, fetchCohortSummary, fetchCohortStudents } from '@/lib/orgs/client';
 
@@ -153,15 +154,16 @@ export default function CoachingPage() {
         <div className="bp-rise glass overflow-x-auto rounded-xl p-4" style={{ animationDelay: '200ms' }}>
           <div className="mb-3 flex items-center justify-between">
             <div className="tblabel">Students</div>
-            <select
-              aria-label="Sort"
+            <FilterChips
+              aria-label="Sort students"
+              className="mb-0"
               value={sort}
-              onChange={(e) => { setSort(e.target.value as 'completion' | 'overdue'); setPage(1); }}
-              className="rounded border border-line bg-panel px-2 py-1 text-xs text-ink"
-            >
-              <option value="completion">Lowest completion first</option>
-              <option value="overdue">Most overdue first</option>
-            </select>
+              onChange={(k) => { setSort(k as 'completion' | 'overdue'); setPage(1); }}
+              options={[
+                { key: 'completion', label: 'Lowest completion' },
+                { key: 'overdue', label: 'Most overdue' },
+              ]}
+            />
           </div>
           <table className="w-full text-left text-sm">
             <thead>
@@ -177,7 +179,16 @@ export default function CoachingPage() {
               {students.map((s) => (
                 <tr key={s.userId} className="border-t border-line">
                   <td className="py-2 pr-3">
-                    <Link className="text-accent underline-offset-2 hover:underline" href={`/coaching/${selected}/${s.userId}`}>{s.username}</Link>
+                    <Link className="group/std flex items-center gap-2" href={`/coaching/${selected}/${s.userId}`}>
+                      <span
+                        aria-hidden
+                        className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-panel-2 text-xs font-bold text-ink"
+                        style={{ boxShadow: `0 0 0 2px var(--panel), 0 0 0 3px ${s.hasData ? (s.overdue > 0 ? 'var(--alarm)' : 'var(--go)') : 'var(--line-strong)'}` }}
+                      >
+                        {s.username.charAt(0).toUpperCase()}
+                      </span>
+                      <span className="truncate text-ink underline-offset-2 group-hover/std:text-accent group-hover/std:underline">{s.username}</span>
+                    </Link>
                   </td>
                   {s.hasData ? (
                     <>
@@ -193,8 +204,8 @@ export default function CoachingPage() {
                               <span className="text-ink-faint">—</span>
                             ) : (
                               <span
-                                className="inline-block rounded bg-accent px-1.5 py-0.5 text-xs text-ground-deep"
-                                style={{ opacity: Math.max(0.25, pct / 100) }}
+                                className="inline-block rounded px-1.5 py-0.5 text-xs font-medium text-ink"
+                                style={{ background: `color-mix(in srgb, var(--accent) ${Math.round(12 + (pct / 100) * 60)}%, transparent)` }}
                               >
                                 {pct}%
                               </span>

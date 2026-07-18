@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { Lock } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { Breadcrumb } from '@/components/layout/Breadcrumb';
 import type { StudentDrilldown } from '@revision-app/shared';
@@ -78,6 +79,11 @@ export default function DrilldownPage() {
       <div className="mb-6 mt-4">
         <div className="tblabel mb-1.5">Student · Drilldown</div>
         <h1 className="bp-figure text-2xl font-semibold tracking-tight text-ink">{data.username}</h1>
+      </div>
+
+      <div className="mb-5 flex items-center gap-2 rounded-lg border border-line bg-panel/40 px-3 py-2 text-xs text-ink-dim">
+        <Lock size={13} className="shrink-0 text-ink-faint" />
+        <span>Read-only · revision status only — {data.username}&apos;s notes and attachments stay private.</span>
       </div>
 
       <div className="grid gap-5">
