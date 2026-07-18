@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en" data-theme="engpad">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Calendar — Agenda-first prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ==========================================================================
+   Standalone living-spec for the redesigned Calendar (agenda-first).
+   Palette blocks are copied verbatim from app/globals.css so this reads
+   pixel-true against the real themes. Not wired to the store — mock data below.
+   ========================================================================== */
+
+/* ----- Engineering Pad (default light) ----------------------------------- */
+:root, [data-theme="engpad"] {
+  color-scheme: light;
+  --ground:#faf7ef; --ground-deep:#efe8d6; --panel:#fffdf7; --panel-2:#f4eeddff;
+  --line:rgba(60,82,51,.20); --line-strong:rgba(60,82,51,.38);
+  --grid-minor:rgba(74,124,89,.10); --grid-major:rgba(74,124,89,.17);
+  --ink:#2b2a24; --ink-dim:#5b584c; --ink-faint:#8b8776;
+  --accent:#c0392b; --accent-soft:rgba(192,57,43,.12);
+  --annotation:#b26a00; --alarm:#a01b0b; --go:#1f7a5c;
+  --lamp:radial-gradient(130% 90% at 50% -20%, rgba(255,251,238,.75), transparent 55%),
+         radial-gradient(120% 120% at 50% 120%, rgba(120,108,74,.08), transparent 65%);
+  --glass:rgba(255,253,247,.72); --card:rgba(255,253,247,.92); --grad-edge:rgba(192,57,43,.28);
+}
+/* ----- Blueprint Dark ---------------------------------------------------- */
+[data-theme="blueprint"] {
+  color-scheme:dark;
+  --ground:#0a1a2b; --ground-deep:#06111d; --panel:#0e2135; --panel-2:#123049;
+  --line:rgba(120,178,222,.16); --line-strong:rgba(120,178,222,.34);
+  --grid-minor:transparent; --grid-major:transparent;
+  --ink:#e7f1f9; --ink-dim:#92aec6; --ink-faint:#5f7c94;
+  --accent:#4fc3f7; --accent-soft:rgba(79,195,247,.14);
+  --annotation:#f4a63b; --alarm:#ff6b6b; --go:#4fd6a6;
+  --lamp:radial-gradient(130% 90% at 50% -20%, rgba(79,195,247,.10), transparent 55%),
+         radial-gradient(120% 120% at 50% 120%, rgba(4,10,18,.65), transparent 65%);
+  --glass:linear-gradient(180deg, rgba(18,48,73,.55), rgba(10,26,43,.55));
+  --card:rgba(14,33,53,.72); --grad-edge:rgba(79,195,247,.40);
+}
+/* ----- Slate Minimal ----------------------------------------------------- */
+[data-theme="slate"] {
+  color-scheme:light;
+  --ground:#fafafa; --ground-deep:#eeeef1; --panel:#ffffff; --panel-2:#f3f3f6;
+  --line:rgba(28,28,40,.10); --line-strong:rgba(28,28,40,.20);
+  --grid-minor:transparent; --grid-major:transparent;
+  --ink:#1a1a1f; --ink-dim:#55555f; --ink-faint:#8a8a94;
+  --accent:#4f46e5; --accent-soft:rgba(79,70,229,.12);
+  --annotation:#b45309; --alarm:#dc2626; --go:#059669;
+  --lamp:radial-gradient(130% 90% at 50% -20%, rgba(79,70,229,.05), transparent 55%);
+  --glass:rgba(255,255,255,.75); --card:#ffffff; --grad-edge:rgba(79,70,229,.22);
+}
+
+* { box-sizing:border-box; margin:0; padding:0; }
+html { -webkit-font-smoothing:antialiased; }
+body {
+  background-color:var(--ground);
+  background-image:
+    linear-gradient(var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px);
+  background-size:28px 28px,28px 28px,140px 140px,140px 140px;
+  background-position:-1px -1px;
+  color:var(--ink);
+  font-family:"Archivo","Segoe UI",sans-serif;
+  font-feature-settings:"ss01","cv01";
+  min-height:100vh;
+}
+body::after { content:""; position:fixed; inset:0; z-index:0; pointer-events:none; background:var(--lamp); }
+::selection { background:var(--accent-soft); color:var(--ink); }
+*{ scrollbar-width:thin; scrollbar-color:var(--line-strong) transparent; }
+*::-webkit-scrollbar{ width:10px; height:10px; }
+*::-webkit-scrollbar-thumb{ background:var(--line-strong); border:3px solid transparent; background-clip:content-box; border-radius:999px; }
+
+.wrap { position:relative; z-index:1; max-width:760px; margin:0 auto; padding:40px 20px 80px; }
+
+/* mono utilities from globals */
+.tblabel { font-family:"IBM Plex Mono",monospace; font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-dim); }
+.dim-chip { font-family:"IBM Plex Mono",monospace; font-size:.68rem; letter-spacing:.04em; border:1px solid var(--line); padding:.1rem .5rem; border-radius:.3rem; white-space:nowrap; display:inline-flex; align-items:center; gap:.35rem; }
+.bp-figure { font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-weight:600; letter-spacing:-.01em; line-height:1; }
+.glass { background:var(--glass); border:1px solid var(--line); backdrop-filter:blur(6px); }
+
+/* corner registration ticks */
+.bp-ticks { position:relative; }
+.bp-ticks::before,.bp-ticks::after { content:""; position:absolute; width:11px; height:11px; border-color:var(--accent); opacity:0; transition:opacity .25s ease; pointer-events:none; }
+.bp-ticks::before { top:8px; left:8px; border-top:1.5px solid; border-left:1.5px solid; }
+.bp-ticks::after  { bottom:8px; right:8px; border-bottom:1.5px solid; border-right:1.5px solid; }
+.bp-ticks:hover::before,.bp-ticks:hover::after { opacity:.7; }
+.bp-today { box-shadow:0 0 0 1px var(--accent), 0 0 14px -2px var(--accent-soft); }
+
+@keyframes bpRise { from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:translateY(0);} }
+.bp-rise { opacity:0; animation:bpRise .55s cubic-bezier(.2,.7,.2,1) forwards; }
+@media (prefers-reduced-motion:reduce){ .bp-rise{ animation:none; opacity:1; transform:none; } }
+
+/* ---------- page header ---------- */
+.pagehead { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:22px; }
+.pagehead h1 { font-size:1.75rem; font-weight:600; letter-spacing:-.02em; }
+.summary { display:flex; gap:8px; flex-wrap:wrap; }
+.themebar { display:flex; gap:6px; margin-bottom:26px; }
+.themebtn { font-family:"IBM Plex Mono",monospace; font-size:.66rem; letter-spacing:.08em; text-transform:uppercase; padding:.35rem .7rem; border-radius:.4rem; border:1px solid var(--line); background:transparent; color:var(--ink-dim); cursor:pointer; transition:all .2s; }
+.themebtn[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+
+/* ---------- week strip ---------- */
+.weekcard { border-radius:14px; padding:14px 14px 12px; margin-bottom:22px; }
+.weeknav { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.weeknav .month { display:flex; align-items:baseline; gap:8px; }
+.weeknav .month .m { font-size:1.05rem; font-weight:600; letter-spacing:-.01em; }
+.weeknav .month .y { font-size:1.05rem; color:var(--ink-dim); }
+.iconbtn { display:grid; place-items:center; width:30px; height:30px; border-radius:.5rem; border:1px solid var(--line); background:transparent; color:var(--ink-dim); cursor:pointer; transition:all .18s; }
+.iconbtn:hover { border-color:var(--accent); color:var(--accent); }
+.todaybtn { font-family:"IBM Plex Mono",monospace; font-size:.66rem; letter-spacing:.06em; text-transform:uppercase; padding:.3rem .65rem; border-radius:.4rem; border:1px solid var(--line); color:var(--ink-dim); background:transparent; cursor:pointer; transition:all .18s; }
+.todaybtn:hover { border-color:var(--accent); color:var(--accent); }
+
+.weekstrip { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+.daycol { display:flex; flex-direction:column; align-items:center; gap:6px; padding:8px 2px 7px; border-radius:.6rem; border:1px solid transparent; background:transparent; cursor:pointer; transition:all .18s; }
+.daycol:hover { background:var(--accent-soft); }
+.daycol .dow { font-family:"IBM Plex Mono",monospace; font-size:.6rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); }
+.daycol .date { font-size:1.05rem; }
+.daycol.today .date { color:var(--accent); }
+.daycol.today { box-shadow:0 0 0 1px var(--accent), 0 0 14px -2px var(--accent-soft); }
+.daycol[aria-selected="true"] { border-color:var(--accent); background:var(--panel-2); }
+.loadbar { width:22px; height:26px; display:flex; align-items:flex-end; justify-content:center; }
+.loadbar .fill { width:6px; border-radius:999px 999px 2px 2px; min-height:3px; opacity:.9; transition:height .3s; }
+.loadbar.empty::after { content:"·"; color:var(--ink-faint); font-size:1rem; line-height:1; }
+
+/* ---------- agenda ---------- */
+.agenda { display:flex; flex-direction:column; gap:26px; }
+.group-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--line); }
+.group-head .left { display:flex; align-items:baseline; gap:10px; }
+.group-head .gtitle { font-family:"IBM Plex Mono",monospace; font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; font-weight:600; }
+.group-head .gdate { font-size:.8rem; color:var(--ink-dim); }
+.group-head .counts { display:flex; gap:6px; }
+.group.overdue .group-head { border-color:var(--alarm); }
+.group.overdue .gtitle { color:var(--alarm); }
+.group.today .gtitle { color:var(--accent); }
+
+.rows { display:flex; flex-direction:column; }
+.row { display:flex; align-items:center; gap:14px; padding:11px 10px; border-radius:.55rem; text-decoration:none; color:inherit; position:relative; transition:background .16s; cursor:pointer; }
+.row + .row { border-top:1px solid var(--line); }
+.row:hover { background:var(--accent-soft); }
+.row:hover .chev { transform:translateX(2px); color:var(--accent); }
+
+/* leading subject chip w/ status ring */
+.chip { position:relative; flex:0 0 auto; width:34px; height:34px; border-radius:50%; display:grid; place-items:center; font-family:"IBM Plex Mono",monospace; font-size:.8rem; font-weight:600; color:#fff; background:var(--subj); }
+.chip::after { content:""; position:absolute; inset:-3px; border-radius:50%; border:2px solid var(--ring,transparent); }
+/* Blueprint Dark: solid subject fills clash on navy. Recast the chip as a
+   drafting-ink token (tint fill + luminous border + coloured initial) — the
+   auth-brand-icon idiom — so subject hue reads without fighting the palette. */
+[data-theme="blueprint"] .chip {
+  background:color-mix(in srgb, var(--subj) 20%, transparent);
+  border:1.5px solid color-mix(in srgb, var(--subj) 58%, #cfe6fb);
+  color:color-mix(in srgb, var(--subj) 42%, #eaf5ff);
+}
+.row .body { min-width:0; flex:1; }
+.row .ttl { font-weight:500; font-size:.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.row .sub { margin-top:2px; font-size:.75rem; color:var(--ink-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.pill { font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.06em; text-transform:uppercase; padding:.18rem .5rem; border-radius:999px; border:1px solid; white-space:nowrap; }
+.pill.overdue { color:var(--alarm); border-color:var(--alarm); background:color-mix(in srgb, var(--alarm) 10%, transparent); }
+.pill.due { color:var(--annotation); border-color:var(--annotation); background:color-mix(in srgb, var(--annotation) 12%, transparent); }
+.pill.completed { color:var(--go); border-color:var(--go); background:color-mix(in srgb, var(--go) 12%, transparent); }
+.chev { flex:0 0 auto; color:var(--ink-faint); transition:transform .16s,color .16s; }
+
+.empty { padding:10px 10px; font-size:.8rem; color:var(--ink-faint); font-style:italic; }
+.count-badge { display:inline-grid; place-items:center; min-width:20px; height:20px; padding:0 6px; border-radius:999px; font-family:"IBM Plex Mono",monospace; font-size:.66rem; font-weight:600; font-variant-numeric:tabular-nums; }
+
+.footnote { margin-top:34px; font-size:.72rem; color:var(--ink-faint); line-height:1.6; border-top:1px solid var(--line); padding-top:14px; }
+.footnote code { font-family:"IBM Plex Mono",monospace; color:var(--ink-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="themebar">
+    <button class="themebtn" data-t="engpad" aria-pressed="true">Engineering Pad</button>
+    <button class="themebtn" data-t="blueprint" aria-pressed="false">Blueprint Dark</button>
+    <button class="themebtn" data-t="slate" aria-pressed="false">Slate Minimal</button>
+  </div>
+
+  <div class="pagehead">
+    <div>
+      <div class="tblabel" style="margin-bottom:6px;">Schedule · Upcoming</div>
+      <h1>Calendar</h1>
+    </div>
+    <div class="summary" id="summary"></div>
+  </div>
+
+  <!-- Week strip: context + navigation, compact -->
+  <div class="weekcard glass bp-ticks bp-rise" style="animation-delay:40ms;">
+    <div class="weeknav">
+      <button class="iconbtn" id="prev" aria-label="Previous week">‹</button>
+      <div class="month"><span class="m" id="mLabel">July</span><span class="y bp-figure" id="yLabel">2026</span></div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="iconbtn" id="next" aria-label="Next week">›</button>
+        <button class="todaybtn" id="today">Today</button>
+      </div>
+    </div>
+    <div class="weekstrip" id="strip"></div>
+  </div>
+
+  <!-- Agenda: the hero -->
+  <div class="agenda" id="agenda"></div>
+
+  <p class="footnote">
+    Prototype for the agenda-first calendar redesign · reuses <code>--alarm / --annotation / --go</code>
+    tokens, <code>.glass</code>, <code>.bp-ticks</code>, and the <code>TopicResultRow</code> row treatment.
+    Data below is mock ESE content. Switch themes above to verify all three.
+  </p>
+</div>
+
+<script>
+/* ---------- mock data ---------- */
+const DAY = 86400000;
+const DEMO_TODAY = new Date(2026,6,16); DEMO_TODAY.setHours(0,0,0,0);
+const T = DEMO_TODAY.getTime();
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MON = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const SUBJECTS = {
+  thermo:{ name:'Thermodynamics', color:'#e0662b', ini:'T' },
+  fluid: { name:'Fluid Mechanics', color:'#2b83e0', ini:'F' },
+  struct:{ name:'Structural Analysis', color:'#7a4fd6', ini:'S' },
+  matdev:{ name:'Material Science', color:'#2ba36b', ini:'M' },
+  power: { name:'Power Systems', color:'#c9a227', ini:'P' },
+};
+// offset in days from today, status: overdue|due|completed
+const ITEMS = [
+  { s:'thermo', ch:'Ch 3 · Entropy & the 2nd Law', off:-2, status:'overdue' },
+  { s:'struct', ch:'Ch 1 · Determinate frames',     off:-1, status:'overdue' },
+  { s:'fluid',  ch:'Ch 2 · Bernoulli & losses',      off:0,  status:'due' },
+  { s:'matdev', ch:'Ch 4 · Phase diagrams',          off:0,  status:'due' },
+  { s:'power',  ch:'Ch 1 · Load flow basics',        off:0,  status:'completed' },
+  { s:'thermo', ch:'Ch 4 · Rankine cycle',           off:1,  status:'due' },
+  { s:'struct', ch:'Ch 2 · Slope deflection',        off:3,  status:'due' },
+  { s:'fluid',  ch:'Ch 3 · Boundary layers',         off:3,  status:'due' },
+  { s:'matdev', ch:'Ch 5 · Heat treatment',          off:4,  status:'due' },
+  { s:'power',  ch:'Ch 2 · Fault analysis',          off:6,  status:'due' },
+];
+
+const startOf = (ts)=>{ const d=new Date(ts); d.setHours(0,0,0,0); return d.getTime(); };
+const RANK = { overdue:0, due:1, completed:2 };
+
+/* ---------- state ---------- */
+let weekAnchor = startOf(T - DEMO_TODAY.getDay()*DAY); // Sunday of current week
+let selected = T;
+
+/* ---------- render ---------- */
+function itemsForDay(dayTs){
+  return ITEMS.filter(it => startOf(T + it.off*DAY) === dayTs)
+              .sort((a,b)=>RANK[a.status]-RANK[b.status]);
+}
+function overdueItems(){ return ITEMS.filter(it=>it.status==='overdue').sort((a,b)=>a.off-b.off); }
+
+function renderSummary(){
+  const over = ITEMS.filter(i=>i.status==='overdue').length;
+  const dueWeek = ITEMS.filter(i=>i.status==='due' && i.off>=0 && i.off<7).length;
+  const done = ITEMS.filter(i=>i.status==='completed').length;
+  document.getElementById('summary').innerHTML =
+    `<span class="dim-chip" style="color:var(--alarm)">${over} overdue</span>`+
+    `<span class="dim-chip" style="color:var(--annotation)">${dueWeek} due this week</span>`+
+    `<span class="dim-chip" style="color:var(--go)">${done} done today</span>`;
+}
+
+function renderStrip(){
+  const strip = document.getElementById('strip');
+  strip.innerHTML='';
+  let maxLoad=1;
+  const days=[];
+  for(let i=0;i<7;i++){
+    const ts=weekAnchor+i*DAY;
+    const its=itemsForDay(ts);
+    maxLoad=Math.max(maxLoad,its.length);
+    days.push({ts,its});
+  }
+  document.getElementById('mLabel').textContent=MON[new Date(weekAnchor+3*DAY).getMonth()];
+  document.getElementById('yLabel').textContent=new Date(weekAnchor+3*DAY).getFullYear();
+
+  days.forEach(({ts,its})=>{
+    const d=new Date(ts);
+    const worst = its.length? its.reduce((w,i)=>RANK[i.status]<RANK[w]?i.status:w, 'completed') : null;
+    const color = worst==='overdue'?'var(--alarm)':worst==='due'?'var(--annotation)':worst==='completed'?'var(--go)':'';
+    const col=document.createElement('button');
+    col.className='daycol'+(ts===T?' today':'');
+    col.setAttribute('aria-selected', ts===selected);
+    const h = its.length? Math.round(6+(its.length/maxLoad)*20):0;
+    col.innerHTML=
+      `<span class="dow">${DOW[d.getDay()]}</span>`+
+      `<span class="date bp-figure">${d.getDate()}</span>`+
+      `<span class="loadbar${its.length?'':' empty'}">${its.length?`<span class="fill" style="height:${h}px;background:${color}"></span>`:''}</span>`;
+    col.onclick=()=>{ selected=ts; renderStrip(); document.getElementById('day-'+ts)?.scrollIntoView({behavior:'smooth',block:'center'}); flash('day-'+ts); };
+    strip.appendChild(col);
+  });
+}
+
+function pill(status){ const label={overdue:'Overdue',due:'Due',completed:'Done'}[status]; return `<span class="pill ${status}">${label}</span>`; }
+function chev(){ return `<svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>`; }
+
+function rowHTML(it){
+  const s=SUBJECTS[it.s];
+  const ring = it.status==='overdue'?'var(--alarm)':it.status==='due'?'var(--annotation)':'var(--go)';
+  return `<a class="row">
+    <span class="chip" style="--subj:${s.color}; --ring:${ring}">${s.ini}</span>
+    <span class="body">
+      <span class="ttl">${s.name}</span>
+      <span class="sub">${it.ch}</span>
+    </span>
+    ${pill(it.status)}
+    ${chev()}
+  </a>`;
+}
+
+function groupHTML(cls, title, dateLabel, dayTs, its, delay){
+  const counts = {};
+  its.forEach(i=>counts[i.status]=(counts[i.status]||0)+1);
+  const chips = ['overdue','due','completed'].filter(k=>counts[k]).map(k=>{
+    const c = k==='overdue'?'var(--alarm)':k==='due'?'var(--annotation)':'var(--go)';
+    return `<span class="count-badge" style="color:${c}; background:color-mix(in srgb, ${c} 14%, transparent)">${counts[k]}</span>`;
+  }).join('');
+  const body = its.length
+    ? `<div class="rows">${its.map(rowHTML).join('')}</div>`
+    : `<div class="empty">Nothing scheduled.</div>`;
+  return `<section class="group ${cls} bp-rise" id="day-${dayTs}" style="animation-delay:${delay}ms">
+    <div class="group-head">
+      <div class="left"><span class="gtitle">${title}</span><span class="gdate">${dateLabel}</span></div>
+      <div class="counts">${chips}</div>
+    </div>
+    ${body}
+  </section>`;
+}
+
+function fmt(ts){ const d=new Date(ts); return `${DOW[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()].slice(0,3)}`; }
+
+function renderAgenda(){
+  const ag=document.getElementById('agenda');
+  let html=''; let delay=120;
+  const over=overdueItems();
+  if(over.length) html+=groupHTML('overdue','Overdue', `${over.length} topic${over.length>1?'s':''} slipping`, 'overdue', over, delay), delay+=80;
+  // Today, Tomorrow, then the rest of the visible horizon (through end of next week)
+  const horizonEnd = weekAnchor + 7*DAY + 7*DAY;
+  for(let ts=T; ts<horizonEnd; ts+=DAY){
+    const its=itemsForDay(ts).filter(i=>i.status!=='overdue');
+    // skip far-out empty days to keep it tight; always show today+tomorrow
+    const rel=Math.round((ts-T)/DAY);
+    if(its.length===0 && rel>1) continue;
+    const title = rel===0?'Today':rel===1?'Tomorrow':DOW[new Date(ts).getDay()].toUpperCase();
+    const cls = rel===0?'today':'';
+    html+=groupHTML(cls, title, fmt(ts), ts, its, delay); delay+=70;
+  }
+  ag.innerHTML=html;
+}
+
+function flash(id){ const el=document.getElementById(id); if(!el) return; el.style.transition='none'; el.style.background='var(--accent-soft)'; el.style.borderRadius='8px'; requestAnimationFrame(()=>{ el.style.transition='background .8s'; el.style.background='transparent'; }); }
+
+function renderAll(){ renderSummary(); renderStrip(); renderAgenda(); }
+
+/* ---------- controls ---------- */
+document.getElementById('prev').onclick=()=>{ weekAnchor-=7*DAY; renderStrip(); };
+document.getElementById('next').onclick=()=>{ weekAnchor+=7*DAY; renderStrip(); };
+document.getElementById('today').onclick=()=>{ weekAnchor=startOf(T-DEMO_TODAY.getDay()*DAY); selected=T; renderAll(); };
+document.querySelectorAll('.themebtn').forEach(b=>b.onclick=()=>{
+  document.documentElement.setAttribute('data-theme', b.dataset.t);
+  document.querySelectorAll('.themebtn').forEach(x=>x.setAttribute('aria-pressed', x===b));
+});
+
+renderAll();
+</script>
+</body>
+</html>
