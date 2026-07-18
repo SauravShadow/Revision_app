@@ -160,7 +160,14 @@ the hamburger is still a possible refinement.)_
 
 ---
 
-## Phase 4 — Compact hairline lists
+## Phase 4 — Compact hairline lists — ✅ SHIPPED 2026-07-18
+
+_Delivered on branch `feat/hairline-lists` (`26c0349`): `TopicCard`/`ChapterCard`
+lost the glass box + accent left-rail; rows sit on the ground separated by a
+single `--line` hairline (`divide-y` on the list, no outer box so drag doesn't
+clip), with an `--accent-soft` hover wash. Added `--color-accent-soft` token.
+Home subject grid unchanged (its avatar/progress treatment is Phase 5)._
+
 
 The finalised list treatment (see preview). Applies to
 [`TopicCard`](../apps/frontend/components/cards/TopicCard.tsx) &

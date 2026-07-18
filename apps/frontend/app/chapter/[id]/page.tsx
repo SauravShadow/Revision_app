@@ -48,7 +48,7 @@ export default function ChapterPage({ params }: { params: Promise<{ id: string }
           items={chapter.topicIds.filter((tid) => topics[tid] && !topics[tid].archivedAt).map((tid) => dragId('topic', tid))}
           strategy={verticalListSortingStrategy}
         >
-          <div className="grid gap-3">
+          <div className="divide-y divide-line">
             {chapter.topicIds.map((tid) => topics[tid] && !topics[tid].archivedAt && (
               <SortableRow key={tid} id={dragId('topic', tid)}>
                 <TopicCard topic={topics[tid]} autoEdit={tid === justAddedId} />

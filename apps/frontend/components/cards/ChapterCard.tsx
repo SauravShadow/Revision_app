@@ -17,7 +17,7 @@ export function ChapterCard({ chapter, autoEdit = false }: { chapter: Chapter; a
   const activeTopics = chapter.topicIds.filter((tid) => data.topics[tid] && !data.topics[tid].archivedAt).length;
   return (
     <Link href={`/chapter/${chapter.id}`}
-      className="group glass flex items-center justify-between gap-3 rounded-lg border-l-2 border-l-accent/50 p-4 transition-colors hover:bg-panel-2">
+      className="group flex items-center justify-between gap-3 rounded-md px-3 py-3 transition-colors hover:bg-accent-soft">
       <div className="min-w-0" onDoubleClick={(e) => { e.preventDefault(); setEditing(true); }}>
         <div className="truncate font-medium text-ink">
           <InlineEditable value={chapter.name} editing={editing} onEditingChange={setEditing}
