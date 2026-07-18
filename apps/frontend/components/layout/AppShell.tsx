@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { SidebarTree } from './SidebarTree';
 import { HeaderControls } from './HeaderControls';
 import { MobileNavDrawer } from './MobileNavDrawer';
+import { BottomTabBar } from './BottomTabBar';
 import { CommandPalette } from '@/components/CommandPalette';
 import { useAuth } from '@/components/AuthProvider';
 import { useMemberships } from '@/lib/orgs/useMemberships';
@@ -86,8 +87,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex gap-4 px-4 sm:px-6 lg:px-8">
         <SidebarTree />
-        <main className="min-w-0 flex-1 px-2 py-8">{children}</main>
+        <main className="min-w-0 flex-1 px-2 pt-8 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-8">
+          {children}
+        </main>
       </div>
+
+      {/* Mobile primary nav — hidden from md up */}
+      <BottomTabBar />
     </div>
   );
 }
