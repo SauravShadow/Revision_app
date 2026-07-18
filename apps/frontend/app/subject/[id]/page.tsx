@@ -42,7 +42,7 @@ export default function SubjectPage({ params }: { params: Promise<{ id: string }
           items={subject.chapterIds.filter((cid) => chapters[cid] && !chapters[cid].archivedAt).map((cid) => dragId('chapter', cid))}
           strategy={verticalListSortingStrategy}
         >
-          <div className="grid gap-3">
+          <div className="divide-y divide-line">
             {subject.chapterIds.map((cid) => chapters[cid] && !chapters[cid].archivedAt && (
               <SortableRow key={cid} id={dragId('chapter', cid)}>
                 <ChapterCard chapter={chapters[cid]} autoEdit={cid === justAddedId} />

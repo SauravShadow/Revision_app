@@ -126,6 +126,7 @@
   --color-ink-dim:      var(--ink-dim);
   --color-ink-faint:    var(--ink-faint);
   --color-accent:       var(--accent);
+  --color-accent-soft:  var(--accent-soft);
   --color-annotation:   var(--annotation);
   --color-alarm:        var(--alarm);
   --color-go:           var(--go);
