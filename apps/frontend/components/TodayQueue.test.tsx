@@ -19,11 +19,11 @@ function seedOverdueTopic(): string {
 describe('TodayQueue', () => {
   beforeEach(() => seedOverdueTopic());
 
-  it('lists an overdue topic with its context and badge', () => {
+  it('lists an overdue topic under the Overdue group with its context', () => {
     render(<TodayQueue />);
     expect(screen.getByText('Bending')).toBeInTheDocument();
     expect(screen.getByText(/Structures · Beams/)).toBeInTheDocument();
-    expect(screen.getByText('OVERDUE')).toBeInTheDocument();
+    expect(screen.getByText('Overdue')).toBeInTheDocument(); // group header
   });
 
   it('marking a topic revised removes it from the queue', async () => {

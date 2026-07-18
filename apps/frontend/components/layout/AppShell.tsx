@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Settings } from 'lucide-react';
 import { SidebarTree } from './SidebarTree';
 import { HeaderControls } from './HeaderControls';
 import { MobileNavDrawer } from './MobileNavDrawer';
@@ -62,6 +63,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <span className="mx-1 hidden h-5 w-px bg-line sm:block" />
                 <div className="flex items-center gap-2">
                   <span className="hidden text-xs text-ink-dim sm:inline">{session.username}</span>
+                  <Link
+                    href="/settings"
+                    title="Settings"
+                    aria-label="Settings"
+                    className="grid place-items-center rounded-md p-2 text-ink-dim transition hover:bg-panel hover:text-accent"
+                  >
+                    <Settings size={16} />
+                  </Link>
                   <button
                     id="header-logout-btn"
                     onClick={logout}

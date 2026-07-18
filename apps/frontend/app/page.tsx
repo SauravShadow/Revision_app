@@ -61,8 +61,6 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <TodayQueue />
-
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
           <div className="tblabel mb-1.5">Index · Sheet 01</div>
@@ -97,6 +95,10 @@ export default function DashboardPage() {
           </motion.div>
         </SortableContext>
       )}
+
+      <div className="mt-10">
+        <TodayQueue />
+      </div>
     </div>
   );
 }
