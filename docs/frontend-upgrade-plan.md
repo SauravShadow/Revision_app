@@ -205,7 +205,16 @@ question is now settled._
 
 ---
 
-## Phase 6 — Pin-to-top + swipe actions
+## Phase 6 — Pin-to-top + swipe actions — 🟡 PARTIAL (6a shipped 2026-07-18; 6b deferred)
+
+_6a (pin-to-top) delivered on branch `feat/pin-and-swipe` (`91f1f7d`):
+`pinnedFirst()` floats bookmarked / High-priority topics to the top of the topic
+list (display-only; drag-reorder still persists raw order by id); pin/star ticks
+mark the reason. **6b (mobile swipe-to-reveal archive/bookmark) DEFERRED** — it's
+touch-gesture work that conflicts with the existing `TouchSensor` drag-to-reorder
+and can't be verified headlessly; do it in a session with real device/browser
+testing._
+
 
 - Bookmarked / high-priority topics **sort to the top** of their list with a pin
   tick (uses existing `bookmarkedAt` / `priority`).
