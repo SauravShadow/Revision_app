@@ -1,5 +1,29 @@
 import type { AppData } from '@revision-app/shared';
-import { inGoodStanding, lastRevisedAt } from './engine';
+import { badgeState, inGoodStanding, lastRevisedAt } from './engine';
+
+// Aggregate revision status of a subject, most-urgent-wins, for the avatar ring
+// on SubjectCard (Phase 5). overdue > due > recent > none.
+export type SubjectStatus = 'overdue' | 'due' | 'recent' | 'none';
+
+export function subjectStatus(data: AppData, subjectId: string, now: number): SubjectStatus {
+  const subject = data.subjects[subjectId];
+  if (!subject) return 'none';
+  let due = false;
+  let recent = false;
+  for (const cid of subject.chapterIds) {
+    const chapter = data.chapters[cid];
+    if (!chapter || chapter.archivedAt) continue;
+    for (const tid of chapter.topicIds) {
+      const t = data.topics[tid];
+      if (!t || t.archivedAt) continue;
+      const b = badgeState(t.revisionHistory, now);
+      if (b === 'Overdue') return 'overdue';
+      if (b === 'DueToday') due = true;
+      else if (b === 'RecentlyRevised') recent = true;
+    }
+  }
+  return due ? 'due' : recent ? 'recent' : 'none';
+}
 
 export function chapterProgress(data: AppData, chapterId: string, now: number): number {
   const chapter = data.chapters[chapterId];
