@@ -232,9 +232,10 @@ student side is getting. Bring them up to the same bar.
 
 ## Beyond the six — product improvements
 
-1. **"Today's queue"** — a spaced-repetition due-today section at the top of home.
-   The biggest product win for a revision app; mostly surfacing existing due/overdue
-   state.
+1. **"Today's queue"** — ✅ SHIPPED 2026-07-18 (`c3d677d`). Revise-now worklist at
+   the top of home: every Overdue / Due-Today topic (overdue first) with
+   subject·chapter context, a badge, and one-tap mark-revised. `lib/revision/todayQueue.ts`
+   + `components/TodayQueue.tsx`; hidden when empty.
 2. **Quick-revise without navigating** — one-tap "mark revised" on each row (updates
    `revisionHistory` in place), so a session is tap-tap-tap down the list.
 3. **Streak / momentum widget** — revisions-per-day sparkline + current streak on
