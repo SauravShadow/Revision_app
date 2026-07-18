@@ -10,11 +10,12 @@ import { AddButton } from '@/components/AddButton';
 import { SortableRow } from '@/components/dnd/SortableRow';
 import { dragId } from '@/components/dnd/ids';
 import { FilterChips } from '@/components/filters/FilterChips';
+import { InlineSearch } from '@/components/filters/InlineSearch';
+import { subjectMatchesQuery } from '@/lib/search/search';
 import {
   QUICK_FILTERS,
   QUICK_FILTER_LABELS,
   subjectMatchesQuick,
-  subjectQuickCounts,
   type QuickFilter,
 } from '@/lib/filters/quickFilters';
 
@@ -29,16 +30,30 @@ export default function DashboardPage() {
   const filter = useQuickFilter((s) => s.byList[LIST_KEY] ?? 'all');
   const setFilter = useQuickFilter((s) => s.set);
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
 
   const now = Date.now();
   const data = useMemo(
     () => ({ subjects, chapters, topics }) as unknown as AppData,
     [subjects, chapters, topics],
   );
-  const counts = useMemo(() => subjectQuickCounts(data, now), [data, now]);
+
+  // Chip counts reflect the current search, so they always match what's shown.
+  const counts = useMemo(() => {
+    const c = Object.fromEntries(QUICK_FILTERS.map((k) => [k, 0])) as Record<QuickFilter, number>;
+    for (const id of subjectOrder) {
+      if (!subjectMatchesQuery(data, id, query)) continue;
+      for (const qf of QUICK_FILTERS) if (subjectMatchesQuick(data, id, qf, now)) c[qf] += 1;
+    }
+    return c;
+  }, [subjectOrder, data, query, now]);
+
   const visibleIds = useMemo(
-    () => subjectOrder.filter((id) => subjectMatchesQuick(data, id, filter, now)),
-    [subjectOrder, data, filter, now],
+    () =>
+      subjectOrder.filter(
+        (id) => subjectMatchesQuick(data, id, filter, now) && subjectMatchesQuery(data, id, query),
+      ),
+    [subjectOrder, data, filter, query, now],
   );
 
   const options = QUICK_FILTERS.map((k) => ({ key: k, label: QUICK_FILTER_LABELS[k], count: counts[k] }));
@@ -53,6 +68,8 @@ export default function DashboardPage() {
         <AddButton label="Subject" onAdd={(name) => setJustAddedId(addSubject(name))} />
       </div>
 
+      <InlineSearch onChange={setQuery} placeholder="Search subjects, chapters, topics…" />
+
       <FilterChips
         options={options}
         value={filter}
@@ -62,7 +79,9 @@ export default function DashboardPage() {
 
       {visibleIds.length === 0 ? (
         <p className="tblabel py-10 text-center text-ink-faint">
-          No subjects with {QUICK_FILTER_LABELS[filter].toLowerCase()} topics.
+          {query.trim()
+            ? `No subjects match “${query.trim()}”.`
+            : `No subjects with ${QUICK_FILTER_LABELS[filter].toLowerCase()} topics.`}
         </p>
       ) : (
         <SortableContext items={visibleIds.map((id) => dragId('subject', id))} strategy={rectSortingStrategy}>
