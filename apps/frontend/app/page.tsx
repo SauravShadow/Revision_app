@@ -11,6 +11,7 @@ import { SortableRow } from '@/components/dnd/SortableRow';
 import { dragId } from '@/components/dnd/ids';
 import { FilterChips } from '@/components/filters/FilterChips';
 import { InlineSearch } from '@/components/filters/InlineSearch';
+import { TodayQueue } from '@/components/TodayQueue';
 import { subjectMatchesQuery } from '@/lib/search/search';
 import {
   QUICK_FILTERS,
@@ -60,6 +61,8 @@ export default function DashboardPage() {
 
   return (
     <div>
+      <TodayQueue />
+
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
           <div className="tblabel mb-1.5">Index · Sheet 01</div>
