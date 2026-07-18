@@ -21,6 +21,35 @@ function score(haystack: string, needle: string): number {
   return 30;
 }
 
+/** True when `text` contains `query` (case-insensitive). Empty query never matches. */
+export function matchesQuery(text: string, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  return q ? score(text, q) > 0 : false;
+}
+
+/**
+ * Inline-search predicate for the subject list: a subject matches when its own
+ * name matches, or any active chapter/topic under it matches. Empty query = no
+ * filter (matches everything). Reuses the same scorer as the command palette.
+ */
+export function subjectMatchesQuery(data: AppData, subjectId: string, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  const subject = data.subjects[subjectId];
+  if (!subject || subject.archivedAt) return false;
+  if (score(subject.name, q) > 0) return true;
+  for (const c of Object.values(data.chapters)) {
+    if (c.subjectId !== subjectId || c.archivedAt) continue;
+    if (score(c.name, q) > 0) return true;
+  }
+  for (const t of Object.values(data.topics)) {
+    const chapter = data.chapters[t.chapterId];
+    if (!chapter || chapter.subjectId !== subjectId || t.archivedAt || chapter.archivedAt) continue;
+    if (score(t.title, q) > 0) return true;
+  }
+  return false;
+}
+
 export function search(query: string, data: AppData): SearchResult[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
