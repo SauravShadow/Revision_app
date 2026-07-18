@@ -27,6 +27,10 @@ vi.mock('@/lib/orgs/client', () => ({
 }));
 
 import SettingsPage from './page';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
+
+// SettingsPage now hosts <ThemePicker>, which reads the theme context.
+const renderPage = () => render(<ThemeProvider><SettingsPage /></ThemeProvider>);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -37,7 +41,7 @@ beforeEach(() => {
 it('lets a grandfathered account submit an email for verification', async () => {
   mocks.getEmailStatus.mockResolvedValue({ email: null, verified: false });
   mocks.updateEmail.mockResolvedValue({ message: 'Verification email sent — check your inbox.' });
-  render(<SettingsPage />);
+  renderPage();
   await waitFor(() => expect(screen.getByText('No email on this account')).toBeInTheDocument());
 
   const user = userEvent.setup();
@@ -49,7 +53,7 @@ it('lets a grandfathered account submit an email for verification', async () => 
 
 it('shows verified status without the form', async () => {
   mocks.getEmailStatus.mockResolvedValue({ email: 'done@example.com', verified: true });
-  render(<SettingsPage />);
+  renderPage();
   // The status line interpolates several values into one <p>, so match the
   // paragraph's full text with a regex rather than an exact string.
   await waitFor(() => expect(screen.getByText(/done@example\.com — Verified/)).toBeInTheDocument());

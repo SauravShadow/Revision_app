@@ -6,32 +6,113 @@
    monospace labelling, cyan "ink" annotations and drafting corner ticks.
    ========================================================================== */
 
-:root {
+/* ============================================================================
+   THEMES — palettes live on [data-theme="…"] so the whole app re-skins from
+   one attribute on <html> (set pre-paint by the inline script in layout.tsx,
+   thereafter by components/theme/ThemeProvider). The @theme inline map below
+   references these var names, so components never change. Three shipped themes:
+     · engpad     Engineering Pad — cream graph pad, green rules, red pencil (DEFAULT)
+     · blueprint  Blueprint Dark  — prussian navy + cyan ink, grid removed
+     · slate      Slate Minimal   — neutral light, gridless, single indigo accent
+   Variable contract each theme must define: grounds, panels, line/grid, ink,
+   accents, semantic (annotation/alarm/go) + ambient (--lamp, --glass, --card,
+   --grad-edge).
+   ========================================================================== */
+
+/* ----- Engineering Pad (default light) ----------------------------------- */
+:root,
+[data-theme="engpad"] {
+  color-scheme: light;
+
+  --ground:        #faf7ef;   /* warm manila pad */
+  --ground-deep:   #efe8d6;   /* recessed wells */
+  --panel:         #fffdf7;   /* raised sheet */
+  --panel-2:       #f4eeddff; /* hover / active */
+
+  --line:          rgba(60, 82, 51, 0.20);   /* graphite-green hairline */
+  --line-strong:   rgba(60, 82, 51, 0.38);
+  --grid-minor:    rgba(74, 124, 89, 0.10);  /* the green graph rules — kept */
+  --grid-major:    rgba(74, 124, 89, 0.17);
+
+  --ink:           #2b2a24;   /* graphite pencil */
+  --ink-dim:       #5b584c;
+  --ink-faint:     #8b8776;
+
+  --accent:        #c0392b;   /* red drafting pencil */
+  --accent-soft:   rgba(192, 57, 43, 0.12);
+  --annotation:    #b26a00;   /* ochre — "due" marks */
+  --alarm:         #a01b0b;   /* deep red — overdue redlines */
+  --go:            #1f7a5c;   /* pine green — completed / recently revised */
+
+  --lamp:
+    radial-gradient(130% 90% at 50% -20%, rgba(255, 251, 238, 0.75), transparent 55%),
+    radial-gradient(120% 120% at 50% 120%, rgba(120, 108, 74, 0.08), transparent 65%);
+  --glass:  rgba(255, 253, 247, 0.72);
+  --card:   rgba(255, 253, 247, 0.92);
+  --grad-edge: rgba(192, 57, 43, 0.28);
+}
+
+/* ----- Blueprint Dark (grid removed) ------------------------------------- */
+[data-theme="blueprint"] {
   color-scheme: dark;
 
-  /* Grounds */
-  --ground:        #0a1a2b;   /* page base — deep prussian navy */
-  --ground-deep:   #06111d;   /* recessed wells */
-  --panel:         #0e2135;   /* raised panel fill */
-  --panel-2:       #123049;   /* hover / active panel */
+  --ground:        #0a1a2b;   /* deep prussian navy */
+  --ground-deep:   #06111d;
+  --panel:         #0e2135;
+  --panel-2:       #123049;
 
-  /* Draughting ink lines */
-  --line:          rgba(120, 178, 222, 0.16);  /* hairline borders + minor grid */
-  --line-strong:   rgba(120, 178, 222, 0.34);  /* emphasised borders / major grid */
-  --grid-minor:    rgba(120, 178, 222, 0.055);
-  --grid-major:    rgba(120, 178, 222, 0.10);
+  --line:          rgba(120, 178, 222, 0.16);
+  --line-strong:   rgba(120, 178, 222, 0.34);
+  --grid-minor:    transparent;   /* CAD grid removed — minimal ground */
+  --grid-major:    transparent;
 
-  /* Text */
-  --ink:           #e7f1f9;   /* primary — chalk white with a blue cast */
-  --ink-dim:       #92aec6;   /* secondary labels */
-  --ink-faint:     #5f7c94;   /* tertiary / disabled */
+  --ink:           #e7f1f9;
+  --ink-dim:       #92aec6;
+  --ink-faint:     #5f7c94;
 
-  /* Accents — the blueprint pen */
   --accent:        #4fc3f7;   /* cyan draughting ink */
   --accent-soft:   rgba(79, 195, 247, 0.14);
-  --annotation:    #f4a63b;   /* amber — warnings, "due" marks */
-  --alarm:         #ff6b6b;   /* red — overdue redlines */
-  --go:            #4fd6a6;   /* green — completed / recently revised */
+  --annotation:    #f4a63b;
+  --alarm:         #ff6b6b;
+  --go:            #4fd6a6;
+
+  --lamp:
+    radial-gradient(130% 90% at 50% -20%, rgba(79, 195, 247, 0.10), transparent 55%),
+    radial-gradient(120% 120% at 50% 120%, rgba(4, 10, 18, 0.65), transparent 65%);
+  --glass:  linear-gradient(180deg, rgba(18, 48, 73, 0.55), rgba(10, 26, 43, 0.55));
+  --card:   rgba(14, 33, 53, 0.72);
+  --grad-edge: rgba(79, 195, 247, 0.40);
+}
+
+/* ----- Slate Minimal (neutral, gridless) --------------------------------- */
+[data-theme="slate"] {
+  color-scheme: light;
+
+  --ground:        #fafafa;
+  --ground-deep:   #eeeef1;
+  --panel:         #ffffff;
+  --panel-2:       #f3f3f6;
+
+  --line:          rgba(28, 28, 40, 0.10);
+  --line-strong:   rgba(28, 28, 40, 0.20);
+  --grid-minor:    transparent;   /* no grid */
+  --grid-major:    transparent;
+
+  --ink:           #1a1a1f;
+  --ink-dim:       #55555f;
+  --ink-faint:     #8a8a94;
+
+  --accent:        #4f46e5;   /* indigo */
+  --accent-soft:   rgba(79, 70, 229, 0.12);
+  --annotation:    #b45309;
+  --alarm:         #dc2626;
+  --go:            #059669;
+
+  --lamp:
+    radial-gradient(130% 90% at 50% -20%, rgba(79, 70, 229, 0.05), transparent 55%);
+  --glass:  rgba(255, 255, 255, 0.75);
+  --card:   #ffffff;
+  --grad-edge: rgba(79, 70, 229, 0.22);
 }
 
 @theme inline {
@@ -78,9 +159,7 @@ body::after {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    radial-gradient(130% 90% at 50% -20%, rgba(79, 195, 247, 0.10), transparent 55%),
-    radial-gradient(120% 120% at 50% 120%, rgba(4, 10, 18, 0.65), transparent 65%);
+  background: var(--lamp);
 }
 
 ::selection { background: var(--accent-soft); color: var(--ink); }
@@ -100,8 +179,7 @@ body::after {
 /* .glass and .gradient-border are reused across cards; here they become
    blueprint panels rather than frosted glass. */
 .glass {
-  background:
-    linear-gradient(180deg, rgba(18, 48, 73, 0.55), rgba(10, 26, 43, 0.55));
+  background: var(--glass);
   border: 1px solid var(--line);
   backdrop-filter: blur(6px);
 }
@@ -111,7 +189,7 @@ body::after {
   border: 1px solid transparent;
   background:
     linear-gradient(var(--panel), var(--panel)) padding-box,
-    linear-gradient(135deg, rgba(79, 195, 247, 0.40), rgba(79, 195, 247, 0.03) 55%) border-box;
+    linear-gradient(135deg, var(--grad-edge), transparent 55%) border-box;
 }
 
 /* Drafting corner ticks — the registration marks on a titleblock. Apply to a
@@ -262,7 +340,7 @@ body::after {
   z-index: 1;
   width: 100%;
   max-width: 420px;
-  background: rgba(14, 33, 53, 0.72);
+  background: var(--card);
   backdrop-filter: blur(24px);
   border: 1px solid var(--line-strong);
   border-radius: 20px;

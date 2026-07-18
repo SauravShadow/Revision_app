@@ -41,7 +41,13 @@ redesign work (see Phase 7).
 
 ---
 
-## Phase 0 — Theming engine _(prerequisite; fixes the dead light/dark toggle)_
+## Phase 0 — Theming engine _(prerequisite; fixes the dead light/dark toggle)_ — ✅ SHIPPED 2026-07-18
+
+_Delivered on branch `feat/theming-engine` (`42c8992`): `[data-theme]` palettes
+(engpad/blueprint/slate), pre-paint `<head>` script + legacy migration,
+`ThemeProvider`/`useTheme`, Settings-only `ThemePicker`. Coaching/org light-theme
+verification (native selects, coverage-cell contrast) still pending Phase 7._
+
 
 **Problem today:** [`ThemeToggle.tsx`](../apps/frontend/components/layout/ThemeToggle.tsx)
 flips a `.dark` class, but [`layout.tsx`](../apps/frontend/app/layout.tsx) hard-codes
@@ -88,7 +94,14 @@ anywhere**. The toggle is therefore purely decorative.
 
 ---
 
-## Phase 1 — Filter chips _(highest value; do first after Phase 0)_
+## Phase 1 — Filter chips _(highest value; do first after Phase 0)_ — ✅ SHIPPED 2026-07-18 (home)
+
+_Delivered on branch `feat/theming-engine` (`297ab88`): single-select
+`FilterChips` on the Subjects home (All/Due/Overdue/Bookmarked/Not revised) with
+live counts, backed by pure `lib/filters/quickFilters` predicates and a per-list
+`useQuickFilter` store. Still to do: adopt the same chips on chapter/topic lists
+and the coaching sort/filter selectors._
+
 
 - New `<FilterChips>` under the "Subjects" heading on
   [`app/page.tsx`](../apps/frontend/app/page.tsx), and on chapter/topic lists.
