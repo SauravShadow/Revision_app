@@ -119,7 +119,14 @@ and the coaching sort/filter selectors._
 
 ---
 
-## Phase 2 — Inline search on the list
+## Phase 2 — Inline search on the list — ✅ SHIPPED 2026-07-18 (home)
+
+_Delivered on branch `feat/inline-search` (`28b8f16`): debounced, clearable
+`InlineSearch` pill above the chips with `/`-to-focus, reusing the command
+palette scorer via `matchesQuery`/`subjectMatchesQuery`; search composes with the
+chips and chip counts are query-aware. Still to do: the same field on chapter
+pages._
+
 
 - Persistent pill search field at the top of home + chapter pages (reuse
   `.auth-input` rounding). Fuzzy filter over subject/chapter/topic names via
