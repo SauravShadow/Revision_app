@@ -18,8 +18,14 @@ export function CommandPalette() {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setOpen((o) => !o); }
       else if (e.key === 'Escape') setOpen(false);
     };
+    // Decoupled opener so the mobile Search tab (BottomTabBar) can raise the palette.
+    const onOpen = () => setOpen(true);
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('open-command-palette', onOpen);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('open-command-palette', onOpen);
+    };
   }, []);
 
   useEffect(() => { setActive(0); }, [q, open]);
