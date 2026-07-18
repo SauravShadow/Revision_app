@@ -10,6 +10,7 @@ import { SortableRow } from '@/components/dnd/SortableRow';
 import { dragId } from '@/components/dnd/ids';
 import { useFilters } from '@/store/useFilters';
 import { matchingTopics, hasActiveFilters } from '@/lib/filters/predicates';
+import { pinnedFirst } from '@/lib/revision/pinned';
 import { FilterBar } from '@/components/FilterBar';
 import { TopicResultRow } from '@/components/TopicResultRow';
 
@@ -25,6 +26,12 @@ export default function ChapterPage({ params }: { params: Promise<{ id: string }
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
   if (!chapter) return notFound();
   const subject = subjects[chapter.subjectId];
+  // Bookmarked / high-priority topics float to the top (Phase 6). Display-only —
+  // drag-reorder still persists the raw topicIds order by id.
+  const orderedTopicIds = pinnedFirst(
+    chapter.topicIds.filter((tid) => topics[tid] && !topics[tid].archivedAt),
+    topics,
+  );
   return (
     <div>
       <Breadcrumb items={[
@@ -45,11 +52,11 @@ export default function ChapterPage({ params }: { params: Promise<{ id: string }
         </div>
       ) : (
         <SortableContext
-          items={chapter.topicIds.filter((tid) => topics[tid] && !topics[tid].archivedAt).map((tid) => dragId('topic', tid))}
+          items={orderedTopicIds.map((tid) => dragId('topic', tid))}
           strategy={verticalListSortingStrategy}
         >
           <div className="divide-y divide-line">
-            {chapter.topicIds.map((tid) => topics[tid] && !topics[tid].archivedAt && (
+            {orderedTopicIds.map((tid) => (
               <SortableRow key={tid} id={dragId('topic', tid)}>
                 <TopicCard topic={topics[tid]} autoEdit={tid === justAddedId} />
               </SortableRow>
