@@ -225,7 +225,17 @@ testing._
 
 ---
 
-## Phase 7 — Organisation & coaching redesign
+## Phase 7 — Organisation & coaching redesign — ✅ SHIPPED 2026-07-18 (ActivityBars sparkline still TODO)
+
+_Delivered on branch `feat/coaching-redesign` (`e812cce`): coverage cells →
+background-tint heatmap with solid `--ink` text (fixes the light-theme contrast
+bug); sort control → shared `FilterChips` (removes a native `<select>`); student
+rows got a leading avatar + status ring; `OrganisationCard` rebuilt with hairline
+rows, role badges, and copy-to-clipboard invite chips; drill-down got an explicit
+read-only/redacted notice. `FilterChips` count made optional. Clears the Phase 0
+light-theme risks. **Remaining:** ActivityBars sparkline treatment (baseline/grid/
+endpoint) on both coaching pages._
+
 
 The coaching surfaces shipped functionally but haven't had the design pass the
 student side is getting. Bring them up to the same bar.
