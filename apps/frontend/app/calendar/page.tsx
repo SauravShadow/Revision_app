@@ -8,7 +8,9 @@ import { FilterChips } from '@/components/filters/FilterChips';
 export default function CalendarPage() {
   const [view, setView] = useState<'agenda' | 'month'>('agenda');
   return (
-    <div>
+    // Narrow centred column per the prototype's 760px .wrap — the agenda is a
+    // reading list, not a full-bleed dashboard.
+    <div className="mx-auto w-full max-w-3xl">
       <Breadcrumb items={[{ label: 'Subjects', href: '/' }, { label: 'Calendar' }]} />
       <div className="mb-6 mt-4 flex flex-wrap items-end justify-between gap-3">
         <div>
