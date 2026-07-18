@@ -3,7 +3,7 @@
 export interface FilterChipOption {
   key: string;
   label: string;
-  count: number;
+  count?: number;
 }
 
 interface FilterChipsProps {
@@ -11,13 +11,15 @@ interface FilterChipsProps {
   value: string;
   onChange: (key: string) => void;
   'aria-label'?: string;
+  className?: string;
 }
 
-// Single-select quick-filter chips (Phase 1). Active chip is a filled --accent
-// pill; the rest reuse the drafting .dim-chip. Each chip carries a live count.
-export function FilterChips({ options, value, onChange, 'aria-label': ariaLabel = 'Quick filters' }: FilterChipsProps) {
+// Single-select chips (Phase 1; reused for coaching controls in Phase 7). Active
+// chip is a filled --accent pill; the rest reuse the drafting .dim-chip. Each
+// chip may carry a live count.
+export function FilterChips({ options, value, onChange, 'aria-label': ariaLabel = 'Quick filters', className }: FilterChipsProps) {
   return (
-    <div role="group" aria-label={ariaLabel} className="mb-5 flex flex-wrap items-center gap-1.5">
+    <div role="group" aria-label={ariaLabel} className={`flex flex-wrap items-center gap-1.5 ${className ?? 'mb-5'}`}>
       {options.map((opt) => {
         const active = opt.key === value;
         const empty = opt.count === 0 && !active;
@@ -34,13 +36,15 @@ export function FilterChips({ options, value, onChange, 'aria-label': ariaLabel 
             } ${empty ? 'opacity-45' : ''}`}
           >
             <span>{opt.label}</span>
-            <span
-              className={`font-mono tabular-nums text-[0.62rem] ${
-                active ? 'text-ground-deep/80' : 'text-ink-faint'
-              }`}
-            >
-              {opt.count}
-            </span>
+            {opt.count !== undefined && (
+              <span
+                className={`font-mono tabular-nums text-[0.62rem] ${
+                  active ? 'text-ground-deep/80' : 'text-ink-faint'
+                }`}
+              >
+                {opt.count}
+              </span>
+            )}
           </button>
         );
       })}
