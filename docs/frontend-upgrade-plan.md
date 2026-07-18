@@ -138,7 +138,15 @@ pages._
 
 ---
 
-## Phase 3 — Bottom tab bar (mobile)
+## Phase 3 — Bottom tab bar (mobile) — ✅ SHIPPED 2026-07-18
+
+_Delivered on branch `feat/mobile-tabbar` (`3727ec8`): fixed, safe-area-padded
+`BottomTabBar` (`md:hidden`) — Subjects/Insights/Calendar/Search + role-gated
+Coaching; active tab via `aria-current`+`--accent`; Search opens the command
+palette through an `open-command-palette` window event. Main gets bottom padding;
+hamburger drawer retained for the deep tree. (A dedicated "More" sheet demoting
+the hamburger is still a possible refinement.)_
+
 
 - New `<BottomTabBar>` shown `md:hidden`, fixed to bottom, safe-area padded:
   **Subjects · Insights · Calendar · Search**. Active tab in `--accent`.
