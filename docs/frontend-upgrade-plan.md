@@ -183,7 +183,15 @@ The finalised list treatment (see preview). Applies to
 
 ---
 
-## Phase 5 — Avatar anchor + circular count badge
+## Phase 5 — Avatar anchor + circular count badge — ✅ SHIPPED 2026-07-18
+
+_Delivered on branch `feat/subject-avatars` (`4f80a9f`): `SubjectCard` gained a
+leading avatar (subject colour + initial) with a status ring (accent=due,
+alarm=overdue, go=recent) via `subjectStatus()`, and a circular `CountBadge`
+(pending topics, filled `--accent`, muted at zero). Coloured left rail removed;
+progress bar keeps the subject colour (locked decision). Progress-bar colour
+question is now settled._
+
 
 - **Leading chip** per row: subject colour as a filled circle with the initial; a
   **status ring** encodes state — accent ring = due, `--alarm` = overdue, `--go` =
