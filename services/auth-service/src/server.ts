@@ -14,6 +14,27 @@ const ALLOW_REGISTRATION = process.env.ALLOW_REGISTRATION !== 'false';
 const FRONTEND_URL = process.env.FRONTEND_URL ?? 'http://127.0.0.1:3200';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// ── credential-endpoint rate limit: sliding window, keyed by client + subject ─
+// Guards /login and /forgot-password against brute force / credential stuffing.
+// PBKDF2 at 310k iterations also makes unthrottled login a CPU-DoS lever.
+// In-memory (per process) — same tradeoff as the org-join limiter; move to a
+// shared store before running multiple auth-service replicas.
+const CREDENTIAL_WINDOW_MS = 15 * 60 * 1000;
+const CREDENTIAL_MAX_ATTEMPTS = 5;
+const credentialAttempts = new Map<string, number[]>();
+
+export function _resetLoginRateLimit(): void {
+  credentialAttempts.clear();
+}
+
+function credentialAttemptAllowed(key: string): boolean {
+  const now = Date.now();
+  const recent = (credentialAttempts.get(key) ?? []).filter((t) => now - t < CREDENTIAL_WINDOW_MS);
+  recent.push(now);
+  credentialAttempts.set(key, recent);
+  return recent.length <= CREDENTIAL_MAX_ATTEMPTS;
+}
+
 export function createApp(emailSender: EmailSender = createDefaultEmailSender()) {
   const app = express();
   app.use(express.json());
@@ -109,6 +130,11 @@ export function createApp(emailSender: EmailSender = createDefaultEmailSender())
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password are required' });
     }
+    // Throttle by client IP + attempted username so guessing is bounded without
+    // one attacker being able to lock out a victim from every other network.
+    if (!credentialAttemptAllowed(`login:${req.ip}:${String(username).toLowerCase()}`)) {
+      return res.status(429).json({ error: 'Too many login attempts — please wait a few minutes and try again.' });
+    }
     const user = await findByUsername(username);
     if (!user || !(await verifyPassword(password, user.passwordHash))) {
       return res.status(401).json({ error: 'Invalid username or password' });
@@ -173,6 +199,9 @@ export function createApp(emailSender: EmailSender = createDefaultEmailSender())
     const generic = { message: 'If an account with that email exists, a password-reset link has been sent.' };
     if (!email || typeof email !== 'string') {
       return res.status(400).json({ error: 'Email is required' });
+    }
+    if (!credentialAttemptAllowed(`forgot:${req.ip}:${email.trim().toLowerCase()}`)) {
+      return res.status(429).json({ error: 'Too many requests — please wait a few minutes and try again.' });
     }
     try {
       const user = await findByEmail(email.trim());

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import request from 'supertest';
 import { getPool } from './db';
-import { createApp } from './server';
+import { createApp, _resetLoginRateLimit } from './server';
 import { createUser } from './userStore';
 import type { EmailSender } from './email';
 
@@ -25,6 +25,7 @@ const REG = { username: 'alice', password: 'password123', domain: 'civil-enginee
 beforeEach(async () => {
   await getPool().query('TRUNCATE users CASCADE');
   emails.sent = [];
+  _resetLoginRateLimit();
 });
 
 afterAll(async () => {
@@ -99,6 +100,16 @@ describe('login gate + GET /verify-email', () => {
     const me = await request(app).get('/me').set('Authorization', `Bearer ${login.body.token}`);
     expect(me.status).toBe(200);
     expect(me.body.username).toBe('carol');
+  });
+});
+
+describe('login rate limiting', () => {
+  it('starts returning 429 once too many attempts come from the same client', async () => {
+    const attempt = () => request(app).post('/login').send({ username: 'ghost', password: 'nope' });
+    for (let i = 0; i < 5; i++) {
+      expect((await attempt()).status).toBe(401); // wrong creds, but not yet throttled
+    }
+    expect((await attempt()).status).toBe(429); // 6th attempt is blocked
   });
 });
 
