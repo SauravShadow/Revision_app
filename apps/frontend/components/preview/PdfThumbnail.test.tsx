@@ -20,3 +20,19 @@ it('falls back to a file icon when rendering fails', async () => {
   render(<PdfThumbnail url="/api/files/p1?token=t" />);
   await waitFor(() => expect(screen.getByLabelText('PDF')).toBeTruthy());
 });
+
+it('forwards className to its root element', () => {
+  loadMock.mockResolvedValueOnce(undefined);
+  const { container } = render(<PdfThumbnail url="/x" className="sentinel-cls" />);
+  expect(container.querySelector('.sentinel-cls')).toBeTruthy();
+});
+
+it('retries loading when the url changes after a failure', async () => {
+  loadMock.mockRejectedValueOnce(new Error('boom'));
+  const { rerender } = render(<PdfThumbnail url="/a" />);
+  await waitFor(() => expect(screen.getByLabelText('PDF')).toBeTruthy());
+
+  loadMock.mockResolvedValueOnce(undefined);
+  rerender(<PdfThumbnail url="/b" />);
+  await waitFor(() => expect(loadMock).toHaveBeenLastCalledWith('/b', expect.any(HTMLCanvasElement)));
+});

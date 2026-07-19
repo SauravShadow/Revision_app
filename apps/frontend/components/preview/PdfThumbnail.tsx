@@ -20,18 +20,18 @@ export function PdfThumbnail({ url, className }: { url: string; className?: stri
     return () => { cancelled = true; };
   }, [url]);
 
-  if (failed) {
-    return (
-      <div className={`grid place-items-center bg-black/20 ${className ?? ''}`} aria-label="PDF">
-        <FileText size={28} className="opacity-70" />
-      </div>
-    );
-  }
   return (
-    <canvas
-      ref={canvasRef}
-      aria-label="PDF preview"
-      className={`${ready ? '' : 'opacity-0'} ${className ?? ''}`}
-    />
+    <div className={`relative overflow-hidden ${className ?? ''}`}>
+      <canvas
+        ref={canvasRef}
+        aria-label="PDF preview"
+        className={`h-full w-full object-cover ${ready && !failed ? '' : 'opacity-0'}`}
+      />
+      {failed && (
+        <div className="absolute inset-0 grid place-items-center bg-black/20" aria-label="PDF">
+          <FileText size={28} className="opacity-70" />
+        </div>
+      )}
+    </div>
   );
 }
