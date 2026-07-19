@@ -1,8 +1,11 @@
 import { it, expect, vi } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, fireEvent, screen } from '@testing-library/react';
 import { MarkdownView } from './MarkdownView';
+import { PreviewProvider } from '@/components/preview/PreviewContext';
+import type { Attachment } from '@revision-app/shared';
 
 vi.mock('@/lib/auth/client', () => ({ getStoredFileToken: () => 'file-tok' }));
+vi.mock('@/lib/files/pdf', () => ({ loadPdfFirstPageToCanvas: vi.fn().mockResolvedValue(undefined) }));
 
 it('renders inline math via KaTeX', () => {
   const { container } = render(<MarkdownView markdown={'Euler: $e^{i\\pi}+1=0$'} />);
@@ -35,4 +38,24 @@ it('leaves external URLs untouched', () => {
   const { container } = render(<MarkdownView markdown={'[link](https://example.com)'} />);
   const a = container.querySelector('a');
   expect(a?.getAttribute('href')).toBe('https://example.com');
+});
+
+it('makes a note image clickable to open the preview', () => {
+  render(<PreviewProvider><MarkdownView markdown={'![pic](/api/files/i1)'} /></PreviewProvider>);
+  const img = screen.getByAltText('pic');
+  expect(img.closest('button')).not.toBeNull();
+  fireEvent.click(img);
+  expect(screen.getAllByAltText('pic').length).toBeGreaterThan(1); // modal copy
+});
+
+it('renders a pdf-attachment link as a thumbnail card', () => {
+  const attachments: Attachment[] = [
+    { id: 'p1', name: 'doc.pdf', kind: 'pdf', url: '/api/files/p1', createdAt: 1 },
+  ];
+  render(
+    <PreviewProvider>
+      <MarkdownView markdown={'[doc.pdf](/api/files/p1)'} attachments={attachments} />
+    </PreviewProvider>,
+  );
+  expect(screen.getByLabelText('PDF preview')).toBeTruthy();
 });

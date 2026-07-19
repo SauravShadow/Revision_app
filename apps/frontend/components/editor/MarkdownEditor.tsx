@@ -13,6 +13,7 @@ export function MarkdownEditor({ value, onChange, topicId }: { value: string; on
   const [maximized, setMaximized] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
   const addAttachment = useStore((s) => s.addAttachment);
+  const attachments = useStore((s) => s.topics[topicId]?.attachments);
 
   useEffect(() => {
     if (!maximized) return;
@@ -98,7 +99,7 @@ export function MarkdownEditor({ value, onChange, topicId }: { value: string; on
             className={`${maximized ? 'h-full min-h-0 resize-none' : 'resize-y'} w-full rounded-lg bg-black/20 p-3 font-mono text-sm outline-none`} />
         )}
         {mode !== 'edit' && (
-          <div className={`${maximized ? 'h-full min-h-0' : 'max-h-[32rem]'} overflow-y-auto rounded-lg bg-black/10 p-3`}><MarkdownView markdown={value} /></div>
+          <div className={`${maximized ? 'h-full min-h-0' : 'max-h-[32rem]'} overflow-y-auto rounded-lg bg-black/10 p-3`}><MarkdownView markdown={value} attachments={attachments} /></div>
         )}
       </div>
     </div>
