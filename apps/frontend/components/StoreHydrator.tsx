@@ -8,12 +8,24 @@ export function StoreHydrator({ children }: { children: React.ReactNode }) {
   const hydrate = useStore((s) => s.hydrate);
   const { session, loading: authLoading } = useAuth();
   const [ready, setReady] = useState(false);
-  const hydratedRef = useRef(false);
+  // Track *which* user the in-memory store was hydrated for. The root layout
+  // (and thus this component) never unmounts across login/logout, so a plain
+  // "hydrated once" boolean would leave the previous account's data in the
+  // singleton store after an account switch. Keying on userId re-hydrates when
+  // the logged-in user changes and resets on logout.
+  const hydratedUserRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // Don't hydrate until auth is settled and we have a valid session
-    if (authLoading || !session || hydratedRef.current) return;
-    hydratedRef.current = true;
+    if (authLoading) return;
+    if (!session) {
+      // Logged out: forget the previous user so the next login re-hydrates.
+      hydratedUserRef.current = null;
+      setReady(false);
+      return;
+    }
+    if (hydratedUserRef.current === session.userId) return;
+    hydratedUserRef.current = session.userId;
+    setReady(false);
     void hydrate(session.domain).then(() => {
       setReady(true);
       void authFetch('/api/files/gc', { method: 'POST' }).catch(() => {});
