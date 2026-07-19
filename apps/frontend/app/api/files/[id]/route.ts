@@ -5,10 +5,15 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return proxyRequest(req, `${FILES_SERVICE_URL}/${id}`);
+  // Preserve the query string — file reads authenticate via a `?token=` param
+  // (used by <img>/<iframe> subresource loads, which carry no Authorization
+  // header). Dropping it here makes every non-fetch file load 401.
+  const search = new URL(req.url).search;
+  return proxyRequest(req, `${FILES_SERVICE_URL}/${id}${search}`);
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return proxyRequest(req, `${FILES_SERVICE_URL}/${id}`);
+  const search = new URL(req.url).search;
+  return proxyRequest(req, `${FILES_SERVICE_URL}/${id}${search}`);
 }
