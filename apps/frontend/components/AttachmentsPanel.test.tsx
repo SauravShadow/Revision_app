@@ -3,10 +3,12 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { AttachmentsPanel } from './AttachmentsPanel';
 import { useStore } from '@/store/useStore';
 import { uploadFile } from '@/lib/files/uploadFile';
+import { PreviewProvider } from '@/components/preview/PreviewContext';
 import type { Attachment, Topic } from '@revision-app/shared';
 
 vi.mock('@/lib/auth/client', () => ({ getStoredFileToken: () => 'file-tok' }));
 vi.mock('@/lib/files/uploadFile', () => ({ uploadFile: vi.fn() }));
+vi.mock('@/lib/files/pdf', () => ({ loadPdfFirstPageToCanvas: vi.fn().mockRejectedValue(new Error('no-op')) }));
 
 const uploadFileMock = vi.mocked(uploadFile);
 
@@ -30,13 +32,37 @@ function topicWithAttachment(): Topic {
   return useStore.getState().topics[topic.id];
 }
 
-it('appends the stored file token to an internal attachment URL', () => {
-  render(<AttachmentsPanel topic={topicWithAttachment()} />);
+function renderPanel(topic: Topic, onInsert?: (m: string) => void) {
+  return render(
+    <PreviewProvider>
+      <AttachmentsPanel topic={topic} onInsertMarkdown={onInsert} />
+    </PreviewProvider>,
+  );
+}
+
+it('previews an image in-app instead of opening a new tab', () => {
+  renderPanel(topicWithAttachment());
   const img = screen.getByAltText('diagram.png') as HTMLImageElement;
   expect(img.getAttribute('src')).toBe('/api/files/a1?token=file-tok');
+  expect(img.closest('a')).toBeNull(); // no tab-out anchor for images
 
-  const link = screen.getByText('diagram.png').closest('a') as HTMLAnchorElement;
-  expect(link.getAttribute('href')).toBe('/api/files/a1?token=file-tok');
+  fireEvent.click(img);
+  // the modal renders a second copy of the same image
+  expect(screen.getAllByAltText('diagram.png').length).toBeGreaterThan(1);
+});
+
+it('auto-inserts an uploaded PDF into the note as a link', async () => {
+  const onInsert = vi.fn();
+  uploadFileMock.mockResolvedValueOnce({
+    id: 'p9', name: 'notes.pdf', kind: 'pdf', url: '/api/files/p9', createdAt: 1,
+  });
+  renderPanel(createTopic(), onInsert);
+
+  fireEvent.change(screen.getByLabelText(/upload image\/pdf/i), {
+    target: { files: [new File(['%PDF'], 'notes.pdf', { type: 'application/pdf' })] },
+  });
+
+  await waitFor(() => expect(onInsert).toHaveBeenCalledWith('[notes.pdf](/api/files/p9)'));
 });
 
 it('adds uploaded images as attachments and returns markdown for notes insertion', async () => {

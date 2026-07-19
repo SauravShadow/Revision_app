@@ -1,11 +1,13 @@
 'use client';
 import { useState } from 'react';
-import { Paperclip, Upload, Link as LinkIcon, FileText, Trash2, ExternalLink } from 'lucide-react';
+import { Paperclip, Upload, Link as LinkIcon, Trash2, ExternalLink } from 'lucide-react';
 import type { Attachment, Topic } from '@revision-app/shared';
 import { useStore } from '@/store/useStore';
 import { uploadFile } from '@/lib/files/uploadFile';
 import { makeId } from '@revision-app/shared';
 import { addTokenToUrl } from '@/lib/files/url';
+import { usePreview } from '@/components/preview/PreviewContext';
+import { PdfThumbnail } from '@/components/preview/PdfThumbnail';
 
 function escapeMarkdownAlt(text: string): string {
   return text.replace(/[\\[\]]/g, '\\$&');
@@ -15,8 +17,13 @@ function imageMarkdown(attachment: Attachment): string {
   return `![${escapeMarkdownAlt(attachment.name)}](${attachment.url})`;
 }
 
+function pdfMarkdown(attachment: Attachment): string {
+  return `[${escapeMarkdownAlt(attachment.name)}](${attachment.url})`;
+}
+
 export function AttachmentsPanel({ topic, onInsertMarkdown }: { topic: Topic; onInsertMarkdown?: (markdown: string) => void }) {
   const { addAttachment, removeAttachment } = useStore.getState();
+  const { openPreview } = usePreview();
   const [busy, setBusy] = useState(false);
   const [url, setUrl] = useState('');
   const attachments = topic.attachments ?? [];
@@ -25,13 +32,14 @@ export function AttachmentsPanel({ topic, onInsertMarkdown }: { topic: Topic; on
     if (!files || files.length === 0) return;
     setBusy(true);
     try {
-      const insertedImages: string[] = [];
+      const inserted: string[] = [];
       for (const f of Array.from(files)) {
         const attachment = await uploadFile(f);
         addAttachment(topic.id, attachment);
-        if (attachment.kind === 'image') insertedImages.push(imageMarkdown(attachment));
+        if (attachment.kind === 'image') inserted.push(imageMarkdown(attachment));
+        else if (attachment.kind === 'pdf') inserted.push(pdfMarkdown(attachment));
       }
-      if (insertedImages.length > 0) onInsertMarkdown?.(insertedImages.join('\n\n'));
+      if (inserted.length > 0) onInsertMarkdown?.(inserted.join('\n\n'));
     } catch { window.alert('Upload failed.'); } finally { setBusy(false); }
   };
 
@@ -64,30 +72,46 @@ export function AttachmentsPanel({ topic, onInsertMarkdown }: { topic: Topic; on
         <p className="text-sm opacity-50">No attachments yet.</p>
       ) : (
         <ul className="grid gap-2 sm:grid-cols-2">
-          {attachments.map((a) => (
-            <li key={a.id} className="relative rounded-lg bg-white/5 p-2">
-              <a
-                href={addTokenToUrl(a.url)}
-                target="_blank"
-                rel="noreferrer"
-                className={a.kind === 'image' ? 'block text-sm hover:underline' : 'flex min-w-0 items-center gap-2 pr-8 text-sm hover:underline'}
-              >
-                {a.kind === 'image' ? (
-                  <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={addTokenToUrl(a.url)} alt={a.name} className="mb-2 h-24 w-full rounded-md object-cover" />
+          {attachments.map((a) => {
+            const previewable = a.kind === 'image' || a.kind === 'pdf';
+            const tokenUrl = addTokenToUrl(a.url);
+            return (
+              <li key={a.id} className="relative rounded-lg bg-white/5 p-2">
+                {previewable ? (
+                  <button
+                    type="button"
+                    onClick={() => openPreview?.({ url: tokenUrl, name: a.name, kind: a.kind as 'image' | 'pdf' })}
+                    className="block w-full text-left text-sm hover:underline"
+                  >
+                    {a.kind === 'image' ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={tokenUrl} alt={a.name} className="mb-2 h-24 w-full rounded-md object-cover" />
+                    ) : (
+                      <PdfThumbnail url={tokenUrl} className="mb-2 h-24 w-full rounded-md object-cover" />
+                    )}
                     <span className="block truncate pr-8">{a.name}</span>
-                  </>
+                  </button>
                 ) : (
-                  <>
-                    {a.kind === 'pdf' ? <FileText size={18} className="shrink-0" /> : <ExternalLink size={16} className="shrink-0" />}
+                  <a
+                    href={tokenUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex min-w-0 items-center gap-2 pr-8 text-sm hover:underline"
+                  >
+                    <ExternalLink size={16} className="shrink-0" />
                     <span className="truncate">{a.name}</span>
-                  </>
+                  </a>
                 )}
-              </a>
-              <button aria-label="Remove attachment" onClick={() => remove(a.id)} className="absolute right-2 top-2 rounded bg-black/30 p-1 hover:bg-white/10"><Trash2 size={14} /></button>
-            </li>
-          ))}
+                <button
+                  aria-label="Remove attachment"
+                  onClick={() => remove(a.id)}
+                  className="absolute right-2 top-2 rounded bg-black/30 p-1 hover:bg-white/10"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
