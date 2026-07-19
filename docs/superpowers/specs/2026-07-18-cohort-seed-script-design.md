@@ -1,7 +1,8 @@
 # Cohort Seed Script — Design
 
 **Date:** 2026-07-18
-**Status:** Approved (design)
+**Status:** Implemented (2026-07-18) — `scripts/seed-cohort.mjs`; verified end-to-end
+(seed, idempotent rerun, `--reset` teardown). Added a `--reset-only` variant.
 **Author:** brainstorming session
 
 ## Problem
