@@ -44,7 +44,7 @@ export function SubjectCard({ subject, autoEdit = false }: { subject: Subject; a
           </span>
 
           <div className="min-w-0 flex-1" onDoubleClick={(e) => { e.preventDefault(); setEditing(true); }}>
-            <h3 className="truncate font-semibold tracking-tight text-ink">
+            <h3 className="line-clamp-2 break-words font-semibold tracking-tight text-ink">
               <InlineEditable value={subject.name} editing={editing} onEditingChange={setEditing}
                 onCommit={(n) => renameSubject(subject.id, n)} />
             </h3>
