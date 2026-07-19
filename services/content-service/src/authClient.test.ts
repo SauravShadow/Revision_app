@@ -32,6 +32,18 @@ describe('fetchGroupRoster', () => {
     expect(mock).toHaveBeenCalledTimes(2);
   });
 
+  it('percent-encodes ids so they cannot break out of the URL', async () => {
+    const mock = vi.fn().mockImplementation(() =>
+      Promise.resolve(new Response(JSON.stringify(ROSTER), { status: 200 }))
+    );
+    vi.stubGlobal('fetch', mock);
+    await fetchGroupRoster('g/1', 'coach x');
+    expect(mock).toHaveBeenCalledWith(
+      'http://127.0.0.1:4001/internal/groups/g%2F1/members?requester=coach%20x',
+      { headers: { 'x-service-secret': 'test-secret' } },
+    );
+  });
+
   it('maps auth-service failures to AuthServiceError with the right status', async () => {
     vi.stubGlobal('fetch', vi.fn().mockImplementation(() =>
       Promise.resolve(new Response('{}', { status: 404 }))

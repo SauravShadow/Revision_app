@@ -11,6 +11,14 @@ const MAX_UPLOAD = 25 * 1024 * 1024;
 const ALLOWED = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'application/pdf']);
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_UPLOAD } });
 
+// Make a stored filename safe to interpolate into the Content-Disposition
+// header value: drop quotes/backslashes (would terminate or escape the quoted
+// string) and any control chars — CR/LF here would be a response-header
+// injection vector.
+export function safeContentDispositionName(name: string): string {
+  return name.replace(/["\\]/g, '').replace(/[\x00-\x1f\x7f]/g, '');
+}
+
 function sessionUserId(req: express.Request): string | null {
   const authHeader = req.headers.authorization ?? '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
@@ -46,7 +54,7 @@ export function createApp() {
     const blob = await readBlob(req.params.id, userId);
     if (!blob) return res.status(404).end();
     res.set('Content-Type', blob.meta.mime);
-    res.set('Content-Disposition', `inline; filename="${blob.meta.name.replace(/"/g, '')}"`);
+    res.set('Content-Disposition', `inline; filename="${safeContentDispositionName(blob.meta.name)}"`);
     res.set('Cache-Control', 'private, max-age=31536000, immutable');
     // Defense-in-depth: even a blob uploaded before SVG was blocked can't run
     // script or navigate. `sandbox` neutralises active content if the file is

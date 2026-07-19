@@ -103,6 +103,14 @@ describe('login gate + GET /verify-email', () => {
   });
 });
 
+describe('password strength', () => {
+  it('rejects registration with a password shorter than 8 characters', async () => {
+    const res = await request(app).post('/register').send({ ...REG, password: 'short12' }); // 7 chars
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/8 characters/);
+  });
+});
+
 describe('login rate limiting', () => {
   it('starts returning 429 once too many attempts come from the same client', async () => {
     const attempt = () => request(app).post('/login').send({ username: 'ghost', password: 'nope' });

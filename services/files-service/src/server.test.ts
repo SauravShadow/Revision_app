@@ -4,13 +4,19 @@ import os from 'node:os';
 import path from 'node:path';
 import request from 'supertest';
 import { signSession } from '@revision-app/shared/server';
-import { createApp } from './server';
+import { createApp, safeContentDispositionName } from './server';
 
 const app = createApp();
 const token = signSession({ userId: 'user-1', username: 'alice', domain: 'civil-engineering' });
 
 beforeEach(async () => {
   process.env.FILES_DIR = await fs.mkdtemp(path.join(os.tmpdir(), 'files-service-server-'));
+});
+
+describe('safeContentDispositionName', () => {
+  it('strips quotes, backslashes, and control chars (incl. CR/LF header-injection)', () => {
+    expect(safeContentDispositionName('a"b\r\nc\x00.png')).toBe('abc.png');
+  });
 });
 
 describe('files-service HTTP API', () => {

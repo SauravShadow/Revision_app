@@ -13,6 +13,7 @@ import { internalRouter } from './internalRoutes';
 const ALLOW_REGISTRATION = process.env.ALLOW_REGISTRATION !== 'false';
 const FRONTEND_URL = process.env.FRONTEND_URL ?? 'http://127.0.0.1:3200';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_PASSWORD_LENGTH = 8;
 
 // ── credential-endpoint rate limit: sliding window, keyed by client + subject ─
 // Guards /login and /forgot-password against brute force / credential stuffing.
@@ -59,8 +60,8 @@ export function createApp(emailSender: EmailSender = createDefaultEmailSender())
     if (!username || typeof username !== 'string' || username.trim().length < 3) {
       return res.status(400).json({ error: 'Username must be at least 3 characters' });
     }
-    if (!password || typeof password !== 'string' || password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    if (!password || typeof password !== 'string' || password.length < MIN_PASSWORD_LENGTH) {
+      return res.status(400).json({ error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters` });
     }
     if (!domain || !(domain in DOMAIN_LABELS)) {
       return res.status(400).json({ error: 'Invalid domain selected' });
@@ -228,8 +229,8 @@ export function createApp(emailSender: EmailSender = createDefaultEmailSender())
     if (!token || typeof token !== 'string') {
       return res.status(400).json({ error: 'Missing token' });
     }
-    if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    if (!newPassword || typeof newPassword !== 'string' || newPassword.length < MIN_PASSWORD_LENGTH) {
+      return res.status(400).json({ error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters` });
     }
     try {
       const userId = await consumeResetToken(token);
