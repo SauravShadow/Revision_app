@@ -5,19 +5,7 @@ import type { Attachment, Topic } from '@revision-app/shared';
 import { useStore } from '@/store/useStore';
 import { uploadFile } from '@/lib/files/uploadFile';
 import { makeId } from '@revision-app/shared';
-import { getStoredFileToken } from '@/lib/auth/client';
-
-function addTokenToUrl(url?: string): string {
-  if (!url) return '';
-  if (url.startsWith('/api/')) {
-    const token = getStoredFileToken();
-    if (token) {
-      const separator = url.includes('?') ? '&' : '?';
-      return `${url}${separator}token=${encodeURIComponent(token)}`;
-    }
-  }
-  return url;
-}
+import { addTokenToUrl } from '@/lib/files/url';
 
 function escapeMarkdownAlt(text: string): string {
   return text.replace(/[\\[\]]/g, '\\$&');

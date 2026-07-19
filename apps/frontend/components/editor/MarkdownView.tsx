@@ -6,7 +6,7 @@ import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import rehypeKatex from 'rehype-katex';
 import rehypeHighlight from 'rehype-highlight';
-import { getStoredFileToken } from '@/lib/auth/client';
+import { addTokenToUrl } from '@/lib/files/url';
 import { remarkCallouts } from './remarkCallouts';
 
 // Allow the elements/attributes our features emit, while still stripping scripts etc.
@@ -33,18 +33,6 @@ const PROSE =
   '[&_table]:w-full [&_table]:border-collapse [&_th]:border [&_td]:border [&_th]:border-white/15 [&_td]:border-white/15 [&_th]:p-1.5 [&_td]:p-1.5 ' +
   '[&_blockquote]:border-l-2 [&_blockquote]:border-white/20 [&_blockquote]:pl-3 [&_blockquote]:opacity-80 ' +
   '[&_img]:max-w-full [&_img]:rounded-lg';
-
-function addTokenToUrl(url?: string): string {
-  if (!url) return '';
-  if (url.startsWith('/api/')) {
-    const token = getStoredFileToken();
-    if (token) {
-      const separator = url.includes('?') ? '&' : '?';
-      return `${url}${separator}token=${encodeURIComponent(token)}`;
-    }
-  }
-  return url;
-}
 
 export function MarkdownView({ markdown }: { markdown: string }) {
   return (
