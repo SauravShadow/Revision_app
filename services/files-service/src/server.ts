@@ -6,7 +6,9 @@ import { writeBlob, readBlob, deleteBlob, isValidBlobId } from './blobStore';
 import { sweepUnreferenced } from './gc';
 
 const MAX_UPLOAD = 25 * 1024 * 1024;
-const ALLOWED = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml', 'application/pdf']);
+// SVG is deliberately excluded: it's an active document (can carry <script>) and
+// is served same-origin, so allowing it is a stored-XSS vector against the app.
+const ALLOWED = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'application/pdf']);
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_UPLOAD } });
 
 function sessionUserId(req: express.Request): string | null {
@@ -46,6 +48,11 @@ export function createApp() {
     res.set('Content-Type', blob.meta.mime);
     res.set('Content-Disposition', `inline; filename="${blob.meta.name.replace(/"/g, '')}"`);
     res.set('Cache-Control', 'private, max-age=31536000, immutable');
+    // Defense-in-depth: even a blob uploaded before SVG was blocked can't run
+    // script or navigate. `sandbox` neutralises active content if the file is
+    // opened as a document; `nosniff` stops the browser re-typing it.
+    res.set('X-Content-Type-Options', 'nosniff');
+    res.set('Content-Security-Policy', "default-src 'none'; sandbox");
     res.send(blob.bytes);
   });
 
