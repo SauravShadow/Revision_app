@@ -1,13 +1,10 @@
 import * as pdfjs from 'pdfjs-dist';
 
-// Configure the worker once. Next emits the worker asset from this URL.
-// Fallback if the worker fails to load at runtime: copy
-// node_modules/pdfjs-dist/build/pdf.worker.min.mjs into apps/frontend/public/
-// and set workerSrc = '/pdf.worker.min.mjs'.
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url,
-).toString();
+// Configure the worker once. The worker file is copied into public/ by
+// scripts/copy-pdf-worker.mjs (wired into predev/prebuild), and served as a
+// static asset. This avoids bundler-dependent `new URL(..., import.meta.url)`
+// resolution, which is not guaranteed to work across Next.js versions/config.
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 /** Renders the first page of the PDF at `url` into `canvas`, fitting `width` px. */
 export async function loadPdfFirstPageToCanvas(
