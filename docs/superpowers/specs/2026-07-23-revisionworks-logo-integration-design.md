@@ -30,9 +30,28 @@ Brand assets are committed under `Logo/` and mirrored into `apps/frontend/public
    full-rename decision, all five text labels become `RevisionWorks`. (An initial
    grep for the spaced form "REVISION OS" missed these; found during implementation.)
 
-**Out of scope** (ready for a later pass, not touched here): favicon.ico, Open Graph
-image, the auth-page brand **icon** (the house-shaped SVG next to the `auth-brand-name`
-text stays as-is — auth-page logo *visuals* were deferred), email templates, PWA manifest.
+**Out of scope for the header pass** (delivered in the follow-up below or still pending):
+favicon.ico, Open Graph image, the auth-page brand **icon** (the house-shaped SVG next to
+the `auth-brand-name` text stays as-is — auth-page logo *visuals* were deferred), email
+templates, PWA manifest.
+
+## Follow-up delivered (2026-07-23): favicon + OG image
+
+Using Next 15 App Router file conventions in `apps/frontend/app/` (no config needed):
+
+| File | Source / method |
+|---|---|
+| `icon.png` (512²) | `logo-icon-original.png` (transparent circle) via sharp — clean tab corners |
+| `apple-icon.png` (180²) | `logo-icon.png` full-bleed white-bg via sharp — iOS masks its own rounding |
+| `favicon.ico` (32² PNG-in-ICO) | 32px PNG wrapped in a hand-written ICO container — replaces the Next default |
+| `opengraph-image.png` + `twitter-image.png` (1200×630) | Rendered via Playwright/chromium (no system fonts for sharp/SVG text): cream `#faf7ef` graph-pad background, transparent green circle icon + live `RevisionWorks` wordmark, tagline "Track your exam revision — always know what's due next", `CIVIL · SOFTWARE · ENGINEERING` kicker |
+
+`metadataBase` added to the root `metadata` export (`NEXT_PUBLIC_SITE_URL`, falling back to
+`http://127.0.0.1:3200`) so file-based icon/OG URLs resolve absolute. Verified: emitted
+`<head>` carries `og:image` (1200×630), `twitter:card=summary_large_image`, `rel=icon`
+(favicon.ico + 512 png) and `apple-touch-icon` (180); all five assets serve HTTP 200.
+
+**Still pending:** auth-page brand icon swap, email templates, PWA manifest.
 
 ## Design
 

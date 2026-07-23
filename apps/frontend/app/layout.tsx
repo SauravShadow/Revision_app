@@ -28,7 +28,13 @@ const plexMono = IBM_Plex_Mono({
   display: 'swap',
 });
 
-export const metadata: Metadata = { title: 'RevisionWorks', description: 'Track your exam revision — Civil Engineering, Software Engineering & more.' };
+// metadataBase makes the file-based opengraph-image / icon URLs absolute.
+// Override via NEXT_PUBLIC_SITE_URL in production; falls back to the local port.
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://127.0.0.1:3200'),
+  title: 'RevisionWorks',
+  description: 'Track your exam revision — Civil Engineering, Software Engineering & more.',
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
