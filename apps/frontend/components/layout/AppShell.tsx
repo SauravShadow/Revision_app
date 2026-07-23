@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Settings } from 'lucide-react';
 import { SidebarTree } from './SidebarTree';
@@ -31,14 +32,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex min-w-0 items-center gap-2">
             <MobileNavDrawer />
             <Link href="/" className="group flex shrink-0 items-center gap-3">
-              {/* Registration mark */}
-              <span className="relative grid h-7 w-7 place-items-center rounded-sm border border-line-strong text-accent">
-                <span className="absolute inset-x-1 top-1/2 h-px -translate-y-1/2 bg-current opacity-40" />
-                <span className="absolute inset-y-1 left-1/2 w-px -translate-x-1/2 bg-current opacity-40" />
-                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-              </span>
+              {/* Brand mark */}
+              <Image
+                src="/logo-icon.png"
+                alt="RevisionWorks"
+                width={28}
+                height={28}
+                priority
+                className="h-7 w-7 rounded-full"
+              />
               <span className="flex flex-col leading-none">
-                <span className="text-sm font-semibold tracking-tight text-ink">REVISION OS</span>
+                <span className="text-sm tracking-tight text-ink">
+                  Revision<span className="font-semibold">Works</span>
+                </span>
                 <span className="tblabel mt-0.5 text-[0.58rem]">
                   {session ? DOMAIN_LABELS[session.domain] ?? session.domain : 'Loading…'}
                 </span>

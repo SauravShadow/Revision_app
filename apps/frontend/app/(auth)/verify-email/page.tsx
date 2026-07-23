@@ -48,7 +48,7 @@ function VerifyEmailInner() {
               <path d="M7 21V14l7-7 7 7v7H17v-5h-6v5H7Z" fill="currentColor" />
             </svg>
           </div>
-          <span className="auth-brand-name">RevisionOS</span>
+          <span className="auth-brand-name">RevisionWorks</span>
         </div>
 
         {state === 'verifying' && (

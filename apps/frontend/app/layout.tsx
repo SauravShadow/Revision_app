@@ -28,7 +28,7 @@ const plexMono = IBM_Plex_Mono({
   display: 'swap',
 });
 
-export const metadata: Metadata = { title: 'revision_app', description: 'Track your exam revision — Civil Engineering, Software Engineering & more.' };
+export const metadata: Metadata = { title: 'RevisionWorks', description: 'Track your exam revision — Civil Engineering, Software Engineering & more.' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

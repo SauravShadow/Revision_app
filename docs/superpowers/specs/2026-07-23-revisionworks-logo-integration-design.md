@@ -24,8 +24,15 @@ Brand assets are committed under `Logo/` and mirrored into `apps/frontend/public
 
 1. **Header wordmark** — `apps/frontend/components/layout/AppShell.tsx` (lines ~33–46).
 2. **App name / page title** — `apps/frontend/app/layout.tsx` (line 31, `metadata.title`).
+3. **Auth-page brand labels** — the app name also appears as the text `RevisionOS`
+   (no space) inside `<span className="auth-brand-name">` on the five auth pages:
+   `login`, `register`, `verify-email`, `forgot-password`, `reset-password`. Per the
+   full-rename decision, all five text labels become `RevisionWorks`. (An initial
+   grep for the spaced form "REVISION OS" missed these; found during implementation.)
 
-**Out of scope** (ready for a later pass, not touched here): favicon.ico, Open Graph image, auth-page banners, email templates, PWA manifest.
+**Out of scope** (ready for a later pass, not touched here): favicon.ico, Open Graph
+image, the auth-page brand **icon** (the house-shaped SVG next to the `auth-brand-name`
+text stays as-is — auth-page logo *visuals* were deferred), email templates, PWA manifest.
 
 ## Design
 
@@ -52,6 +59,12 @@ The "icon PNG + live-text wordmark" approach was chosen specifically so the word
 - `npx tsc --noEmit` — type check passes.
 - Existing Vitest suites pass (`npm test`).
 - Manual: launch the app and verify the header logo + wordmark render correctly across all three themes, and the browser tab title reads "RevisionWorks".
+
+**Verification performed (2026-07-23):** `tsc --noEmit` clean; 285/285 Vitest tests pass.
+App rebuilt (`docker compose build app`) and driven headless via Playwright: logged in as
+the demo user and captured the header across engpad / blueprint / slate — the green icon
+badge stays constant while the wordmark recolors via `text-ink` (dark on light themes,
+light on blueprint's dark navy), all legible. Login page confirmed showing "RevisionWorks".
 
 ## Non-goals
 
