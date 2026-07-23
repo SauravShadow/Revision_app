@@ -34,7 +34,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link href="/" className="group flex shrink-0 items-center gap-3">
               {/* Brand mark */}
               <Image
-                src="/logo-icon.png"
+                src="/logo-icon-transparent.png"
                 alt="RevisionWorks"
                 width={28}
                 height={28}

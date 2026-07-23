@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Archivo, IBM_Plex_Mono } from 'next/font/google';
 import 'katex/dist/katex.min.css';
 import './globals.css';
@@ -34,7 +34,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://127.0.0.1:3200'),
   title: 'RevisionWorks',
   description: 'Track your exam revision — Civil Engineering, Software Engineering & more.',
+  appleWebApp: { capable: true, title: 'RevisionWorks', statusBarStyle: 'default' },
 };
+
+// Brand green tints the mobile browser chrome / PWA status bar.
+export const viewport: Viewport = { themeColor: '#4a7a1f' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

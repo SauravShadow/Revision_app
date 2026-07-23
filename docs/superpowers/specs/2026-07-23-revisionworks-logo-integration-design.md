@@ -51,7 +51,40 @@ Using Next 15 App Router file conventions in `apps/frontend/app/` (no config nee
 `<head>` carries `og:image` (1200×630), `twitter:card=summary_large_image`, `rel=icon`
 (favicon.ico + 512 png) and `apple-touch-icon` (180); all five assets serve HTTP 200.
 
-**Still pending:** auth-page brand icon swap, email templates, PWA manifest.
+**Still pending after this follow-up:** auth-page brand icon swap, email templates, PWA
+manifest — all delivered in the batch below.
+
+## Follow-up delivered (2026-07-23): auth icon · email · PWA manifest
+
+- **Auth-page brand icon** — replaced the house-shaped SVG (in the `.auth-brand-icon` box)
+  on all five auth pages with the RevisionWorks circle mark via `next/image`; simplified the
+  `.auth-brand-icon` CSS to a plain 36px circle (dropped the tinted box + border).
+- **Email templates** (`services/auth-service/src/email/templates.ts`) — rebranded the
+  verification + password-reset emails: `RevisionOS` → `RevisionWorks`, added a branded
+  email-safe shell (icon `<img>` from `${origin}/icons/icon-192.png` + HTML wordmark, green
+  accent rule, green CTA button, footer). Origin is derived from the link so no new env is
+  needed. Existing email tests still pass (href + expiry text + subject keywords preserved).
+- **PWA manifest** (`app/manifest.ts`, Next `MetadataRoute.Manifest`) — `name`/`short_name`
+  `RevisionWorks`, `display: standalone`, `start_url`/`scope` `/`, `background_color`
+  `#faf7ef`, `theme_color` `#4a7a1f`, and 192/512 icons in both `any` and `maskable` purposes
+  (maskable = matched-green full-bleed square with the mark in the safe zone). Added
+  `viewport.themeColor` and `appleWebApp` metadata to the root layout. Aligns with
+  `2026-07-19-mobile-app-twa-design.md`.
+
+### Icon-consistency correction
+
+The user supplied two marks: `revisionworks-icon.png` (polished, **varying-height** bars) and
+`revisionworks-icon-original.png` (flat, **equal** bars). The header used the polished one but
+the favicon / OG / PWA / email icons had been built from the flat one — a visible mismatch.
+Fixed by masking the polished icon to a transparent circle
+(`public/logo-icon-transparent.png`, inscribed-circle alpha mask) and regenerating **every**
+derived asset (favicon.ico, app/icon.png, OG card, PWA `any` + `maskable` icons) plus the
+header and auth-page `<img>` sources from that single master. All surfaces now show the
+polished varying-height mark.
+
+**Verification:** frontend + auth-service `tsc` clean; auth email tests pass; app +
+auth-service rebuilt and restarted; every asset serves 200 and `manifest.webmanifest` is
+correct; login page, email, favicon and OG card visually confirmed showing the polished mark.
 
 ## Design
 

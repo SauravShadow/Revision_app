@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import { useState } from 'react';
 import Link from 'next/link';
 import { forgotPassword } from '@/lib/auth/client';
@@ -25,12 +26,7 @@ export default function ForgotPasswordPage() {
       <div className="auth-glow auth-glow--b" />
       <div className="auth-card">
         <div className="auth-brand">
-          <div className="auth-brand-icon">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-              <rect width="28" height="28" rx="8" fill="currentColor" opacity=".15" />
-              <path d="M7 21V14l7-7 7 7v7H17v-5h-6v5H7Z" fill="currentColor" />
-            </svg>
-          </div>
+          <Image className="auth-brand-icon" src="/logo-icon-transparent.png" alt="" width={36} height={36} priority />
           <span className="auth-brand-name">RevisionWorks</span>
         </div>
 
