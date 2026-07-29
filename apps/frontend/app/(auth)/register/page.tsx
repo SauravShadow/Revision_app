@@ -99,7 +99,7 @@ export default function RegisterPage() {
       <div className={`auth-card ${step === 'domain' ? 'auth-card--wide' : ''}`}>
         {/* Logo */}
         <div className="auth-brand">
-          <Image className="auth-brand-icon" src="/logo-icon-transparent.png" alt="" width={36} height={36} priority />
+          <Image className="auth-brand-icon" src="/logo-icon-original.png" alt="" width={36} height={36} priority />
           <span className="auth-brand-name">RevisionWorks</span>
         </div>
 

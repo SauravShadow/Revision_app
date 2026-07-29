@@ -71,20 +71,29 @@ manifest — all delivered in the batch below.
   `viewport.themeColor` and `appleWebApp` metadata to the root layout. Aligns with
   `2026-07-19-mobile-app-twa-design.md`.
 
-### Icon-consistency correction
+### Icon-consistency correction (superseded — see below)
 
-The user supplied two marks: `revisionworks-icon.png` (polished, **varying-height** bars) and
-`revisionworks-icon-original.png` (flat, **equal** bars). The header used the polished one but
-the favicon / OG / PWA / email icons had been built from the flat one — a visible mismatch.
-Fixed by masking the polished icon to a transparent circle
-(`public/logo-icon-transparent.png`, inscribed-circle alpha mask) and regenerating **every**
-derived asset (favicon.ico, app/icon.png, OG card, PWA `any` + `maskable` icons) plus the
-header and auth-page `<img>` sources from that single master. All surfaces now show the
-polished varying-height mark.
+The user supplied two marks: `revisionworks-icon.png` (**unequal-height** bars, even spacing,
+bar-chart style) and `revisionworks-icon-original.png` (**equal-height** bars, tally-style
+spacing — 4 grouped, 1 separated — matching the banner wordmark). The header was already
+using the correct mark (`logo-icon-original.png`), but the favicon / OG / PWA / email icons
+had been built from `logo-icon-original.png` too at that point — this first "correction" pass
+misidentified `logo-icon.png` as the "polished, correct" one and propagated *it* everywhere
+instead, making every surface wrong. Reverted below.
 
-**Verification:** frontend + auth-service `tsc` clean; auth email tests pass; app +
-auth-service rebuilt and restarted; every asset serves 200 and `manifest.webmanifest` is
-correct; login page, email, favicon and OG card visually confirmed showing the polished mark.
+### Icon-consistency correction, take two (2026-07-23, later same day)
+
+`revisionworks-icon-original.png` (equal-height, tally-style bars) is the correct brand mark —
+it matches the wordmark banners; `logo-icon.png` is a different, unrelated asset and is not
+used anywhere in the app. Regenerated every derived asset (favicon.ico, app/icon.png,
+apple-icon.png, OG/Twitter card, PWA `any` + `maskable` icons) from `logo-icon-original.png`
+directly — it's already alpha-transparent outside its circle, so no masking step is needed.
+Header and all five auth pages point at `/logo-icon-original.png`. Deleted the
+`logo-icon-transparent.png` derivative (was masked from the wrong source).
+
+**Verification:** `tsc` clean; app container rebuilt and restarted; every regenerated asset
+serves 200; fresh cache-busted screenshots of the header and the extracted favicon both show
+the correct equal-height tally-style mark.
 
 ## Design
 

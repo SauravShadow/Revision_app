@@ -43,7 +43,7 @@ function VerifyEmailInner() {
       <div className="auth-glow auth-glow--b" />
       <div className="auth-card">
         <div className="auth-brand">
-          <Image className="auth-brand-icon" src="/logo-icon-transparent.png" alt="" width={36} height={36} priority />
+          <Image className="auth-brand-icon" src="/logo-icon-original.png" alt="" width={36} height={36} priority />
           <span className="auth-brand-name">RevisionWorks</span>
         </div>
 
