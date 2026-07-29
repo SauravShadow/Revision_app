@@ -33,15 +33,15 @@ describe('stats derivation', () => {
   });
 
   it('derives totals, completion, coverage, and a due histogram', () => {
-    // t1: revised 3d ago once → interval 1d → was due 2d ago (overdue)
-    // t2: revised today → due tomorrow
-    // t3: never revised → not in histogram
+    // t1: revised 3d ago, planned 2d ago (overdue)
+    // t2: revised today, planned tomorrow
+    // t3: never revised, unplanned → not in histogram
     // t4: archived → ignored entirely
     const data = appData([
-      topic('t1', [rev(3)]),
-      topic('t2', [rev(0)]),
+      topic('t1', [rev(3)], { plannedAt: NOW - 2 * DAY_MS }),
+      topic('t2', [rev(0)], { plannedAt: NOW + 1 * DAY_MS }),
       topic('t3', []),
-      topic('t4', [rev(1)], { archivedAt: NOW }),
+      topic('t4', [rev(1)], { archivedAt: NOW, plannedAt: NOW }),
     ]);
     const s = deriveStats(data, NOW);
     expect(s.totalTopics).toBe(3);

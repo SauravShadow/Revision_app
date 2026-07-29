@@ -164,10 +164,10 @@ export function cohortRouter(): express.Router {
                     .map((t) => ({
                       id: t.id,
                       title: t.title,
-                      state: badgeState(t.revisionHistory, now),
+                      state: badgeState(t, now),
                       revisionCount: t.revisionHistory.length,
                       lastRevisedAt: lastRevisedAt(t.revisionHistory) ?? null,
-                      nextDueAt: nextDueDate(t.revisionHistory) ?? null,
+                      nextDueAt: nextDueDate(t) ?? null,
                     })),
                 })),
             }))

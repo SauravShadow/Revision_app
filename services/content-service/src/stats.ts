@@ -31,7 +31,7 @@ export function deriveStats(data: AppData, now: number): DerivedStats {
   for (const t of topics) {
     const revised = t.revisionHistory.length > 0;
     if (revised) completed += 1;
-    const due = nextDueDate(t.revisionHistory);
+    const due = nextDueDate(t);
     if (due !== undefined) {
       const key = utcDayKey(due);
       dueHistogram[key] = (dueHistogram[key] ?? 0) + 1;

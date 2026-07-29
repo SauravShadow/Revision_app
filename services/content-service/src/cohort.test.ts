@@ -35,7 +35,8 @@ function studentBlob(): AppData {
       t1: {
         id: 't1', chapterId: 'c1', title: 'Bearing capacity', notes: 'SECRET-NOTE', order: 0,
         difficulty: 'Easy', priority: 'Low',
-        revisionHistory: [{ id: 'r1', timestamp: NOW - 3 * DAY_MS }], createdAt: 0, updatedAt: 0,
+        revisionHistory: [{ id: 'r1', timestamp: NOW - 3 * DAY_MS }], plannedAt: NOW - 2 * DAY_MS,
+        createdAt: 0, updatedAt: 0,
         attachments: [{ id: 'a1', name: 'secret.pdf', kind: 'pdf', url: '/api/files/a1', createdAt: 0 }],
         flashcards: [{ id: 'f1', front: 'SECRET-FRONT', back: 'SECRET-BACK', createdAt: 0 }],
         bookmarkedAt: NOW, tagIds: ['tag1'],
