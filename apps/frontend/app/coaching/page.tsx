@@ -183,7 +183,7 @@ export default function CoachingPage() {
                       <span
                         aria-hidden
                         className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-panel-2 text-xs font-bold text-ink"
-                        style={{ boxShadow: `0 0 0 2px var(--panel), 0 0 0 3px ${s.hasData ? (s.overdue > 0 ? 'var(--alarm)' : 'var(--go)') : 'var(--line-strong)'}` }}
+                        style={{ boxShadow: `0 0 0 2px var(--panel), 0 0 0 3px ${s.hasData && s.completedTopics > 0 ? (s.overdue > 0 ? 'var(--alarm)' : 'var(--go)') : 'var(--line-strong)'}` }}
                       >
                         {s.username.charAt(0).toUpperCase()}
                       </span>
@@ -194,7 +194,11 @@ export default function CoachingPage() {
                     <>
                       <td className="py-2 pr-3">{s.completionPct}%</td>
                       <td className="py-2 pr-3">{s.streakDays}d</td>
-                      <td className="py-2 pr-3">{s.overdue > 0 ? `Overdue (${s.overdue})` : 'On track'}</td>
+                      <td className="py-2 pr-3">
+                        {s.completedTopics === 0 ? (
+                          <span className="text-ink-faint">Not started</span>
+                        ) : s.overdue > 0 ? `Overdue (${s.overdue})` : 'On track'}
+                      </td>
                       {subjects.map((name) => {
                         const cov = s.subjectCoverage.find((c) => c.subject === name);
                         const pct = cov && cov.total > 0 ? Math.round((100 * cov.revised) / cov.total) : null;
