@@ -12,6 +12,7 @@ import { useFilters } from '@/store/useFilters';
 import { matchingTopics, hasActiveFilters } from '@/lib/filters/predicates';
 import { FilterBar } from '@/components/FilterBar';
 import { TopicResultRow } from '@/components/TopicResultRow';
+import { PlanSubjectDialog } from '@/components/PlanSubjectDialog';
 
 export default function SubjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -22,14 +23,22 @@ export default function SubjectPage({ params }: { params: Promise<{ id: string }
   const { tagIds, statuses } = useFilters();
   const filters = { tagIds, statuses };
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
+  const [planOpen, setPlanOpen] = useState(false);
   if (!subject) return notFound();
   return (
     <div>
       <Breadcrumb items={[{ label: 'Subjects', href: '/' }, { label: subject.name }]} />
       <div className="mb-6 mt-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">{subject.name}</h1>
-        <AddButton label="Chapter" onAdd={(name) => setJustAddedId(addChapter(id, name))} />
+        <div className="flex items-center gap-2">
+          <button onClick={() => setPlanOpen(true)}
+            className="rounded-xl border border-line px-3 py-2 text-sm text-ink-dim transition hover:border-accent hover:text-accent">
+            Plan revision
+          </button>
+          <AddButton label="Chapter" onAdd={(name) => setJustAddedId(addChapter(id, name))} />
+        </div>
       </div>
+      {planOpen && <PlanSubjectDialog subjectId={id} onClose={() => setPlanOpen(false)} />}
       <FilterBar />
       {hasActiveFilters(filters) ? (
         <div className="grid gap-3">
