@@ -29,6 +29,22 @@ it('renders the current month heading in the month view', async () => {
   expect(screen.getAllByText(new RegExp(monthName, 'i')).length).toBeGreaterThan(0);
 });
 
+it('plans a topic onto a future day from the day rail', async () => {
+  const s = useStore.getState().addSubject('S');
+  const c = useStore.getState().addChapter(s, 'C');
+  const t = useStore.getState().addTopic(c, 'Bernoulli');
+  render(<CalendarPage />);
+  const user = userEvent.setup();
+  await user.click(screen.getByRole('button', { name: 'Month' }));
+  // select tomorrow's cell (falls back to next month's grid if today is month-end)
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); tomorrow.setHours(0, 0, 0, 0);
+  if (tomorrow.getDate() === 1) await user.click(screen.getByLabelText('Next month'));
+  await user.click(screen.getByRole('button', { name: tomorrow.toDateString() }));
+  await user.click(screen.getByRole('button', { name: '+ Plan' }));
+  await user.click(screen.getByRole('button', { name: /Bernoulli/ }));
+  expect(useStore.getState().topics[t].plannedAt).toBe(tomorrow.getTime());
+});
+
 it('keeps a day panel visible after navigating to another month (re-anchors selection)', async () => {
   render(<CalendarPage />);
   const user = userEvent.setup();

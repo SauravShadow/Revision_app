@@ -6,6 +6,7 @@ import { useStore } from '@/store/useStore';
 import { calendarMonth, type CalendarDay } from '@/lib/insights/calendar';
 import { startOfDay } from '@/lib/insights/day';
 import { TopicResultRow } from '@/components/TopicResultRow';
+import { PlanTopicPicker } from '@/components/PlanTopicPicker';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -56,6 +57,7 @@ export function MonthCalendar() {
 
   const [view, setView] = useState({ year: todayDate.getFullYear(), month: todayDate.getMonth() });
   const [selected, setSelected] = useState<number>(todayStart);
+  const [planOpen, setPlanOpen] = useState(false);
 
   const cells = useMemo(() => calendarMonth(data, view.year, view.month, now), [data, view, now]);
   const selectedCell = cells.find((c) => c.day === selected);
@@ -109,6 +111,7 @@ export function MonthCalendar() {
                 key={c.day}
                 onClick={() => setSelected(c.day)}
                 aria-current={isToday ? 'date' : undefined}
+                aria-label={new Date(c.day).toDateString()}
                 className={`group relative flex aspect-square flex-col items-center justify-center rounded-lg border text-xs transition
                   ${c.inMonth ? 'border-line bg-ground-deep/40 hover:border-line-strong hover:bg-panel-2' : 'border-transparent text-ink-faint opacity-40'}
                   ${isSelected ? 'border-accent bg-panel-2' : ''}
@@ -155,9 +158,15 @@ export function MonthCalendar() {
               </div>
             )}
           </div>
-          <button onClick={jumpToday} className="dim-chip text-ink-dim transition hover:border-accent hover:text-accent">Today</button>
+          <div className="flex items-center gap-1.5">
+            {selected >= todayStart && (
+              <button onClick={() => setPlanOpen(true)} className="dim-chip text-ink-dim transition hover:border-accent hover:text-accent">+ Plan</button>
+            )}
+            <button onClick={jumpToday} className="dim-chip text-ink-dim transition hover:border-accent hover:text-accent">Today</button>
+          </div>
         </div>
         {selectedCell && <SelectedDayTopics cell={selectedCell} data={data} />}
+        {planOpen && <PlanTopicPicker day={selected} onClose={() => setPlanOpen(false)} />}
       </div>
     </div>
   );
