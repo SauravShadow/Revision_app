@@ -10,7 +10,7 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 const BAR: Record<AgendaStatus, string> = {
-  overdue: 'var(--alarm)', due: 'var(--annotation)', completed: 'var(--go)',
+  overdue: 'var(--alarm)', due: 'var(--annotation)', completed: 'var(--go)', unplanned: 'var(--ink-faint)',
 };
 
 // Compact week context strip (docs/calendar-agenda-prototype.html): 7 day

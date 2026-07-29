@@ -12,14 +12,15 @@ const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const TONE: Record<AgendaStatus, string> = {
-  overdue: 'var(--alarm)', due: 'var(--annotation)', completed: 'var(--go)',
+  overdue: 'var(--alarm)', due: 'var(--annotation)', completed: 'var(--go)', unplanned: 'var(--ink-faint)',
 };
 const PILL: Record<AgendaStatus, string> = {
   overdue: 'border-alarm/60 bg-alarm/10 text-alarm',
   due: 'border-annotation/60 bg-annotation/10 text-annotation',
   completed: 'border-go/60 bg-go/10 text-go',
+  unplanned: 'border-line-strong bg-panel-2 text-ink-dim',
 };
-const PILL_LABEL: Record<AgendaStatus, string> = { overdue: 'Overdue', due: 'Due', completed: 'Done' };
+const PILL_LABEL: Record<AgendaStatus, string> = { overdue: 'Overdue', due: 'Due', completed: 'Done', unplanned: 'Unplanned' };
 
 function fmtDate(ts: number): string {
   const d = new Date(ts);
@@ -75,7 +76,7 @@ function Section({ id, title, dateLabel, tone, alarm = false, topics, delay }: {
           <span className="text-xs text-ink-dim">{dateLabel}</span>
         </div>
         <div className="flex gap-1.5">
-          {(['overdue', 'due', 'completed'] as const).filter((k) => counts[k]).map((k) => (
+          {(['overdue', 'due', 'completed', 'unplanned'] as const).filter((k) => counts[k]).map((k) => (
             <span key={k}
               className="inline-grid h-5 min-w-[1.25rem] place-items-center rounded-full px-1.5 font-mono text-[0.66rem] font-semibold tabular-nums"
               style={{ color: TONE[k], background: `color-mix(in srgb, ${TONE[k]} 14%, transparent)` }}
@@ -111,7 +112,7 @@ export function Agenda() {
     doneToday: agenda.days.find((d) => d.ts === today)?.topics.filter((t) => t.status === 'completed').length ?? 0,
   }), [agenda, today]);
 
-  const empty = agenda.overdue.length === 0 && agenda.days.every((d) => d.topics.length === 0);
+  const empty = agenda.overdue.length === 0 && agenda.unplanned.length === 0 && agenda.days.every((d) => d.topics.length === 0);
 
   return (
     <div>
@@ -133,6 +134,11 @@ export function Agenda() {
             <Section id="day-overdue" title="Overdue" tone="var(--alarm)" alarm
               dateLabel={`${agenda.overdue.length} topic${agenda.overdue.length === 1 ? '' : 's'} slipping`}
               topics={agenda.overdue} delay={0} />
+          )}
+          {agenda.unplanned.length > 0 && (
+            <Section id="day-unplanned" title="Unplanned" tone="var(--ink-faint)"
+              dateLabel={`${agenda.unplanned.length} topic${agenda.unplanned.length === 1 ? '' : 's'} need a date`}
+              topics={agenda.unplanned} delay={40} />
           )}
           {agenda.days.map((d, i) => {
             const rel = Math.round((d.ts - today) / DAY);

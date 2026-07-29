@@ -37,6 +37,26 @@ describe('buildAgenda', () => {
     expect(a.days.every((d) => d.topics.every((t) => t.status === 'due' || t.status === 'completed'))).toBe(true);
   });
 
+  it('collects revised-but-unplanned topics into the unplanned bucket', () => {
+    const data = makeData();
+    data.topics.tSkipped = { id: 'tSkipped', chapterId: 'c1', title: 'Fatigue', revisionHistory: [rev(2)], plannedAt: null } as unknown as (typeof data.topics)[string];
+    data.chapters.c1.topicIds.push('tSkipped');
+    const a = buildAgenda(data, NOW, 14);
+    expect(a.unplanned.map((t) => t.id)).toContain('tSkipped');
+    expect(a.unplanned.every((t) => t.status === 'unplanned')).toBe(true);
+    expect(a.days.flatMap((d) => d.topics.map((t) => t.id))).not.toContain('tSkipped');
+  });
+
+  it('a planned never-revised topic appears on its planned day', () => {
+    const data = makeData();
+    data.topics.tPlannedNew = { id: 'tPlannedNew', chapterId: 'c1', title: 'Creep', revisionHistory: [], plannedAt: NOW + 2 * DAY } as unknown as (typeof data.topics)[string];
+    data.chapters.c1.topicIds.push('tPlannedNew');
+    const a = buildAgenda(data, NOW, 14);
+    const day = a.days.find((d) => d.ts === startOfDay(NOW + 2 * DAY));
+    expect(day?.topics.map((t) => t.id)).toContain('tPlannedNew');
+    expect(a.unplanned.map((t) => t.id)).not.toContain('tPlannedNew');
+  });
+
   it('excludes topics due beyond the horizon and never-revised topics', () => {
     const a = buildAgenda(makeData(), NOW, 14);
     const allIds = [...a.overdue, ...a.days.flatMap((d) => d.topics)].map((t) => t.id);

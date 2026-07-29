@@ -8,7 +8,7 @@ import { activeTopics } from './topics';
 // most once: overdue bucket, else completed in today's group if revised today,
 // else due on its due day. Today and Tomorrow groups always exist so the agenda
 // anchors on "now" even when empty.
-export type AgendaStatus = 'overdue' | 'due' | 'completed';
+export type AgendaStatus = 'overdue' | 'due' | 'completed' | 'unplanned';
 
 export interface AgendaTopic {
   id: string;
@@ -26,15 +26,17 @@ export interface AgendaDay {
 
 export interface Agenda {
   overdue: AgendaTopic[];
+  unplanned: AgendaTopic[];
   days: AgendaDay[];
 }
 
-const RANK: Record<AgendaStatus, number> = { overdue: 0, due: 1, completed: 2 };
+const RANK: Record<AgendaStatus, number> = { overdue: 0, due: 1, completed: 2, unplanned: 3 };
 
 export function buildAgenda(data: AppData, now: number, horizonDays = 14): Agenda {
   const today = startOfDay(now);
   const horizonEnd = today + horizonDays * DAY_MS;
   const overdue: AgendaTopic[] = [];
+  const unplanned: AgendaTopic[] = [];
   const byDay = new Map<number, AgendaTopic[]>([[today, []], [today + DAY_MS, []]]);
   const push = (day: number, t: AgendaTopic) => {
     const arr = byDay.get(day) ?? [];
@@ -60,7 +62,11 @@ export function buildAgenda(data: AppData, now: number, horizonDays = 14): Agend
       continue;
     }
     const due = nextDueDate(t);
-    if (due === undefined) continue;
+    if (due === undefined) {
+      // Revised but never re-planned: surface it so it doesn't silently vanish.
+      if (t.revisionHistory.length > 0) unplanned.push({ ...base, status: 'unplanned' });
+      continue;
+    }
     const dueDay = startOfDay(due);
     if (dueDay >= today && dueDay <= horizonEnd) push(dueDay, { ...base, status: 'due' });
   }
@@ -68,7 +74,7 @@ export function buildAgenda(data: AppData, now: number, horizonDays = 14): Agend
   const days = [...byDay.entries()]
     .sort((a, b) => a[0] - b[0])
     .map(([ts, topics]) => ({ ts, topics: topics.sort((a, b) => RANK[a.status] - RANK[b.status]) }));
-  return { overdue, days };
+  return { overdue, unplanned, days };
 }
 
 export interface DayLoad {
@@ -89,13 +95,12 @@ export function loadByDay(data: AppData, now: number): Map<number, DayLoad> {
 
   for (const t of activeTopics(data)) {
     const last = lastRevisedAt(t.revisionHistory);
-    if (last === undefined) continue;
     if (badgeState(t, now) === 'Overdue') {
       const due = nextDueDate(t);
       if (due !== undefined) add(startOfDay(due), 'overdue');
       continue;
     }
-    if (startOfDay(last) === today) {
+    if (last !== undefined && startOfDay(last) === today) {
       add(today, 'completed');
       continue;
     }
