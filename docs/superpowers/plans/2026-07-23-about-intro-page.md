@@ -295,7 +295,7 @@ export function MarketingHeader() {
     <header className="sticky top-0 z-30 border-b border-line-strong bg-ground-deep/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-3 sm:px-8">
         <Link href="/about" className="flex items-center gap-2.5">
-          <Image src="/logo-icon.png" alt="RevisionWorks" width={28} height={28} priority className="h-7 w-7 rounded-full" />
+          <Image src="/logo-icon-original.png" alt="RevisionWorks" width={28} height={28} priority className="h-7 w-7 rounded-full" />
           <span className="text-sm tracking-tight text-ink">
             Revision<span className="font-semibold">Works</span>
           </span>
@@ -405,7 +405,7 @@ export function Hero() {
   return (
     <section className="relative overflow-hidden">
       <div className="bp-ticks group mx-auto flex max-w-4xl flex-col items-center px-5 py-24 text-center sm:py-32">
-        <Image src="/logo-icon.png" alt="RevisionWorks" width={72} height={72} priority className="mb-6 h-16 w-16 rounded-2xl sm:h-18 sm:w-18" />
+        <Image src="/logo-icon-original.png" alt="RevisionWorks" width={72} height={72} priority className="mb-6 h-16 w-16 rounded-2xl sm:h-18 sm:w-18" />
         <p className="tblabel mb-4">Spaced-repetition revision · any subject</p>
         <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight text-ink sm:text-5xl">
           Remember everything you study — right up to exam day.
