@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  totalRevisions, lastRevisedAt, nextDueDate, daysSince,
+  totalRevisions, lastRevisedAt, nextDueDate, suggestedNextDate, daysSince,
   badgeState, relativeLabel, inGoodStanding, markRevised,
   deleteRevision, updateRevisionTimestamp,
 } from './engine';
@@ -27,13 +27,22 @@ describe('engine counts', () => {
 });
 
 describe('nextDueDate', () => {
-  it('is undefined when never revised', () => {
-    expect(nextDueDate([])).toBeUndefined();
+  it('is undefined without a plan, regardless of history', () => {
+    expect(nextDueDate({ revisionHistory: [] })).toBeUndefined();
+    expect(nextDueDate({ revisionHistory: [rev(at('2026-07-01'))], plannedAt: null })).toBeUndefined();
   });
+  it('returns the planned date', () => {
+    const now = at('2026-07-01');
+    expect(nextDueDate({ revisionHistory: [rev(now)], plannedAt: now + 5 * DAY })).toBe(now + 5 * DAY);
+  });
+});
+
+describe('suggestedNextDate', () => {
   it('adds the ladder interval after the last revision', () => {
     const now = at('2026-07-01');
-    expect(nextDueDate([rev(now)])).toBe(now + 1 * DAY); // 1 revision -> 1 day
-    expect(nextDueDate([rev(now), rev(now)])).toBe(now + 3 * DAY); // 2 -> 3 days
+    expect(suggestedNextDate([])).toBeUndefined();
+    expect(suggestedNextDate([rev(now)])).toBe(now + 1 * DAY); // 1 revision -> 1 day
+    expect(suggestedNextDate([rev(now), rev(now)])).toBe(now + 3 * DAY); // 2 -> 3 days
   });
 });
 
@@ -48,24 +57,28 @@ describe('daysSince', () => {
 });
 
 describe('badgeState', () => {
-  it('NeverRevised for empty history', () => {
-    expect(badgeState([], at('2026-07-05'))).toBe('NeverRevised');
+  it('NeverRevised for empty history without a plan', () => {
+    expect(badgeState({ revisionHistory: [] }, at('2026-07-05'))).toBe('NeverRevised');
   });
-  it('RecentlyRevised right after revising', () => {
-    const now = at('2026-07-05');
-    expect(badgeState([rev(now)], now)).toBe('RecentlyRevised');
-  });
-  it('DueToday when the due date is today', () => {
-    const last = at('2026-07-01');           // 1 revision -> due +1 day
-    expect(badgeState([rev(last)], at('2026-07-02'))).toBe('DueToday');
-  });
-  it('Overdue when past the due date', () => {
+  it('Unplanned for history without a plan', () => {
     const last = at('2026-07-01');
-    expect(badgeState([rev(last)], at('2026-07-10'))).toBe('Overdue');
+    expect(badgeState({ revisionHistory: [rev(last)], plannedAt: null }, at('2026-07-05'))).toBe('Unplanned');
   });
-  it('DueTomorrow one day before due', () => {
-    const last = at('2026-07-01');           // 2 revisions -> due +3 days = Jul 4
-    expect(badgeState([rev(last), rev(last)], at('2026-07-03'))).toBe('DueTomorrow');
+  it('RecentlyRevised right after revising with a plan ahead', () => {
+    const now = at('2026-07-05');
+    expect(badgeState({ revisionHistory: [rev(now)], plannedAt: now + 7 * DAY }, now)).toBe('RecentlyRevised');
+  });
+  it('DueToday when the planned date is today', () => {
+    const last = at('2026-07-01');
+    expect(badgeState({ revisionHistory: [rev(last)], plannedAt: at('2026-07-02') }, at('2026-07-02'))).toBe('DueToday');
+  });
+  it('Overdue when past the planned date', () => {
+    const last = at('2026-07-01');
+    expect(badgeState({ revisionHistory: [rev(last)], plannedAt: at('2026-07-02') }, at('2026-07-10'))).toBe('Overdue');
+  });
+  it('DueTomorrow one day before the planned date', () => {
+    const last = at('2026-07-01');
+    expect(badgeState({ revisionHistory: [rev(last), rev(last)], plannedAt: at('2026-07-04') }, at('2026-07-03'))).toBe('DueTomorrow');
   });
 });
 
@@ -80,11 +93,12 @@ describe('relativeLabel', () => {
 });
 
 describe('inGoodStanding', () => {
-  it('false when overdue, due today, or never revised', () => {
+  it('false when overdue, due today, never revised, or unplanned', () => {
     const last = at('2026-07-01');
-    expect(inGoodStanding([], at('2026-07-05'))).toBe(false);
-    expect(inGoodStanding([rev(last)], at('2026-07-10'))).toBe(false);
-    expect(inGoodStanding([rev(last)], at('2026-07-01'))).toBe(true);
+    expect(inGoodStanding({ revisionHistory: [] }, at('2026-07-05'))).toBe(false);
+    expect(inGoodStanding({ revisionHistory: [rev(last)], plannedAt: at('2026-07-02') }, at('2026-07-10'))).toBe(false);
+    expect(inGoodStanding({ revisionHistory: [rev(last)], plannedAt: null }, at('2026-07-05'))).toBe(false);
+    expect(inGoodStanding({ revisionHistory: [rev(last)], plannedAt: at('2026-07-08') }, at('2026-07-01'))).toBe(true);
   });
 });
 
@@ -97,6 +111,12 @@ describe('markRevised', () => {
     expect(next.revisionHistory).toHaveLength(1);
     expect(next.revisionHistory[0].timestamp).toBe(now);
     expect(next.updatedAt).toBe(now);
+  });
+
+  it('clears the plan — revising fulfils it', () => {
+    const now = at('2026-07-05');
+    const t = { ...baseTopic([]), plannedAt: now };
+    expect(markRevised(t, now).plannedAt).toBeNull();
   });
 });
 

@@ -1,12 +1,13 @@
 import type { BadgeState } from '@/lib/revision/engine';
 
 const LABELS: Record<BadgeState, string> = {
-  NeverRevised: 'NEW', Overdue: 'OVERDUE', DueToday: 'DUE TODAY',
+  NeverRevised: 'NEW', Unplanned: 'UNPLANNED', Overdue: 'OVERDUE', DueToday: 'DUE TODAY',
   DueTomorrow: 'DUE +1D', RecentlyRevised: 'REVISED', Upcoming: 'UPCOMING',
 };
 // Blueprint annotation tags — mono, uppercase, redline colour-coded.
 const COLORS: Record<BadgeState, string> = {
   NeverRevised: 'border-line text-ink-dim',
+  Unplanned: 'border-line-strong text-ink-dim bg-panel-2',
   Overdue: 'border-alarm/50 text-alarm bg-alarm/10',
   DueToday: 'border-annotation/50 text-annotation bg-annotation/10',
   DueTomorrow: 'border-accent/50 text-accent bg-accent/10',

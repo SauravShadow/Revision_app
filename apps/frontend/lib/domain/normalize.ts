@@ -1,4 +1,5 @@
 import type { AppData } from '@revision-app/shared';
+import { suggestedNextDate } from '@revision-app/shared';
 import { makeBuiltinTags } from './builtinTags';
 
 // Single load-boundary migration: guarantees every AppData field exists so
@@ -15,6 +16,19 @@ export function normalizeData(raw: Partial<AppData> | null | undefined): AppData
     tags: src.tags ?? {},
     tagOrder: src.tagOrder ?? [],
   };
-  if (src.tagOrder === undefined) return { ...base, ...makeBuiltinTags() };
-  return base;
+  // plannedAt migration: legacy snapshots (field absent) inherit the old
+  // ladder-derived due date so calendars don't empty on upgrade. null
+  // (deliberate skip/clear) is preserved as-is.
+  let topics = base.topics;
+  let changed = false;
+  for (const id of Object.keys(topics)) {
+    const t = topics[id];
+    if (t.plannedAt === undefined && t.revisionHistory.length > 0) {
+      if (!changed) { topics = { ...topics }; changed = true; }
+      topics[id] = { ...t, plannedAt: suggestedNextDate(t.revisionHistory) };
+    }
+  }
+  const migrated = changed ? { ...base, topics } : base;
+  if (src.tagOrder === undefined) return { ...migrated, ...makeBuiltinTags() };
+  return migrated;
 }

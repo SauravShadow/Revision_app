@@ -19,7 +19,7 @@ const RANK: Record<QueueState, number> = { Overdue: 0, DueToday: 1 };
 export function todayQueue(data: AppData, now: number): QueueItem[] {
   const items: QueueItem[] = [];
   for (const topic of activeTopics(data)) {
-    const state = badgeState(topic.revisionHistory, now);
+    const state = badgeState(topic, now);
     if (state !== 'Overdue' && state !== 'DueToday') continue;
     const chapter = data.chapters[topic.chapterId];
     const subject = chapter ? data.subjects[chapter.subjectId] : undefined;

@@ -43,9 +43,9 @@ export function overallStats(data: AppData, now: number): OverallStats {
 
   for (const t of topics) {
     const h = t.revisionHistory;
-    if (inGoodStanding(h, now)) good += 1;
+    if (inGoodStanding(t, now)) good += 1;
     if (h.length === 0) neverRevised += 1;
-    const state = badgeState(h, now);
+    const state = badgeState(t, now);
     if (state === 'DueToday') dueToday += 1;
     if (state === 'Overdue') overdue += 1;
     totalRevisions += h.length;

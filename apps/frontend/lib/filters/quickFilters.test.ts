@@ -16,9 +16,9 @@ function topic(id: string, chapterId: string, extra: Partial<AppData['topics'][s
   return { id, chapterId, name: id, revisionHistory: [], tagIds: [], ...extra } as AppData['topics'][string];
 }
 
-// badgeState reference (packages/shared): [rev(1)] -> DueToday, [rev(3)] -> Overdue.
-const dueHistory = [rev(1)];
-const overdueHistory = [rev(3)];
+// badgeState reference (packages/shared): planned today -> DueToday, planned 2 days ago -> Overdue.
+const dueExtra = { revisionHistory: [rev(1)], plannedAt: NOW };
+const overdueExtra = { revisionHistory: [rev(3)], plannedAt: NOW - 2 * DAY };
 
 describe('topicMatchesQuick', () => {
   it('all matches every topic', () => {
@@ -27,12 +27,12 @@ describe('topicMatchesQuick', () => {
 
   it('not-revised matches only topics with empty history', () => {
     expect(topicMatchesQuick(topic('t', 'c', { revisionHistory: [] }), 'not-revised', NOW)).toBe(true);
-    expect(topicMatchesQuick(topic('t', 'c', { revisionHistory: dueHistory }), 'not-revised', NOW)).toBe(false);
+    expect(topicMatchesQuick(topic('t', 'c', dueExtra), 'not-revised', NOW)).toBe(false);
   });
 
   it('due matches DueToday, overdue matches Overdue, and they do not overlap', () => {
-    const due = topic('t', 'c', { revisionHistory: dueHistory });
-    const over = topic('t', 'c', { revisionHistory: overdueHistory });
+    const due = topic('t', 'c', dueExtra);
+    const over = topic('t', 'c', overdueExtra);
     expect(topicMatchesQuick(due, 'due', NOW)).toBe(true);
     expect(topicMatchesQuick(due, 'overdue', NOW)).toBe(false);
     expect(topicMatchesQuick(over, 'overdue', NOW)).toBe(true);
@@ -51,7 +51,7 @@ function makeData(): AppData {
     subjects: { s1: { id: 's1', name: 'S1' }, s2: { id: 's2', name: 'S2' } },
     chapters: { c1: { id: 'c1', subjectId: 's1', name: 'C1' }, c2: { id: 'c2', subjectId: 's2', name: 'C2' } },
     topics: {
-      t1: topic('t1', 'c1', { revisionHistory: overdueHistory }),
+      t1: topic('t1', 'c1', overdueExtra),
       t2: topic('t2', 'c2', { revisionHistory: [] }),
     },
     subjectOrder: ['s1', 's2'],

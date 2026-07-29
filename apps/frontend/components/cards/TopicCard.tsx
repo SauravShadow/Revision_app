@@ -35,7 +35,7 @@ export function TopicCard({ topic, autoEdit = false }: { topic: Topic; autoEdit?
           <Pin size={13} className="-rotate-45 text-accent" aria-label="High priority — pinned to top" />
         )}
         {topic.bookmarkedAt && <Star size={14} className="fill-annotation text-annotation" aria-label="Bookmarked — pinned to top" />}
-        <RevisionBadge state={badgeState(topic.revisionHistory, now)} />
+        <RevisionBadge state={badgeState(topic, now)} />
         <RowActions onRename={() => setEditing(true)} onDelete={remove} />
       </div>
     </Link>

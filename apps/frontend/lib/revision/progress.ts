@@ -16,7 +16,7 @@ export function subjectStatus(data: AppData, subjectId: string, now: number): Su
     for (const tid of chapter.topicIds) {
       const t = data.topics[tid];
       if (!t || t.archivedAt) continue;
-      const b = badgeState(t.revisionHistory, now);
+      const b = badgeState(t, now);
       if (b === 'Overdue') return 'overdue';
       if (b === 'DueToday') due = true;
       else if (b === 'RecentlyRevised') recent = true;
@@ -32,7 +32,7 @@ export function chapterProgress(data: AppData, chapterId: string, now: number): 
     .map((tid) => data.topics[tid])
     .filter((t) => t && !t.archivedAt);
   if (topics.length === 0) return 0;
-  const good = topics.filter((t) => inGoodStanding(t.revisionHistory, now)).length;
+  const good = topics.filter((t) => inGoodStanding(t, now)).length;
   return Math.round((good / topics.length) * 100);
 }
 
@@ -62,7 +62,7 @@ export function subjectStats(
     for (const tid of chapter.topicIds) {
       const t = data.topics[tid];
       if (!t || t.archivedAt) continue;
-      if (!inGoodStanding(t.revisionHistory, now)) pending += 1;
+      if (!inGoodStanding(t, now)) pending += 1;
       const lr = lastRevisedAt(t.revisionHistory);
       if (lr !== undefined && (lastRevised === undefined || lr > lastRevised)) lastRevised = lr;
     }

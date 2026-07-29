@@ -14,9 +14,9 @@ function fixture(): AppData {
     chapters: { c1: { id: 'c1', subjectId: 's1', name: 'C', order: 0, difficulty: 'Medium', priority: 'Medium', topicIds: ['t1', 't2'] } },
     topics: {
       t1: { id: 't1', chapterId: 'c1', title: 'A', notes: '', order: 0, difficulty: 'Medium', priority: 'Medium',
-        revisionHistory: [{ id: 'r1', timestamp: revisedYesterday }], createdAt: 0, updatedAt: 0 },
+        revisionHistory: [{ id: 'r1', timestamp: revisedYesterday }], plannedAt: new Date(2026, 6, 15).getTime(), createdAt: 0, updatedAt: 0 },
       t2: { id: 't2', chapterId: 'c1', title: 'B', notes: '', order: 1, difficulty: 'Medium', priority: 'Medium',
-        revisionHistory: [{ id: 'r2', timestamp: revisedYesterday }], createdAt: 0, updatedAt: 0, archivedAt: 1 },
+        revisionHistory: [{ id: 'r2', timestamp: revisedYesterday }], plannedAt: new Date(2026, 6, 15).getTime(), createdAt: 0, updatedAt: 0, archivedAt: 1 },
     },
     tags: {}, tagOrder: [],
   };
@@ -43,6 +43,7 @@ describe('calendarMonth', () => {
     const overdue: AppData = fixture();
     // revised long ago so it is now overdue
     overdue.topics.t1.revisionHistory = [{ id: 'r1', timestamp: new Date(2026, 5, 1, 10, 0, 0).getTime() }];
+    overdue.topics.t1.plannedAt = new Date(2026, 5, 2).getTime();
     const cells = calendarMonth(overdue, 2026, 6, now);
     const todayCell = cells.find((c) => c.day === startOfDay(now))!;
     expect(todayCell.overdueTopicIds).toContain('t1');
@@ -57,7 +58,7 @@ describe('calendarMonth', () => {
     data.subjects.s2 = { id: 's2', name: 'S2', color: '#111', icon: 'Y', order: 1, chapterIds: ['c2'] };
     data.chapters.c2 = { id: 'c2', subjectId: 's2', name: 'C2', order: 0, difficulty: 'Medium', priority: 'Medium', topicIds: ['t3'], archivedAt: 1 };
     data.topics.t3 = { id: 't3', chapterId: 'c2', title: 'ChapterArchivedChild', notes: '', order: 0, difficulty: 'Medium', priority: 'Medium',
-      revisionHistory: [{ id: 'r3', timestamp: revisedYesterday }], createdAt: 0, updatedAt: 0 };
+      revisionHistory: [{ id: 'r3', timestamp: revisedYesterday }], plannedAt: new Date(2026, 6, 15).getTime(), createdAt: 0, updatedAt: 0 };
 
     data.subjectOrder.push('s3');
     data.subjects.s3 = { id: 's3', name: 'S3', color: '#222', icon: 'Z', order: 2, chapterIds: ['c3'], archivedAt: 1 };

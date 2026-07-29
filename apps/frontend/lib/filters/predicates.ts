@@ -15,7 +15,7 @@ export function hasActiveFilters(f: ActiveFilters): boolean {
 export function topicMatchesStatus(topic: Topic, status: StatusFilter, now: number): boolean {
   switch (status) {
     case 'needs-revision': {
-      const b = badgeState(topic.revisionHistory, now);
+      const b = badgeState(topic, now);
       return b === 'Overdue' || b === 'DueToday';
     }
     case 'never-revised': return topic.revisionHistory.length === 0;

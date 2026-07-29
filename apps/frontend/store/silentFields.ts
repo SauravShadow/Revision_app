@@ -7,7 +7,7 @@ export function preserveSilentFields(restored: AppData, present: AppData): AppDa
   const topics = { ...restored.topics };
   for (const id of Object.keys(topics)) {
     const cur = present.topics[id];
-    if (cur) topics[id] = { ...topics[id], notes: cur.notes, revisionHistory: cur.revisionHistory };
+    if (cur) topics[id] = { ...topics[id], notes: cur.notes, revisionHistory: cur.revisionHistory, plannedAt: cur.plannedAt };
   }
   return { ...restored, topics };
 }

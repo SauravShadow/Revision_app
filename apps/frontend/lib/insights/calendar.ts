@@ -28,9 +28,9 @@ export function calendarMonth(data: AppData, year: number, month: number, now: n
   const overdueToday: string[] = [];
 
   for (const t of activeTopics(data)) {
-    const due = nextDueDate(t.revisionHistory);
+    const due = nextDueDate(t);
     if (due !== undefined) pushId(dueByDay, startOfDay(due), t.id);
-    if (badgeState(t.revisionHistory, now) === 'Overdue') overdueToday.push(t.id);
+    if (badgeState(t, now) === 'Overdue') overdueToday.push(t.id);
     for (const rev of t.revisionHistory) pushId(completedByDay, startOfDay(rev.timestamp), t.id);
   }
 

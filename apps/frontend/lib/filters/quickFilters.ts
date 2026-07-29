@@ -19,8 +19,8 @@ export const QUICK_FILTER_LABELS: Record<QuickFilter, string> = {
 export function topicMatchesQuick(topic: Topic, qf: QuickFilter, now: number): boolean {
   switch (qf) {
     case 'all': return true;
-    case 'due': return badgeState(topic.revisionHistory, now) === 'DueToday';
-    case 'overdue': return badgeState(topic.revisionHistory, now) === 'Overdue';
+    case 'due': return badgeState(topic, now) === 'DueToday';
+    case 'overdue': return badgeState(topic, now) === 'Overdue';
     case 'bookmarked': return topic.bookmarkedAt !== undefined;
     case 'not-revised': return topic.revisionHistory.length === 0;
   }

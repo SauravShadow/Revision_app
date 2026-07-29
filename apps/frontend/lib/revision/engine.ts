@@ -1,12 +1,12 @@
-import type { Revision, Topic } from '@revision-app/shared';
+import type { Plannable, Revision, Topic } from '@revision-app/shared';
 import { makeId } from '@revision-app/shared';
 import {
-  startOfDay, lastRevisedAt, nextDueDate, daysSince, badgeState, DAY_MS,
+  startOfDay, lastRevisedAt, nextDueDate, suggestedNextDate, daysSince, badgeState, DAY_MS,
 } from '@revision-app/shared';
 export {
-  startOfDay, lastRevisedAt, nextDueDate, daysSince, badgeState,
+  startOfDay, lastRevisedAt, nextDueDate, suggestedNextDate, daysSince, badgeState,
 } from '@revision-app/shared';
-export type { BadgeState } from '@revision-app/shared';
+export type { BadgeState, Plannable } from '@revision-app/shared';
 
 export function totalRevisions(h: Revision[]): number {
   return h.length;
@@ -23,16 +23,18 @@ export function relativeLabel(ts: number, now: number): string {
   return `${Math.floor(days / 30)} months ago`;
 }
 
-export function inGoodStanding(h: Revision[], now: number): boolean {
-  const s = badgeState(h, now);
-  return s !== 'Overdue' && s !== 'DueToday' && s !== 'NeverRevised';
+export function inGoodStanding(t: Plannable, now: number): boolean {
+  const s = badgeState(t, now);
+  return s !== 'Overdue' && s !== 'DueToday' && s !== 'NeverRevised' && s !== 'Unplanned';
 }
 
+// Revising fulfils the current plan; the plan-next dialog sets the next one.
 export function markRevised(topic: Topic, now: number): Topic {
   const revision: Revision = { id: makeId(), timestamp: now };
   return {
     ...topic,
     revisionHistory: [...topic.revisionHistory, revision],
+    plannedAt: null,
     updatedAt: now,
   };
 }

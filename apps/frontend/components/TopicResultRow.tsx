@@ -11,7 +11,7 @@ export function TopicResultRow({ topic, subject, chapter }: { topic: Topic; subj
         <div className="font-medium">{topic.title}</div>
         <div className="mt-0.5 truncate text-xs opacity-50">{subject?.name}{chapter ? ` · ${chapter.name}` : ''}</div>
       </div>
-      <RevisionBadge state={badgeState(topic.revisionHistory, Date.now())} />
+      <RevisionBadge state={badgeState(topic, Date.now())} />
     </Link>
   );
 }

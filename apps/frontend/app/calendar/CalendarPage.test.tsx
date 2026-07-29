@@ -16,7 +16,8 @@ it('shows a due topic in the default agenda view', () => {
   const s = useStore.getState().addSubject('S');
   const c = useStore.getState().addChapter(s, 'C');
   const t = useStore.getState().addTopic(c, 'Bernoulli');
-  useStore.getState().markTopicRevised(t); // now due tomorrow -> appears in the agenda horizon
+  useStore.getState().markTopicRevised(t);
+  useStore.getState().planTopic(t, Date.now() + 86_400_000); // planned tomorrow -> appears in the agenda horizon
   render(<CalendarPage />);
   expect(screen.getByText('Bernoulli')).toBeInTheDocument();
 });

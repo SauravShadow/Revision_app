@@ -6,7 +6,8 @@ const DAY = 86_400_000;
 const NOW = 1_700_000_000_000;
 const rev = (daysAgo: number): Revision => ({ id: `r${daysAgo}`, timestamp: NOW - daysAgo * DAY });
 
-// badge refs: [rev(3)]->Overdue, [rev(1)]->DueToday, [rev(0)]->RecentlyRevised, []->NeverRevised.
+// badge refs: planned 2d ago -> Overdue, planned today -> DueToday,
+// revised today + planned tomorrow -> RecentlyRevised, [] unplanned -> NeverRevised.
 function makeData(): AppData {
   return {
     subjects: {
@@ -22,10 +23,10 @@ function makeData(): AppData {
       cNone: { id: 'cNone', subjectId: 'sNone', topicIds: ['t4'] },
     },
     topics: {
-      tOver: { id: 'tOver', chapterId: 'cOver', title: 'o', revisionHistory: [rev(3)] },
-      tDue: { id: 'tDue', chapterId: 'cOver', title: 'd', revisionHistory: [rev(1)] },
-      t2: { id: 't2', chapterId: 'cDue', title: 'd2', revisionHistory: [rev(1)] },
-      t3: { id: 't3', chapterId: 'cRecent', title: 'r', revisionHistory: [rev(0)] },
+      tOver: { id: 'tOver', chapterId: 'cOver', title: 'o', revisionHistory: [rev(3)], plannedAt: NOW - 2 * DAY },
+      tDue: { id: 'tDue', chapterId: 'cOver', title: 'd', revisionHistory: [rev(1)], plannedAt: NOW },
+      t2: { id: 't2', chapterId: 'cDue', title: 'd2', revisionHistory: [rev(1)], plannedAt: NOW },
+      t3: { id: 't3', chapterId: 'cRecent', title: 'r', revisionHistory: [rev(0)], plannedAt: NOW + DAY },
       t4: { id: 't4', chapterId: 'cNone', title: 'n', revisionHistory: [] },
     },
   } as unknown as AppData;

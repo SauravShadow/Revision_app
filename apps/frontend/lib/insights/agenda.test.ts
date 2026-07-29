@@ -7,17 +7,17 @@ const DAY = 86_400_000;
 const NOW = 1_700_000_000_000;
 const rev = (daysAgo: number): Revision => ({ id: `r${daysAgo}-${Math.random()}`, timestamp: NOW - daysAgo * DAY });
 
-// tOver: overdue. tToday: due today. tDone: revised today (completed).
-// tUpcoming: due ~33 days out (beyond horizon). tNew: never revised.
+// tOver: overdue (planned 2d ago). tToday: planned today. tDone: revised today (completed).
+// tUpcoming: planned 33 days out (beyond horizon). tNew: never revised, unplanned.
 function makeData(): AppData {
   return {
     subjects: { s1: { id: 's1', name: 'Structures', color: '#e0662b', chapterIds: ['c1'] } },
     chapters: { c1: { id: 'c1', subjectId: 's1', name: 'Beams', topicIds: ['tOver', 'tToday', 'tDone', 'tUpcoming', 'tNew'] } },
     topics: {
-      tOver: { id: 'tOver', chapterId: 'c1', title: 'Bending', revisionHistory: [rev(3)] },
-      tToday: { id: 'tToday', chapterId: 'c1', title: 'Shear', revisionHistory: [rev(1)] },
-      tDone: { id: 'tDone', chapterId: 'c1', title: 'Torsion', revisionHistory: [rev(0), rev(0), rev(0), rev(0), rev(0)] },
-      tUpcoming: { id: 'tUpcoming', chapterId: 'c1', title: 'Columns', revisionHistory: [rev(2), rev(2), rev(2), rev(2), rev(2)] },
+      tOver: { id: 'tOver', chapterId: 'c1', title: 'Bending', revisionHistory: [rev(3)], plannedAt: NOW - 2 * DAY },
+      tToday: { id: 'tToday', chapterId: 'c1', title: 'Shear', revisionHistory: [rev(1)], plannedAt: NOW },
+      tDone: { id: 'tDone', chapterId: 'c1', title: 'Torsion', revisionHistory: [rev(0), rev(0), rev(0), rev(0), rev(0)], plannedAt: NOW + 35 * DAY },
+      tUpcoming: { id: 'tUpcoming', chapterId: 'c1', title: 'Columns', revisionHistory: [rev(2), rev(2), rev(2), rev(2), rev(2)], plannedAt: NOW + 33 * DAY },
       tNew: { id: 'tNew', chapterId: 'c1', title: 'Buckling', revisionHistory: [] },
     },
   } as unknown as AppData;

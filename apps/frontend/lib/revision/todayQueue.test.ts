@@ -6,15 +6,16 @@ const DAY = 86_400_000;
 const NOW = 1_700_000_000_000;
 const rev = (daysAgo: number): Revision => ({ id: `r${daysAgo}`, timestamp: NOW - daysAgo * DAY });
 
-// badgeState reference: [rev(3)] -> Overdue, [rev(1)] -> DueToday, [rev(0)] -> RecentlyRevised, [] -> NeverRevised.
+// badgeState reference: planned 2d ago -> Overdue, planned today -> DueToday,
+// revised today + planned tomorrow -> RecentlyRevised, [] unplanned -> NeverRevised.
 function makeData(): AppData {
   return {
     subjects: { s1: { id: 's1', name: 'Structures' }, s2: { id: 's2', name: 'Geotech' } },
     chapters: { c1: { id: 'c1', subjectId: 's1', name: 'Beams' }, c2: { id: 'c2', subjectId: 's2', name: 'Soil' } },
     topics: {
-      tOver: { id: 'tOver', chapterId: 'c1', title: 'Bending', revisionHistory: [rev(3)] },
-      tDue: { id: 'tDue', chapterId: 'c1', title: 'Shear', revisionHistory: [rev(1)] },
-      tRecent: { id: 'tRecent', chapterId: 'c2', title: 'Compaction', revisionHistory: [rev(0)] },
+      tOver: { id: 'tOver', chapterId: 'c1', title: 'Bending', revisionHistory: [rev(3)], plannedAt: NOW - 2 * DAY },
+      tDue: { id: 'tDue', chapterId: 'c1', title: 'Shear', revisionHistory: [rev(1)], plannedAt: NOW },
+      tRecent: { id: 'tRecent', chapterId: 'c2', title: 'Compaction', revisionHistory: [rev(0)], plannedAt: NOW + DAY },
       tNew: { id: 'tNew', chapterId: 'c2', title: 'Permeability', revisionHistory: [] },
     },
   } as unknown as AppData;

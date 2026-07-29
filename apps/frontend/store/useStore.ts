@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { AppData, Attachment, Chapter, Domain, Flashcard, Subject, Tag, Topic } from '@revision-app/shared';
 import { makeId } from '@revision-app/shared';
 import { normalizeData } from '@/lib/domain/normalize';
-import { markRevised, deleteRevision as engineDeleteRevision, updateRevisionTimestamp as engineUpdateRevisionTimestamp } from '@/lib/revision/engine';
+import { markRevised, startOfDay, deleteRevision as engineDeleteRevision, updateRevisionTimestamp as engineUpdateRevisionTimestamp } from '@/lib/revision/engine';
 import { arrayMove } from '@/lib/util/array';
 import { emptyHistory, record, undo as undoHistory, redo as redoHistory, type History } from './history';
 import { SaveQueue, type SaveStatus } from './saveQueue';
@@ -25,6 +25,9 @@ interface StoreState extends AppData {
   deleteTopic: (id: string) => void;
   updateTopicNotes: (id: string, notes: string) => void;
   markTopicRevised: (id: string) => void;
+  planTopic: (id: string, date: number) => void;
+  planTopics: (ids: string[], date: number) => void;
+  clearPlan: (id: string) => void;
   deleteRevision: (topicId: string, revisionId: string) => void;
   updateRevisionTimestamp: (topicId: string, revisionId: string, timestamp: number) => void;
   archiveSubject: (id: string) => void;
@@ -222,6 +225,35 @@ export function createRevisionStore(repo: RevisionRepository) {
         const topic = s.topics[id];
         if (!topic) return;
         commitSilent({ topics: { ...s.topics, [id]: markRevised(topic, Date.now()) } });
+      },
+
+      planTopic: (id, date) => {
+        const s = get();
+        const topic = s.topics[id];
+        if (!topic) return;
+        commitSilent({ topics: { ...s.topics, [id]: { ...topic, plannedAt: startOfDay(date), updatedAt: Date.now() } } });
+      },
+
+      planTopics: (ids, date) => {
+        const s = get();
+        const day = startOfDay(date);
+        const now = Date.now();
+        const topics = { ...s.topics };
+        let any = false;
+        for (const id of ids) {
+          const t = topics[id];
+          if (!t) continue;
+          topics[id] = { ...t, plannedAt: day, updatedAt: now };
+          any = true;
+        }
+        if (any) commitSilent({ topics });
+      },
+
+      clearPlan: (id) => {
+        const s = get();
+        const topic = s.topics[id];
+        if (!topic) return;
+        commitSilent({ topics: { ...s.topics, [id]: { ...topic, plannedAt: null, updatedAt: Date.now() } } });
       },
 
       deleteRevision: (topicId, revisionId) => {

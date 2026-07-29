@@ -50,7 +50,7 @@ export function buildAgenda(data: AppData, now: number, horizonDays = 14): Agend
       subject: subject?.name, chapter: chapter?.name, subjectColor: subject?.color,
     };
 
-    if (badgeState(t.revisionHistory, now) === 'Overdue') {
+    if (badgeState(t, now) === 'Overdue') {
       overdue.push({ ...base, status: 'overdue' });
       continue;
     }
@@ -59,7 +59,7 @@ export function buildAgenda(data: AppData, now: number, horizonDays = 14): Agend
       push(today, { ...base, status: 'completed' });
       continue;
     }
-    const due = nextDueDate(t.revisionHistory);
+    const due = nextDueDate(t);
     if (due === undefined) continue;
     const dueDay = startOfDay(due);
     if (dueDay >= today && dueDay <= horizonEnd) push(dueDay, { ...base, status: 'due' });
@@ -90,8 +90,8 @@ export function loadByDay(data: AppData, now: number): Map<number, DayLoad> {
   for (const t of activeTopics(data)) {
     const last = lastRevisedAt(t.revisionHistory);
     if (last === undefined) continue;
-    if (badgeState(t.revisionHistory, now) === 'Overdue') {
-      const due = nextDueDate(t.revisionHistory);
+    if (badgeState(t, now) === 'Overdue') {
+      const due = nextDueDate(t);
       if (due !== undefined) add(startOfDay(due), 'overdue');
       continue;
     }
@@ -99,7 +99,7 @@ export function loadByDay(data: AppData, now: number): Map<number, DayLoad> {
       add(today, 'completed');
       continue;
     }
-    const due = nextDueDate(t.revisionHistory);
+    const due = nextDueDate(t);
     if (due !== undefined) add(startOfDay(due), 'due');
   }
   return loads;

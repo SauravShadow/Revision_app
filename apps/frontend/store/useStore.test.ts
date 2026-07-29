@@ -40,6 +40,33 @@ describe('useStore', () => {
     expect(useStore.getState().topics[topicId].revisionHistory).toHaveLength(1);
   });
 
+  it('planTopic stamps start-of-day plannedAt; clearPlan sets null; revising clears the plan', () => {
+    const subjectId = useStore.getState().addSubject('S');
+    const chapterId = useStore.getState().addChapter(subjectId, 'C');
+    const topicId = useStore.getState().addTopic(chapterId, 'Bernoulli');
+    const ts = Date.now() + 3 * 86_400_000;
+    useStore.getState().planTopic(topicId, ts);
+    const expected = new Date(ts); expected.setHours(0, 0, 0, 0);
+    expect(useStore.getState().topics[topicId].plannedAt).toBe(expected.getTime());
+    useStore.getState().clearPlan(topicId);
+    expect(useStore.getState().topics[topicId].plannedAt).toBeNull();
+    useStore.getState().planTopic(topicId, ts);
+    useStore.getState().markTopicRevised(topicId);
+    expect(useStore.getState().topics[topicId].plannedAt).toBeNull();
+  });
+
+  it('planTopics stamps every listed topic with the same day', () => {
+    const subjectId = useStore.getState().addSubject('S');
+    const chapterId = useStore.getState().addChapter(subjectId, 'C');
+    const a = useStore.getState().addTopic(chapterId, 'A');
+    const b = useStore.getState().addTopic(chapterId, 'B');
+    const ts = Date.now() + 2 * 86_400_000;
+    useStore.getState().planTopics([a, b, 'missing-id'], ts);
+    const state = useStore.getState();
+    expect(state.topics[a].plannedAt).toBeDefined();
+    expect(state.topics[a].plannedAt).toBe(state.topics[b].plannedAt);
+  });
+
   it('deleteChapter removes its topics and detaches from subject', () => {
     const subjectId = useStore.getState().addSubject('S');
     const chapterId = useStore.getState().addChapter(subjectId, 'C');

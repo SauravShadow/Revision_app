@@ -10,7 +10,7 @@ function fixture(): AppData {
     subjects: { s1: { id: 's1', name: 'S', color: '#000', icon: 'X', order: 0, chapterIds: ['c1'] } },
     chapters: { c1: { id: 'c1', subjectId: 's1', name: 'C', order: 0, difficulty: 'Medium', priority: 'Medium', topicIds: ['t1', 't2'] } },
     topics: {
-      t1: { id: 't1', chapterId: 'c1', title: 'A', notes: '', order: 0, difficulty: 'Medium', priority: 'Medium', revisionHistory: [{ id: 'r', timestamp: now }], createdAt: 0, updatedAt: now },
+      t1: { id: 't1', chapterId: 'c1', title: 'A', notes: '', order: 0, difficulty: 'Medium', priority: 'Medium', revisionHistory: [{ id: 'r', timestamp: now }], plannedAt: now + 86_400_000, createdAt: 0, updatedAt: now },
       t2: { id: 't2', chapterId: 'c1', title: 'B', notes: '', order: 1, difficulty: 'Medium', priority: 'Medium', revisionHistory: [], createdAt: 0, updatedAt: 0 },
     },
     tags: {},
