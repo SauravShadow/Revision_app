@@ -11,7 +11,7 @@ function seedOverdueTopic(): string {
   const c = useStore.getState().addChapter(s, 'Beams');
   const t = useStore.getState().addTopic(c, 'Bending');
   useStore.setState((st) => ({
-    topics: { ...st.topics, [t]: { ...st.topics[t], revisionHistory: [{ id: 'r', timestamp: Date.now() - 3 * DAY }] } },
+    topics: { ...st.topics, [t]: { ...st.topics[t], revisionHistory: [{ id: 'r', timestamp: Date.now() - 3 * DAY }], plannedAt: Date.now() - 2 * DAY } },
   }));
   return t;
 }
@@ -26,9 +26,11 @@ describe('TodayQueue', () => {
     expect(screen.getByText('Overdue')).toBeInTheDocument(); // group header
   });
 
-  it('marking a topic revised removes it from the queue', async () => {
+  it('marking a topic revised opens the plan-next dialog; skipping removes it from the queue', async () => {
     render(<TodayQueue />);
     act(() => screen.getByRole('button', { name: /Mark Bending revised/i }).click());
+    // revising opens the plan-next dialog (it shows the topic title); skip to stay unplanned
+    act(() => screen.getByRole('button', { name: /skip/i }).click());
     await waitFor(() => expect(screen.queryByText('Bending')).not.toBeInTheDocument());
   });
 });

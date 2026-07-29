@@ -5,6 +5,7 @@ import { Check } from 'lucide-react';
 import type { AppData } from '@revision-app/shared';
 import { useStore } from '@/store/useStore';
 import { todayQueue, type QueueItem } from '@/lib/revision/todayQueue';
+import { PlanNextDialog } from '@/components/PlanNextDialog';
 
 // "Today's queue" — the revise-now worklist at the bottom of home. Grouped by
 // category (Overdue / Due today) and capped per group so a long backlog stays
@@ -69,6 +70,7 @@ export function TodayQueue() {
   const chapters = useStore((s) => s.chapters);
   const topics = useStore((s) => s.topics);
   const markRevised = useStore((s) => s.markTopicRevised);
+  const [planFor, setPlanFor] = useState<string | null>(null);
 
   const now = Date.now();
   const data = useMemo(
@@ -77,7 +79,11 @@ export function TodayQueue() {
   );
   const queue = useMemo(() => todayQueue(data, now), [data, now]);
 
-  if (queue.length === 0) return null;
+  // Keep the plan-next dialog alive even when revising emptied the queue —
+  // the last item's dialog must still be answerable.
+  if (queue.length === 0) {
+    return planFor ? <PlanNextDialog topicId={planFor} onClose={() => setPlanFor(null)} /> : null;
+  }
 
   const overdue = queue.filter((i) => i.state === 'Overdue');
   const dueToday = queue.filter((i) => i.state === 'DueToday');
@@ -89,9 +95,10 @@ export function TodayQueue() {
         <span className="dim-chip font-mono tabular-nums text-ink-dim">{queue.length}</span>
       </header>
       <div className="flex flex-col gap-4 p-3">
-        <QueueGroup title="Overdue" tone="var(--alarm)" items={overdue} onRevise={markRevised} />
-        <QueueGroup title="Due today" tone="var(--annotation)" items={dueToday} onRevise={markRevised} />
+        <QueueGroup title="Overdue" tone="var(--alarm)" items={overdue} onRevise={(id) => { markRevised(id); setPlanFor(id); }} />
+        <QueueGroup title="Due today" tone="var(--annotation)" items={dueToday} onRevise={(id) => { markRevised(id); setPlanFor(id); }} />
       </div>
+      {planFor && <PlanNextDialog topicId={planFor} onClose={() => setPlanFor(null)} />}
     </section>
   );
 }
