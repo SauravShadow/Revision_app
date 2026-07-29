@@ -5,7 +5,8 @@ export type Domain =
   | 'software-engineering'
   | 'gate-cs'
   | 'mechanical-engineering'
-  | 'electrical-engineering';
+  | 'electrical-engineering'
+  | 'school-tuition';
 
 export const DOMAIN_LABELS: Record<Domain, string> = {
   'civil-engineering': 'Civil Engineering',
@@ -13,6 +14,7 @@ export const DOMAIN_LABELS: Record<Domain, string> = {
   'gate-cs': 'GATE CS',
   'mechanical-engineering': 'Mechanical Engineering',
   'electrical-engineering': 'Electrical Engineering',
+  'school-tuition': 'School Tuition (PUC & SSLC)',
 };
 
 export const DOMAIN_ICONS: Record<Domain, string> = {
@@ -21,6 +23,7 @@ export const DOMAIN_ICONS: Record<Domain, string> = {
   'gate-cs': 'Cpu',
   'mechanical-engineering': 'Cog',
   'electrical-engineering': 'Zap',
+  'school-tuition': 'GraduationCap',
 };
 
 export const DOMAIN_COLORS: Record<Domain, string> = {
@@ -29,6 +32,7 @@ export const DOMAIN_COLORS: Record<Domain, string> = {
   'gate-cs': '#8b5cf6',
   'mechanical-engineering': '#ef4444',
   'electrical-engineering': '#eab308',
+  'school-tuition': '#10b981',
 };
 
 /** Persisted user record (server-only, never sent to client). */

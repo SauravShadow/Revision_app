@@ -32,6 +32,11 @@ const DOMAINS: { id: Domain; emoji: string; description: string }[] = [
     emoji: '⚡',
     description: 'UPSC ESE Electrical — Circuits, Power Systems, Control Systems & more',
   },
+  {
+    id: 'school-tuition',
+    emoji: '🎓',
+    description: 'PUC / NEET-JEE Physics & Chemistry + SSLC Mathematics',
+  },
 ];
 
 export default function RegisterPage() {

@@ -429,6 +429,106 @@ export function seedData(): AppData {
   return { subjects, chapters, topics, subjectOrder, tags, tagOrder };
 }
 
+// ── School Tuition (PUC / NEET-JEE + SSLC) seed ──────────────────────────────
+
+const TUITION_SYLLABUS: SeedSubject[] = [
+  {
+    name: 'Physics',
+    color: '#6366f1',
+    icon: 'Atom',
+    chapters: [
+      {
+        name: 'Mechanics',
+        topics: [
+          "Newton's Laws of Motion",
+          'Rotational Dynamics',
+          'Work, Energy & Power',
+          'Gravitation',
+          'Simple Harmonic Motion',
+        ],
+      },
+      {
+        name: 'Electrostatics',
+        topics: [
+          "Coulomb's Law & Electric Field",
+          "Gauss's Law & Applications",
+          'Electric Potential & Capacitance',
+        ],
+      },
+      {
+        name: 'Optics',
+        topics: [
+          'Ray Optics & Optical Instruments',
+          'Wave Optics — Interference & Diffraction',
+        ],
+      },
+      {
+        name: 'Modern Physics',
+        topics: [
+          'Photoelectric Effect',
+          'Bohr Model & Hydrogen Spectra',
+          'Nuclei & Radioactivity',
+        ],
+      },
+    ],
+  },
+  {
+    name: 'Mathematics',
+    color: '#f97316',
+    icon: 'Calculator',
+    chapters: [
+      {
+        name: 'Algebra',
+        topics: [
+          'Quadratic Equations',
+          'Pair of Linear Equations in Two Variables',
+          'Arithmetic Progressions',
+          'Polynomials',
+        ],
+      },
+      {
+        name: 'Trigonometry',
+        topics: [
+          'Trigonometric Identities',
+          'Trigonometric Ratios',
+          'Heights & Distances',
+        ],
+      },
+      {
+        name: 'Coordinate Geometry',
+        topics: [
+          'Circles',
+          'Distance & Section Formula',
+          'Area of a Triangle',
+        ],
+      },
+    ],
+  },
+  {
+    name: 'Chemistry',
+    color: '#10b981',
+    icon: 'FlaskConical',
+    chapters: [
+      {
+        name: 'Chemical Bonding',
+        topics: [
+          'Chemical Bonding & Molecular Structure',
+          'VSEPR Theory & Hybridisation',
+          'Molecular Orbital Theory',
+        ],
+      },
+      {
+        name: 'Organic Chemistry',
+        topics: [
+          'Aldehydes, Ketones & Carboxylic Acids',
+          'Hydrocarbons — Alkanes, Alkenes & Alkynes',
+          'Haloalkanes & Haloarenes',
+        ],
+      },
+    ],
+  },
+];
+
 // ── Software Engineering / GATE CS seed ──────────────────────────────────────
 
 const SE_SYLLABUS: SeedSubject[] = [
@@ -723,6 +823,8 @@ export function seedDataForDomain(domain: string): AppData {
     case 'software-engineering':
     case 'gate-cs':
       return buildSeed(SE_SYLLABUS);
+    case 'school-tuition':
+      return buildSeed(TUITION_SYLLABUS);
     default:
       // Unknown domain → empty store with only built-in tags
       return buildSeed([]);
