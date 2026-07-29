@@ -21,7 +21,19 @@ export function lastRevisedAt(h: Revision[]): number | undefined {
   return h.length === 0 ? undefined : h[h.length - 1].timestamp;
 }
 
-export function nextDueDate(h: Revision[]): number | undefined {
+// A topic-shaped value the scheduler can read. Topic satisfies this.
+export interface Plannable {
+  revisionHistory: Revision[];
+  plannedAt?: number | null;
+}
+
+// Manual-first: a topic is due only when the user planned it.
+export function nextDueDate(t: Plannable): number | undefined {
+  return t.plannedAt ?? undefined;
+}
+
+// The old ladder-derived date, demoted to a suggestion for the plan-next UI.
+export function suggestedNextDate(h: Revision[]): number | undefined {
   const last = lastRevisedAt(h);
   if (last === undefined) return undefined;
   return last + nextInterval(h.length) * DAY_MS;
@@ -34,16 +46,16 @@ export function daysSince(h: Revision[], now: number): number | undefined {
 }
 
 export type BadgeState =
-  | 'NeverRevised' | 'Overdue' | 'DueToday'
+  | 'NeverRevised' | 'Unplanned' | 'Overdue' | 'DueToday'
   | 'DueTomorrow' | 'RecentlyRevised' | 'Upcoming';
 
-export function badgeState(h: Revision[], now: number): BadgeState {
-  const due = nextDueDate(h);
-  if (due === undefined) return 'NeverRevised';
+export function badgeState(t: Plannable, now: number): BadgeState {
+  const due = nextDueDate(t);
+  if (due === undefined) return t.revisionHistory.length === 0 ? 'NeverRevised' : 'Unplanned';
   const dayDiff = Math.round((startOfDay(due) - startOfDay(now)) / DAY_MS);
   if (dayDiff < 0) return 'Overdue';
   if (dayDiff === 0) return 'DueToday';
-  const since = daysSince(h, now);
+  const since = daysSince(t.revisionHistory, now);
   if (since !== undefined && since <= 1) return 'RecentlyRevised';
   if (dayDiff === 1) return 'DueTomorrow';
   return 'Upcoming';

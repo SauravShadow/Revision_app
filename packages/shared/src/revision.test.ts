@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  LADDER, DAY_MS, nextInterval, nextDueDate, badgeState, activeTopics, currentStreak, startOfDay,
+  LADDER, DAY_MS, nextInterval, nextDueDate, suggestedNextDate, badgeState, activeTopics, currentStreak, startOfDay,
 } from './revision';
 import type { AppData, Revision, Topic } from './types';
 
@@ -30,17 +30,51 @@ describe('revision math', () => {
     expect(nextInterval(99)).toBe(90);
   });
 
-  it('computes next due date from the last revision', () => {
+  it('suggestedNextDate keeps the ladder math from the last revision', () => {
     const now = Date.UTC(2026, 6, 16, 12);
-    const h = [rev(2, now)]; // 1 revision → +1 day interval, so due yesterday
-    expect(nextDueDate(h)).toBe(now - 2 * DAY_MS + 1 * DAY_MS);
+    const h = [rev(2, now)]; // 1 revision → +1 day interval, so suggested yesterday
+    expect(suggestedNextDate(h)).toBe(now - 2 * DAY_MS + 1 * DAY_MS);
+    expect(suggestedNextDate([rev(2, now), rev(1, now)])).toBe(now - 1 * DAY_MS + 3 * DAY_MS); // 2 revs → +3d
+    expect(suggestedNextDate([])).toBeUndefined();
   });
 
-  it('classifies badge states', () => {
+  it('classifies badge states against the planned date', () => {
     const now = Date.UTC(2026, 6, 16, 12);
-    expect(badgeState([], now)).toBe('NeverRevised');
-    expect(badgeState([rev(3, now)], now)).toBe('Overdue');   // due 2 days ago
-    expect(badgeState([rev(1, now)], now)).toBe('DueToday');  // 1 rev, +1d
+    const h = [rev(10, now)];
+    expect(badgeState({ revisionHistory: [] }, now)).toBe('NeverRevised');
+    expect(badgeState({ revisionHistory: h, plannedAt: startOfDay(now - DAY_MS) }, now)).toBe('Overdue');
+    expect(badgeState({ revisionHistory: h, plannedAt: startOfDay(now) }, now)).toBe('DueToday');
+    expect(badgeState({ revisionHistory: h, plannedAt: startOfDay(now + DAY_MS) }, now)).toBe('DueTomorrow');
+    expect(badgeState({ revisionHistory: h, plannedAt: startOfDay(now + 5 * DAY_MS) }, now)).toBe('Upcoming');
+  });
+
+  it('nextDueDate returns plannedAt and ignores the ladder', () => {
+    const now = Date.UTC(2026, 6, 16, 12);
+    const planned = startOfDay(now + 5 * DAY_MS);
+    expect(nextDueDate({ revisionHistory: [rev(1, now)], plannedAt: planned })).toBe(planned);
+  });
+
+  it('nextDueDate returns undefined when plannedAt is null or undefined', () => {
+    const now = Date.UTC(2026, 6, 16, 12);
+    expect(nextDueDate({ revisionHistory: [rev(1, now)], plannedAt: null })).toBeUndefined();
+    expect(nextDueDate({ revisionHistory: [rev(1, now)] })).toBeUndefined();
+  });
+
+  it('distinguishes NeverRevised from Unplanned', () => {
+    const now = Date.UTC(2026, 6, 16, 12);
+    expect(badgeState({ revisionHistory: [], plannedAt: null }, now)).toBe('NeverRevised');
+    expect(badgeState({ revisionHistory: [rev(3, now)], plannedAt: null }, now)).toBe('Unplanned');
+    expect(badgeState({ revisionHistory: [rev(3, now)] }, now)).toBe('Unplanned');
+  });
+
+  it('returns RecentlyRevised when revised within a day and planned ahead', () => {
+    const now = Date.UTC(2026, 6, 16, 12);
+    expect(badgeState({ revisionHistory: [rev(1, now)], plannedAt: startOfDay(now + 7 * DAY_MS) }, now)).toBe('RecentlyRevised');
+  });
+
+  it('rates a planned but never-revised topic by its plan, not NeverRevised', () => {
+    const now = Date.UTC(2026, 6, 16, 12);
+    expect(badgeState({ revisionHistory: [], plannedAt: startOfDay(now) }, now)).toBe('DueToday');
   });
 
   it('activeTopics skips archived topics, chapters, and subjects', () => {

@@ -64,6 +64,10 @@ export interface Topic {
   difficulty: Difficulty;
   priority: Priority;
   revisionHistory: Revision[];
+  // Manual-first scheduling: number = user-planned due date (local start-of-day
+  // epoch ms), null = deliberately unplanned, undefined = legacy snapshot
+  // (backfilled from the ladder at the load boundary).
+  plannedAt?: number | null;
   createdAt: number;
   updatedAt: number;
   archivedAt?: number;

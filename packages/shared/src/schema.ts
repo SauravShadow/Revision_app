@@ -9,7 +9,8 @@ const flashcardSchema = z.object({ id: z.string(), front: z.string(), back: z.st
 const topicSchema = z.object({
   id: z.string(), chapterId: z.string(), title: z.string(), notes: z.string(), order: z.number(),
   difficulty: z.enum(['Easy', 'Medium', 'Hard']), priority: z.enum(['Low', 'Medium', 'High']),
-  revisionHistory: z.array(revisionSchema), createdAt: z.number(), updatedAt: z.number(),
+  revisionHistory: z.array(revisionSchema), plannedAt: z.number().nullable().optional(),
+  createdAt: z.number(), updatedAt: z.number(),
   archivedAt: z.number().optional(), attachments: z.array(attachmentSchema).optional(),
   flashcards: z.array(flashcardSchema).optional(), bookmarkedAt: z.number().optional(),
   tagIds: z.array(z.string()).optional(),
