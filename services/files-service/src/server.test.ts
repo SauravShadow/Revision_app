@@ -4,13 +4,19 @@ import os from 'node:os';
 import path from 'node:path';
 import request from 'supertest';
 import { signSession } from '@revision-app/shared/server';
-import { createApp } from './server';
+import { createApp, safeContentDispositionName } from './server';
 
 const app = createApp();
 const token = signSession({ userId: 'user-1', username: 'alice', domain: 'civil-engineering' });
 
 beforeEach(async () => {
   process.env.FILES_DIR = await fs.mkdtemp(path.join(os.tmpdir(), 'files-service-server-'));
+});
+
+describe('safeContentDispositionName', () => {
+  it('strips quotes, backslashes, and control chars (incl. CR/LF header-injection)', () => {
+    expect(safeContentDispositionName('a"b\r\nc\x00.png')).toBe('abc.png');
+  });
 });
 
 describe('files-service HTTP API', () => {
@@ -26,6 +32,27 @@ describe('files-service HTTP API', () => {
     expect(get.status).toBe(200);
     // superagent parses image/* responses into res.body as a Buffer, not res.text.
     expect(Buffer.from(get.body).toString()).toBe('fake-png-bytes');
+  });
+
+  it('rejects an SVG upload (active content — stored-XSS vector)', async () => {
+    const res = await request(app)
+      .post('/upload')
+      .set('Authorization', `Bearer ${token}`)
+      .attach('file', Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'), {
+        filename: 'x.svg',
+        contentType: 'image/svg+xml',
+      });
+    expect(res.status).toBe(400);
+  });
+
+  it('serves files with hardening headers so a stored blob cannot execute script', async () => {
+    const upload = await request(app)
+      .post('/upload')
+      .set('Authorization', `Bearer ${token}`)
+      .attach('file', Buffer.from('fake-png-bytes'), { filename: 'x.png', contentType: 'image/png' });
+    const get = await request(app).get(`/${upload.body.id}`).set('Authorization', `Bearer ${token}`);
+    expect(get.headers['x-content-type-options']).toBe('nosniff');
+    expect(get.headers['content-security-policy']).toContain('sandbox');
   });
 
   it('rejects upload without a valid session', async () => {

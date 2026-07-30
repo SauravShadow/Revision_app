@@ -29,7 +29,7 @@ export async function fetchGroupRoster(groupId: string, requesterId: string): Pr
 
   let res: Response;
   try {
-    res = await fetch(`${base}/internal/groups/${groupId}/members?requester=${requesterId}`, {
+    res = await fetch(`${base}/internal/groups/${encodeURIComponent(groupId)}/members?requester=${encodeURIComponent(requesterId)}`, {
       headers: { 'x-service-secret': secret },
     });
   } catch {
