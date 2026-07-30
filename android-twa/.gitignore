@@ -1,0 +1,12 @@
+# Signing key + passwords — NEVER commit; back these up somewhere safe.
+# Losing the keystore means existing installs can't be updated in place.
+android.keystore
+keystore.password.txt
+
+# Build outputs
+build/
+app/build/
+.gradle/
+*.apk
+*.aab
+*.idsig

@@ -23,7 +23,20 @@ const securityHeaders = [
 const nextConfig = {
   transpilePackages: ['@revision-app/shared'],
   async headers() {
-    return [{ source: '/:path*', headers: securityHeaders }];
+    return [
+      { source: '/:path*', headers: securityHeaders },
+      {
+        source: '/downloads/revisionworks.apk',
+        headers: [
+          { key: 'Content-Type', value: 'application/vnd.android.package-archive' },
+          { key: 'Content-Disposition', value: 'attachment; filename="revisionworks.apk"' },
+        ],
+      },
+      {
+        source: '/.well-known/assetlinks.json',
+        headers: [{ key: 'Content-Type', value: 'application/json' }],
+      },
+    ];
   },
 };
 

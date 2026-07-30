@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "xyz.saurav_info.revise",
+      "sha256_cert_fingerprints": [
+        "AA:C8:A7:E6:09:DE:2F:DA:8D:C3:B5:3C:FD:20:34:DF:70:B7:D6:68:A9:C5:20:AD:2B:12:ED:30:93:A1:85:FA"
+      ]
+    }
+  }
+]

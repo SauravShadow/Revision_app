@@ -1,12 +1,13 @@
-# Revision App
+# RevisionWorks
 
 ![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![Postgres](https://img.shields.io/badge/Postgres-16-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8?logo=pwa&logoColor=white)
 
-A personal exam-revision manager for civil engineering (ESE) syllabus content, built around spaced-repetition scheduling. Each user tracks their own subjects → chapters → topics, marks what they've revised, and the app tells them what's due next.
+An exam-revision manager for any subject syllabus content, built around spaced-repetition scheduling. Each user tracks their own subjects → chapters → topics, marks what they've revised, and the app tells them what's due next — then charts how consistently they're keeping up. Runs in the browser and installs as a standalone app on phones and desktops (also packaged for the Play Store as a Trusted Web Activity).
 
 ## Architecture
 
@@ -88,12 +89,16 @@ stateDiagram-v2
 |---|---|
 | **Revision engine** | Spaced-repetition ladder above, computed in `lib/revision/engine.ts` + `ladder.ts` |
 | **Content browsing** | Subject → chapter → topic hierarchy, plus archive and filtered/search views |
+| **Insights** | Personal statistics at `/insights` — completion gauge, status breakdown, a 365-day revision heatmap, current/longest streaks, and most/least-revised topic rankings |
+| **Calendar** | Due/overdue topics laid out as an agenda list or a month grid at `/calendar` |
 | **Rich markdown editor** | Markdown, GFM, KaTeX math, syntax-highlighted code (`react-markdown`, `rehype-katex`, `rehype-highlight`) |
 | **Attachments** | Per-topic file/image uploads, served via scoped file tokens — a leaked file URL can't be replayed against the rest of the API |
+| **In-app previews** | Images and PDFs preview inline in a modal, with first-page PDF thumbnails; uploaded PDFs can be auto-inserted into a topic's notes |
 | **Bookmarks & tags** | Tag-based filtering, search, and a dedicated bookmarks view |
 | **Drag-and-drop** | Reordering via `@dnd-kit` |
-| **Multi-user auth** | Per-user accounts scoped to an engineering domain (civil, mechanical, electrical), fully isolated data and file storage per user |
+| **Multi-user auth** | Per-user accounts scoped to an engineering domain (civil, mechanical, electrical), fully isolated data and file storage per user; account/email/password managed at `/settings` |
 | **Coaching dashboard** | Organisations → groups with invite-code joining; heads/admins see cohort completion, activity, per-student drill-down (revision status only — notes/attachments stay private) at `/coaching` |
+| **Installable app** | Web App Manifest + service-worker-ready build — "Add to Home Screen" on any device, and shipped to the Play Store as a Trusted Web Activity |
 
 ## Getting started
 
@@ -121,7 +126,6 @@ npm run lint          # lint
 
 ## Also on the roadmap
 
-- **Personal statistics dashboard** — the single-student version of the activity chart above, which the coaching dashboard builds on
-- **Calendar view** — due/overdue topics laid out on a calendar
 - **Notifications** — reminders when a topic becomes due
 - **Google Sign-In** — Phase 2 of account/email work; builds on the email verification + password reset shipped in auth-service (Resend behind an `EmailSender` seam; with `RESEND_API_KEY` unset, links are logged to auth-service stdout instead of emailed)
+- **Public `/about` page** — a marketing/intro landing page for the app (design spec under `docs/superpowers/specs/`)

@@ -1,0 +1,42 @@
+{
+  "packageId": "xyz.saurav_info.revise",
+  "host": "revise.saurav-info.xyz",
+  "name": "RevisionWorks",
+  "launcherName": "RevisionWorks",
+  "display": "standalone",
+  "themeColor": "#4a7a1f",
+  "themeColorDark": "#4a7a1f",
+  "navigationColor": "#faf7ef",
+  "navigationColorDark": "#1c1a15",
+  "navigationDividerColor": "#faf7ef",
+  "navigationDividerColorDark": "#1c1a15",
+  "backgroundColor": "#faf7ef",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://revise.saurav-info.xyz/icons/icon-512.png",
+  "maskableIconUrl": "https://revise.saurav-info.xyz/icons/maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://revise.saurav-info.xyz/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://revise.saurav-info.xyz/",
+  "minSdkVersion": 21,
+  "orientation": "default",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": []
+}

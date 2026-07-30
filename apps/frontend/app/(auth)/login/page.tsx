@@ -115,6 +115,11 @@ export default function LoginPage() {
         <p className="auth-footer">
           <Link href="/forgot-password" className="auth-link">Forgot password?</Link>
         </p>
+        <p className="auth-footer">
+          <a href="/downloads/revisionworks.apk" download className="auth-link">
+            📱 Download the Android app (.apk)
+          </a>
+        </p>
       </div>
     </div>
   );
