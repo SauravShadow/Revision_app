@@ -148,10 +148,20 @@ export function createApp(emailSender: EmailSender = createDefaultEmailSender())
     res.json({ ...session, token: signSession(session), fileToken: signFileToken(user.id) });
   });
 
-  app.get('/me', (req, res) => {
-    const session = sessionFrom(req);
-    if (!session) return res.status(401).json({ error: 'Not authenticated' });
-    res.json({ ...session, token: signSession(session), fileToken: signFileToken(session.userId) });
+  app.get('/me', async (req, res) => {
+    const stale = sessionFrom(req);
+    if (!stale) return res.status(401).json({ error: 'Not authenticated' });
+    try {
+      // Rebuild from the DB so username/domain edits reach live sessions
+      // instead of the old token's values being re-signed forever.
+      const user = await findById(stale.userId);
+      if (!user) return res.status(401).json({ error: 'Not authenticated' });
+      const session = { userId: user.id, username: user.username, domain: user.domain };
+      res.json({ ...session, token: signSession(session), fileToken: signFileToken(user.id) });
+    } catch (err) {
+      console.error('[me]', err);
+      res.status(500).json({ error: 'Server error' });
+    }
   });
 
   app.get('/email-status', async (req, res) => {

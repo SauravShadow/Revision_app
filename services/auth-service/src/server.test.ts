@@ -101,6 +101,28 @@ describe('login gate + GET /verify-email', () => {
     expect(me.status).toBe(200);
     expect(me.body.username).toBe('carol');
   });
+
+  it('/me reflects a domain changed in the DB after the token was issued', async () => {
+    await createUser('dave', 'password123', 'civil-engineering');
+    const login = await request(app).post('/login').send({ username: 'dave', password: 'password123' });
+    expect(login.body.domain).toBe('civil-engineering');
+
+    await getPool().query("UPDATE users SET domain = 'school-tuition' WHERE username = 'dave'");
+
+    const me = await request(app).get('/me').set('Authorization', `Bearer ${login.body.token}`);
+    expect(me.status).toBe(200);
+    expect(me.body.domain).toBe('school-tuition');
+  });
+
+  it('/me rejects a token for a deleted user', async () => {
+    await createUser('erin', 'password123', 'civil-engineering');
+    const login = await request(app).post('/login').send({ username: 'erin', password: 'password123' });
+
+    await getPool().query("DELETE FROM users WHERE username = 'erin'");
+
+    const me = await request(app).get('/me').set('Authorization', `Bearer ${login.body.token}`);
+    expect(me.status).toBe(401);
+  });
 });
 
 describe('password strength', () => {
