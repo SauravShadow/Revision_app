@@ -30,7 +30,7 @@ export function SubjectCard({ subject, autoEdit = false }: { subject: Subject; a
   const remove = () => { if (window.confirm(`Archive "${subject.name}"? You can restore it later.`)) archiveSubject(subject.id); };
 
   return (
-    <motion.div whileHover={{ y: -4 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
+    <motion.div whileHover={{ y: -4 }} whileTap={{ scale: 0.98 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}>
       <Link href={`/subject/${subject.id}`}
         className="group glass gradient-border bp-ticks relative block rounded-xl p-5 transition-shadow hover:shadow-[0_18px_40px_-24px_rgba(0,0,0,0.9)]">
         <div className="flex items-center gap-3">

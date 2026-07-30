@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { DEFAULT_THEME, resolveTheme, STORAGE_KEY, type ThemeName } from '@/lib/theme/theme';
+import { DEFAULT_THEME, resolveTheme, STORAGE_KEY, THEME_COLORS, type ThemeName } from '@/lib/theme/theme';
 
 type ThemeContextValue = { theme: ThemeName; setTheme: (t: ThemeName) => void };
 
@@ -8,6 +8,10 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function apply(theme: ThemeName) {
   document.documentElement.setAttribute('data-theme', theme);
+  // Keep the browser chrome / TWA status bar on the theme's header colour.
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute('content', THEME_COLORS[theme]);
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

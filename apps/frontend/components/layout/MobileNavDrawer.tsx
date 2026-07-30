@@ -30,7 +30,7 @@ export function MobileNavDrawer() {
   return (
     <>
       <button onClick={() => setOpen(true)} aria-label="Open menu"
-        className="rounded-md border border-line p-3 text-ink-dim transition hover:border-line-strong hover:text-ink md:hidden">
+        className="rounded-md border border-line p-3 text-ink-dim transition hover:border-line-strong hover:text-ink active:bg-panel-2 active:text-ink md:hidden">
         <Menu size={18} />
       </button>
       {open && (
@@ -47,14 +47,14 @@ export function MobileNavDrawer() {
             </div>
 
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <Link href="/filtered" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Filtered</Link>
-              <Link href="/insights" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Insights</Link>
+              <Link href="/filtered" onClick={close} className="tblabel rounded px-2.5 py-2.5 transition hover:bg-panel hover:text-ink active:bg-panel-2 active:text-ink">Filtered</Link>
+              <Link href="/insights" onClick={close} className="tblabel rounded px-2.5 py-2.5 transition hover:bg-panel hover:text-ink active:bg-panel-2 active:text-ink">Insights</Link>
               {isCoach && (
-                <Link href="/coaching" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Coaching</Link>
+                <Link href="/coaching" onClick={close} className="tblabel rounded px-2.5 py-2.5 transition hover:bg-panel hover:text-ink active:bg-panel-2 active:text-ink">Coaching</Link>
               )}
-              <Link href="/calendar" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Calendar</Link>
-              <Link href="/bookmarks" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Bookmarks</Link>
-              <Link href="/archive" onClick={close} className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Archive</Link>
+              <Link href="/calendar" onClick={close} className="tblabel rounded px-2.5 py-2.5 transition hover:bg-panel hover:text-ink active:bg-panel-2 active:text-ink">Calendar</Link>
+              <Link href="/bookmarks" onClick={close} className="tblabel rounded px-2.5 py-2.5 transition hover:bg-panel hover:text-ink active:bg-panel-2 active:text-ink">Bookmarks</Link>
+              <Link href="/archive" onClick={close} className="tblabel rounded px-2.5 py-2.5 transition hover:bg-panel hover:text-ink active:bg-panel-2 active:text-ink">Archive</Link>
             </div>
 
             {session && (

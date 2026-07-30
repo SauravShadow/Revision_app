@@ -37,8 +37,12 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: 'RevisionWorks', statusBarStyle: 'default' },
 };
 
-// Brand green tints the mobile browser chrome / PWA status bar.
-export const viewport: Viewport = { themeColor: '#4a7a1f' };
+// Status bar matches the header strip (ground-deep) of the default engpad
+// theme; ThemeProvider re-tints the meta tag when the theme changes.
+// viewportFit: 'cover' is required for env(safe-area-inset-*) to be non-zero
+// on notched phones in standalone mode — without it the bottom tab bar sits
+// under the home indicator.
+export const viewport: Viewport = { themeColor: '#efe8d6', viewportFit: 'cover' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

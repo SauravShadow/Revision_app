@@ -75,7 +75,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     href="/settings"
                     title="Settings"
                     aria-label="Settings"
-                    className="grid place-items-center rounded-md p-3 text-ink-dim transition hover:bg-panel hover:text-accent md:p-2"
+                    className="grid place-items-center rounded-md p-3 text-ink-dim transition hover:bg-panel hover:text-accent active:bg-panel-2 active:text-accent md:p-2"
                   >
                     <Settings size={16} />
                   </Link>

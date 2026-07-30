@@ -11,8 +11,8 @@ import { useMemberships } from '@/lib/orgs/useMemberships';
 // intrinsic width alone fills a 390px screen — without it the bar widens the
 // whole document rather than letting the labels ellipsize.
 const tabClass = (active: boolean) =>
-  `flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2.5 transition-colors ${
-    active ? 'text-accent' : 'text-ink-faint hover:text-ink-dim'
+  `flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2.5 transition-colors active:bg-panel-2 ${
+    active ? 'text-accent' : 'text-ink-faint hover:text-ink-dim active:text-ink-dim'
   }`;
 
 export function BottomTabBar() {
