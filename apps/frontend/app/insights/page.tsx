@@ -57,7 +57,7 @@ export default function InsightsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-5">
+        <div className="grid gap-5 [&>*]:min-w-0">
           {/* Row 1 — gauge + key readouts */}
           <div className="bp-rise grid gap-4 lg:grid-cols-[minmax(0,240px)_1fr]" style={{ animationDelay: '40ms' }}>
             <RadialGauge value={stats.completionPct} label="Completion" sublabel={`${stats.totalTopics} topics`} />

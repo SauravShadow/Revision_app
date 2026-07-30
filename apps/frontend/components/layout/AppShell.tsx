@@ -29,9 +29,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Titleblock — the header strip of a drafting sheet */}
       <header className="sticky top-0 z-20 border-b border-line-strong bg-ground-deep/80 backdrop-blur-md">
         <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
             <MobileNavDrawer />
-            <Link href="/" className="group flex shrink-0 items-center gap-3">
+            <Link href="/" className="group flex min-w-0 items-center gap-3">
               {/* Brand mark */}
               <Image
                 src="/logo-icon-original.png"
@@ -39,24 +39,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 width={28}
                 height={28}
                 priority
-                className="h-7 w-7 rounded-full"
+                className="h-7 w-7 shrink-0 rounded-full"
               />
-              <span className="flex flex-col leading-none">
-                <span className="text-sm tracking-tight text-ink">
+              {/* Phones have no room for the wordmark beside the controls — the mark
+                  carries the brand there, and the drawer already shows the domain. */}
+              <span className="hidden min-w-0 flex-col leading-none sm:flex">
+                <span className="truncate text-sm tracking-tight text-ink">
                   Revision<span className="font-semibold">Works</span>
                 </span>
-                <span className="tblabel mt-0.5 text-[0.58rem]">
+                <span className="tblabel mt-0.5 truncate text-[0.58rem]">
                   {session ? DOMAIN_LABELS[session.domain] ?? session.domain : 'Loading…'}
                 </span>
               </span>
             </Link>
           </div>
 
-          <nav className="flex items-center gap-2">
+          <nav className="flex shrink-0 items-center gap-2">
             <CommandPalette />
             <HeaderControls />
             <span className="mx-1 hidden h-5 w-px bg-line sm:block" />
-            <Link href="/filtered" className="tblabel rounded px-2 py-1 transition hover:bg-panel hover:text-ink">Filtered</Link>
+            <Link href="/filtered" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Filtered</Link>
             <Link href="/insights" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Insights</Link>
             {isCoach && (
               <Link href="/coaching" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Coaching</Link>
@@ -73,7 +75,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     href="/settings"
                     title="Settings"
                     aria-label="Settings"
-                    className="grid place-items-center rounded-md p-2 text-ink-dim transition hover:bg-panel hover:text-accent"
+                    className="grid place-items-center rounded-md p-3 text-ink-dim transition hover:bg-panel hover:text-accent md:p-2"
                   >
                     <Settings size={16} />
                   </Link>

@@ -7,8 +7,11 @@ import { useMemberships } from '@/lib/orgs/useMemberships';
 // Mobile primary navigation (Phase 3). Fixed to the bottom, safe-area padded,
 // hidden from md up (the header nav takes over on wider screens). Coaching is
 // role-gated; Search opens the command palette via a decoupled window event.
+// min-w-0 matters: with the coach role there are five tabs, and the labels'
+// intrinsic width alone fills a 390px screen — without it the bar widens the
+// whole document rather than letting the labels ellipsize.
 const tabClass = (active: boolean) =>
-  `flex flex-1 flex-col items-center gap-1 py-2.5 transition-colors ${
+  `flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2.5 transition-colors ${
     active ? 'text-accent' : 'text-ink-faint hover:text-ink-dim'
   }`;
 
@@ -35,7 +38,7 @@ export function BottomTabBar() {
           return (
             <Link key={href} href={href} aria-current={isActive ? 'page' : undefined} className={tabClass(isActive)}>
               <Icon size={20} strokeWidth={isActive ? 2.4 : 1.8} />
-              <span className="tblabel text-[0.58rem]">{label}</span>
+              <span className="tblabel w-full truncate text-center text-[0.58rem]">{label}</span>
             </Link>
           );
         })}

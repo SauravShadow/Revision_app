@@ -128,7 +128,7 @@ export default function CoachingPage() {
             aria-label="Group"
             value={selected}
             onChange={(e) => { setSelected(e.target.value); setPage(1); }}
-            className="rounded border border-line bg-panel px-2 py-1 text-sm text-ink"
+            className="max-w-full truncate rounded border border-line bg-panel px-2 py-1 text-sm text-ink"
           >
             {groups.map((g) => <option key={g.groupId} value={g.groupId}>{g.label}</option>)}
           </select>
@@ -139,7 +139,7 @@ export default function CoachingPage() {
 
       {error && <p className="mb-4 text-sm text-alarm">{error}</p>}
 
-      <div className="grid gap-5">
+      <div className="grid gap-5 [&>*]:min-w-0">
         <div className="bp-rise grid grid-cols-2 gap-4 sm:grid-cols-4" style={{ animationDelay: '40ms' }}>
           <StatTile label="Cohort completion" value={`${summary.totals.completionPct}%`} />
           <StatTile label="Students" value={summary.totals.members} />
@@ -152,7 +152,7 @@ export default function CoachingPage() {
         </div>
 
         <div className="bp-rise glass overflow-x-auto rounded-xl p-4" style={{ animationDelay: '200ms' }}>
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <div className="tblabel">Students</div>
             <FilterChips
               aria-label="Sort students"

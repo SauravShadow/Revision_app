@@ -303,12 +303,17 @@ body::after {
 .auth-card-wrap {
   position: relative;
   display: flex;
+  /* Settings renders two cards here; without wrapping they cannot shrink below
+     their min-content and push the whole document wider than a phone screen. */
+  flex-wrap: wrap;
+  gap: 1.5rem;
   align-items: center;
   justify-content: center;
   min-height: 100svh;
   width: 100%;
   padding: 2rem 1rem;
 }
+.auth-card-wrap > * { min-width: 0; }
 
 /* Animated background glows */
 .auth-glow {
@@ -599,12 +604,16 @@ body::after {
   border: none;
   cursor: pointer;
   color: var(--ink-faint);
-  padding: .2rem;
+  /* Touch-sized by default; tightened once a pointer is available. */
+  padding: .7rem;
   border-radius: 6px;
   display: grid;
   place-items: center;
   transition: color .15s, background .15s;
   flex-shrink: 0;
+}
+@media (min-width: 768px) {
+  .sidebar-logout-btn { padding: .2rem; }
 }
 .sidebar-logout-btn:hover { color: var(--alarm); background: rgba(255,107,107,.1); }
 
