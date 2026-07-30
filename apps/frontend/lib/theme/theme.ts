@@ -23,6 +23,14 @@ export function resolveTheme(stored: string | null): ThemeName {
   return LEGACY[stored] ?? DEFAULT_THEME;
 }
 
+// Browser-chrome / status-bar tint per theme — must track each palette's
+// --ground-deep (the header strip) in app/globals.css.
+export const THEME_COLORS: Record<ThemeName, string> = {
+  blueprint: '#06111d',
+  engpad: '#efe8d6',
+  slate: '#eeeef1',
+};
+
 export const THEME_LABELS: Record<ThemeName, string> = {
   blueprint: 'Blueprint Dark',
   engpad: 'Engineering Pad',

@@ -18,7 +18,7 @@ export function TopicCard({ topic, autoEdit = false }: { topic: Topic; autoEdit?
   const remove = () => { if (window.confirm(`Archive "${topic.title}"? You can restore it later.`)) archiveTopic(topic.id); };
   return (
     <Link href={`/topic/${topic.id}`}
-      className="group flex items-center justify-between gap-3 rounded-md px-3 py-3 transition-colors hover:bg-accent-soft">
+      className="group flex items-center justify-between gap-3 rounded-md px-3 py-3 transition-colors hover:bg-accent-soft active:bg-accent-soft">
       <div className="min-w-0" onDoubleClick={(e) => { e.preventDefault(); setEditing(true); }}>
         <div className="truncate font-medium text-ink">
           <InlineEditable value={topic.title} editing={editing} onEditingChange={setEditing}

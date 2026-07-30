@@ -136,7 +136,13 @@
 }
 
 /* ----- The drafting sheet ------------------------------------------------ */
+html {
+  /* Pull-to-refresh inside the TWA reloads the whole app and loses editor
+     state; the queue/tree refresh through the store, so the gesture only hurts. */
+  overscroll-behavior-y: none;
+}
 body {
+  overscroll-behavior-y: none;
   background-color: var(--ground);
   /* Two-tier CAD grid: fine 28px cells inside heavy 140px major divisions. */
   background-image:
@@ -165,6 +171,30 @@ body::after {
 
 ::selection { background: var(--accent-soft); color: var(--ink); }
 
+/* Android's grey tap flash fights the drafting palette; press feedback comes
+   from explicit :active styles instead. */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* ----- Touch ergonomics -------------------------------------------------- */
+@media (max-width: 767px) {
+  /* iOS zooms the page on focusing any input under 16px and never zooms back. */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  /* dim-chip doubles as a tappable control (quick filters, plan-date picks,
+     calendar actions). As a button it must clear the 44px touch minimum;
+     display-only chips (spans) keep the compact drafting look. */
+  button.dim-chip {
+    min-height: 2.75rem;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.72rem;
+  }
+}
+button.dim-chip:active { background: var(--panel-2); transform: scale(0.97); }
+
 /* ----- Custom scrollbar (a machined runner) ------------------------------ */
 * { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
 *::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -184,7 +214,9 @@ body::after {
   border: 1px solid var(--line);
   backdrop-filter: blur(6px);
 }
-.glass:hover { border-color: var(--line-strong); }
+@media (hover: hover) {
+  .glass:hover { border-color: var(--line-strong); }
+}
 
 .gradient-border {
   border: 1px solid transparent;
@@ -209,10 +241,12 @@ body::after {
 }
 .bp-ticks::before { top: 8px; left: 8px; border-top: 1.5px solid; border-left: 1.5px solid; }
 .bp-ticks::after  { bottom: 8px; right: 8px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
-.bp-ticks:hover::before,
-.bp-ticks:hover::after,
-.group:hover .bp-ticks::before,
-.group:hover .bp-ticks::after { opacity: 0.7; }
+@media (hover: hover) {
+  .bp-ticks:hover::before,
+  .bp-ticks:hover::after,
+  .group:hover .bp-ticks::before,
+  .group:hover .bp-ticks::after { opacity: 0.7; }
+}
 
 /* ----- Titleblock label — mono, tracked, uppercase --------------------- */
 .tblabel {
@@ -303,12 +337,17 @@ body::after {
 .auth-card-wrap {
   position: relative;
   display: flex;
+  /* Settings renders two cards here; without wrapping they cannot shrink below
+     their min-content and push the whole document wider than a phone screen. */
+  flex-wrap: wrap;
+  gap: 1.5rem;
   align-items: center;
   justify-content: center;
   min-height: 100svh;
   width: 100%;
   padding: 2rem 1rem;
 }
+.auth-card-wrap > * { min-width: 0; }
 
 /* Animated background glows */
 .auth-glow {
@@ -446,10 +485,12 @@ body::after {
   box-shadow: 0 4px 18px rgba(79,195,247,.28);
   letter-spacing: -.01em;
 }
-.auth-btn:hover:not(:disabled) {
-  opacity: .9;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(79,195,247,.38);
+@media (hover: hover) {
+  .auth-btn:hover:not(:disabled) {
+    opacity: .9;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(79,195,247,.38);
+  }
 }
 .auth-btn:active:not(:disabled) { transform: translateY(0); }
 .auth-btn:disabled { opacity: .45; cursor: not-allowed; }
@@ -468,7 +509,10 @@ body::after {
   cursor: pointer;
   transition: border-color .2s, color .2s, background .2s;
 }
-.auth-btn-ghost:hover { border-color: var(--accent); color: var(--ink); background: rgba(79,195,247,.06); }
+@media (hover: hover) {
+  .auth-btn-ghost:hover { border-color: var(--accent); color: var(--ink); background: rgba(79,195,247,.06); }
+}
+.auth-btn-ghost:active { border-color: var(--accent); color: var(--ink); transform: scale(0.98); }
 
 /* Spinner */
 .auth-spinner {
@@ -516,12 +560,15 @@ body::after {
   text-align: left;
   transition: border-color .2s, background .2s, box-shadow .2s, transform .15s;
 }
-.domain-card:hover {
-  border-color: var(--domain-color, var(--accent));
-  background: rgba(79,195,247,.04);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+@media (hover: hover) {
+  .domain-card:hover {
+    border-color: var(--domain-color, var(--accent));
+    background: rgba(79,195,247,.04);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  }
 }
+.domain-card:active { transform: scale(0.98); }
 .domain-card--selected {
   border-color: var(--domain-color, var(--accent)) !important;
   background: color-mix(in srgb, var(--domain-color, var(--accent)) 10%, transparent) !important;
@@ -599,12 +646,19 @@ body::after {
   border: none;
   cursor: pointer;
   color: var(--ink-faint);
-  padding: .2rem;
+  /* Touch-sized by default; tightened once a pointer is available. */
+  padding: .7rem;
   border-radius: 6px;
   display: grid;
   place-items: center;
   transition: color .15s, background .15s;
   flex-shrink: 0;
 }
-.sidebar-logout-btn:hover { color: var(--alarm); background: rgba(255,107,107,.1); }
+@media (min-width: 768px) {
+  .sidebar-logout-btn { padding: .2rem; }
+}
+@media (hover: hover) {
+  .sidebar-logout-btn:hover { color: var(--alarm); background: rgba(255,107,107,.1); }
+}
+.sidebar-logout-btn:active { color: var(--alarm); background: rgba(255,107,107,.1); }
 

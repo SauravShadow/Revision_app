@@ -40,7 +40,7 @@ export function CommandPalette() {
   return (
     <>
       <button onClick={() => setOpen(true)} aria-label="Search"
-        className="tblabel flex items-center gap-2 rounded-md border border-line px-2.5 py-1.5 text-ink-dim transition hover:border-line-strong hover:text-ink">
+        className="tblabel flex items-center gap-2 rounded-md border border-line px-2.5 py-3 text-ink-dim transition hover:border-line-strong hover:text-ink active:bg-panel-2 active:text-ink md:py-1.5">
         <Search size={14} /> <span className="hidden sm:inline">Search</span>
         <kbd className="hidden rounded border border-line px-1 font-mono text-[0.6rem] text-ink-faint sm:inline">⌘K</kbd>
       </button>
@@ -58,7 +58,7 @@ export function CommandPalette() {
               {results.map((r, i) => (
                 <li key={`${r.kind}:${r.id}`}>
                   <button onClick={() => go(r.href)} onMouseEnter={() => setActive(i)}
-                    className={`flex w-full items-center justify-between gap-2 rounded-md border-l-2 px-3 py-2 text-left text-sm transition-colors ${i === active ? 'border-l-accent bg-panel-2 text-ink' : 'border-l-transparent text-ink-dim hover:bg-panel'}`}>
+                    className={`flex w-full items-center justify-between gap-2 rounded-md border-l-2 px-3 py-2.5 text-left text-sm transition-colors active:bg-panel-2 md:py-2 ${i === active ? 'border-l-accent bg-panel-2 text-ink' : 'border-l-transparent text-ink-dim hover:bg-panel'}`}>
                     <span className="min-w-0 truncate">{r.label}{r.sublabel ? <span className="text-ink-faint"> · {r.sublabel}</span> : null}</span>
                     <span className="tblabel shrink-0">{r.kind}</span>
                   </button>

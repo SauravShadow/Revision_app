@@ -46,11 +46,13 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold">{topic.title}</h1>
             <RevisionBadge state={badgeState(topic, Date.now())} />
-            <button aria-label="Toggle bookmark" onClick={() => toggleBookmark(topic.id)} className="rounded-lg p-1.5 hover:bg-white/10">
+            <button aria-label="Toggle bookmark" onClick={() => toggleBookmark(topic.id)} className="rounded-lg p-2.5 hover:bg-white/10 active:bg-white/10 md:p-1.5">
               <Star size={18} className={topic.bookmarkedAt ? 'fill-amber-400 text-amber-400' : 'opacity-60'} />
             </button>
           </div>
-          <div className="flex items-center gap-2">
+          {/* flex-wrap: with a planned date set, chip + both buttons exceed a
+              360px screen and would otherwise overflow the page. */}
+          <div className="flex flex-wrap items-center gap-2">
             {topic.plannedAt != null && (
               <span className="dim-chip flex items-center gap-1.5 text-ink-dim">
                 Planned · {new Date(topic.plannedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
@@ -58,11 +60,11 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
               </span>
             )}
             <button onClick={() => setPlanFor('schedule')}
-              className="flex items-center justify-center gap-2 rounded-xl border border-line px-3 py-2 text-sm text-ink-dim transition hover:border-accent hover:text-accent">
+              className="flex items-center justify-center gap-2 rounded-xl border border-line px-3 py-2 text-sm text-ink-dim transition hover:border-accent hover:text-accent active:scale-[0.97] active:border-accent active:text-accent">
               <CalendarClock size={16} /> Schedule
             </button>
             <button onClick={() => { markTopicRevised(topic.id); setPlanFor('after-revise'); }}
-              className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500/90 px-4 py-2 text-sm font-medium text-black transition hover:bg-emerald-400 sm:justify-start">
+              className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500/90 px-4 py-2 text-sm font-medium text-black transition hover:bg-emerald-400 active:scale-[0.97] active:bg-emerald-400 sm:justify-start">
               <CheckCircle2 size={16} /> Mark as Revised
             </button>
           </div>

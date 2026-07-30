@@ -8,12 +8,29 @@ import { useStore } from '@/store/useStore';
 
 type Mode = 'edit' | 'preview' | 'split';
 
+const MODE_KEY = 'ce-editor-mode';
+const isMode = (v: string | null): v is Mode => v === 'edit' || v === 'preview' || v === 'split';
+
 export function MarkdownEditor({ value, onChange, topicId }: { value: string; onChange: (v: string) => void; topicId: string }) {
-  const [mode, setMode] = useState<Mode>('split');
+  const [mode, setModeState] = useState<Mode>('split');
   const [maximized, setMaximized] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
   const addAttachment = useStore((s) => s.addAttachment);
   const attachments = useStore((s) => s.topics[topicId]?.attachments);
+
+  // Mobile is read-mostly and split stacks into textarea + duplicate preview
+  // there, so phones default to preview; an explicit choice is remembered.
+  // Effect (not state initializer) so SSR markup and hydration agree.
+  useEffect(() => {
+    const stored = localStorage.getItem(MODE_KEY);
+    if (isMode(stored)) setModeState(stored);
+    else if (window.matchMedia?.('(max-width: 767px)').matches) setModeState('preview');
+  }, []);
+
+  const setMode = (m: Mode) => {
+    setModeState(m);
+    try { localStorage.setItem(MODE_KEY, m); } catch { /* private mode — session-only */ }
+  };
 
   useEffect(() => {
     if (!maximized) return;
@@ -56,7 +73,7 @@ export function MarkdownEditor({ value, onChange, topicId }: { value: string; on
   };
 
   const Btn = ({ title, onClick, children }: { title: string; onClick: () => void; children: React.ReactNode }) => (
-    <button title={title} aria-label={title} onClick={onClick} className="rounded p-2 opacity-70 hover:bg-white/10 hover:opacity-100 md:p-1.5">{children}</button>
+    <button title={title} aria-label={title} onClick={onClick} className="rounded p-2 opacity-70 hover:bg-white/10 hover:opacity-100 active:bg-white/15 active:opacity-100 md:p-1.5">{children}</button>
   );
 
   return (
@@ -78,7 +95,7 @@ export function MarkdownEditor({ value, onChange, topicId }: { value: string; on
         <div className="flex items-center gap-2">
           <div className="flex gap-1 text-xs">
             {(['edit', 'split', 'preview'] as Mode[]).map((m) => (
-              <button key={m} onClick={() => setMode(m)} className={`rounded px-2 py-1 capitalize ${mode === m ? 'bg-white/15' : 'opacity-60 hover:bg-white/10 hover:opacity-100'}`}>{m}</button>
+              <button key={m} onClick={() => setMode(m)} className={`rounded px-2.5 py-2.5 capitalize md:px-2 md:py-1 ${mode === m ? 'bg-white/15' : 'opacity-60 hover:bg-white/10 hover:opacity-100 active:bg-white/10'}`}>{m}</button>
             ))}
           </div>
           <button
