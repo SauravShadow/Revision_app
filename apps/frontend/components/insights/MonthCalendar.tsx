@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { AppData } from '@revision-app/shared';
 import { useStore } from '@/store/useStore';
@@ -58,6 +58,7 @@ export function MonthCalendar() {
   const [view, setView] = useState({ year: todayDate.getFullYear(), month: todayDate.getMonth() });
   const [selected, setSelected] = useState<number>(todayStart);
   const [planOpen, setPlanOpen] = useState(false);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   const cells = useMemo(() => calendarMonth(data, view.year, view.month, now), [data, view, now]);
   const selectedCell = cells.find((c) => c.day === selected);
@@ -100,7 +101,22 @@ export function MonthCalendar() {
           <button onClick={() => step(1)} aria-label="Next month" className="rounded-lg border border-line p-2.5 text-ink-dim transition hover:border-accent hover:text-accent active:border-accent active:text-accent md:p-1.5"><ChevronRight size={16} /></button>
         </div>
 
-        <div className="grid grid-cols-7 gap-1.5 text-center">
+        {/* Horizontal swipe steps the month — the chevrons are the only other
+            way to navigate and they're deliberately small. */}
+        <div
+          className="grid grid-cols-7 gap-1.5 text-center"
+          onTouchStart={(e) => { touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }}
+          onTouchEnd={(e) => {
+            const start = touchStart.current;
+            touchStart.current = null;
+            if (!start) return;
+            const dx = e.changedTouches[0].clientX - start.x;
+            const dy = e.changedTouches[0].clientY - start.y;
+            // Ignore mostly-vertical drags so page scrolling never flips months.
+            if (Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+            step(dx < 0 ? 1 : -1);
+          }}
+        >
           {DOW.map((d) => <div key={d} className="tblabel py-1 text-[10px]">{d}</div>)}
           {cells.map((c) => {
             const isSelected = c.day === selected;

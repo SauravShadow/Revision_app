@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { search } from '@/lib/search/search';
 
@@ -44,16 +45,25 @@ export function CommandPalette() {
         <Search size={14} /> <span className="hidden sm:inline">Search</span>
         <kbd className="hidden rounded border border-line px-1 font-mono text-[0.6rem] text-ink-faint sm:inline">⌘K</kbd>
       </button>
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-ground-deep/70 p-4 pt-24 backdrop-blur-sm" onClick={() => setOpen(false)}>
-          <div className="glass w-full max-w-xl overflow-hidden rounded-xl ring-1 ring-accent/20 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.9)]" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-2 border-b border-line px-4">
+      {/* Full-screen takeover on phones: as a centred pt-24 overlay the
+          on-screen keyboard left roughly 200px for results. Portalled to
+          <body> because the header's backdrop-blur is a containing block for
+          fixed descendants, which pinned this overlay to the header strip. */}
+      {open && createPortal(
+        <div className="fixed inset-0 z-50 flex items-stretch justify-center bg-ground-deep/70 backdrop-blur-sm sm:items-start sm:p-4 sm:pt-24" onClick={() => setOpen(false)}>
+          <div className="glass flex h-full w-full flex-col overflow-hidden ring-1 ring-accent/20 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.9)] sm:h-auto sm:max-w-xl sm:rounded-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex shrink-0 items-center gap-2 border-b border-line px-4 pt-[env(safe-area-inset-top)]">
               <Search size={15} className="shrink-0 text-accent" />
               <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onInputKey}
+                type="search" enterKeyHint="search"
                 placeholder="Search subjects, chapters, topics, notes, tags…"
-                className="w-full bg-transparent py-3 text-sm text-ink outline-none placeholder:text-ink-faint" />
+                className="w-full bg-transparent py-3.5 text-sm text-ink outline-none placeholder:text-ink-faint [&::-webkit-search-cancel-button]:appearance-none sm:py-3" />
+              <button type="button" aria-label="Close search" onClick={() => setOpen(false)}
+                className="-mr-2 shrink-0 rounded p-2 text-ink-faint transition active:text-ink sm:hidden">
+                <X size={18} />
+              </button>
             </div>
-            <ul className="max-h-80 overflow-y-auto p-1.5">
+            <ul className="flex-1 overflow-y-auto p-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] sm:max-h-80 sm:flex-none">
               {q && results.length === 0 && <li className="tblabel px-3 py-4">No matches.</li>}
               {results.map((r, i) => (
                 <li key={`${r.kind}:${r.id}`}>
@@ -66,7 +76,8 @@ export function CommandPalette() {
               ))}
             </ul>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );

@@ -175,6 +175,11 @@ body::after {
    from explicit :active styles instead. */
 * { -webkit-tap-highlight-color: transparent; }
 
+/* Height of the mobile bottom tab bar, excluding the safe-area inset. Anything
+   that stacks above it (the topic page's action bar) offsets by this, so the
+   two can't drift apart. */
+:root { --tabbar-h: 3.5rem; }
+
 /* ----- Touch ergonomics -------------------------------------------------- */
 @media (max-width: 767px) {
   /* iOS zooms the page on focusing any input under 16px and never zooms back. */
