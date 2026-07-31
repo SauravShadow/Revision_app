@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useRef } from 'react';
 import type { DayCount } from '@/lib/insights/heatmap';
 
 // Accent (draughting-ink) intensity ramp; bg-panel = empty day.
@@ -15,6 +16,15 @@ function level(count: number): number {
 }
 
 export function HeatmapGrid({ days }: { days: DayCount[] }) {
+  const scroller = useRef<HTMLDivElement>(null);
+
+  // 12 months don't fit a phone, and the grid starts a year ago — so without
+  // this the visible portion is the oldest, usually emptiest, weeks.
+  useEffect(() => {
+    const el = scroller.current;
+    if (el) el.scrollLeft = el.scrollWidth;
+  }, [days]);
+
   if (days.length === 0) return null;
 
   // Pad the first column so rows align to weekdays (Sun = row 0 … Sat = row 6).
@@ -37,7 +47,7 @@ export function HeatmapGrid({ days }: { days: DayCount[] }) {
         </div>
       </div>
 
-      <div className="overflow-x-auto pb-1">
+      <div ref={scroller} className="overflow-x-auto pb-1">
         <div className="inline-flex flex-col gap-1.5">
           {/* month labels aligned to week columns */}
           <div className="flex gap-[3px] pl-[30px]">

@@ -84,7 +84,7 @@ export default function InsightsPage() {
           </div>
 
           {/* Row 4 — most / least revised */}
-          <div className="bp-rise grid gap-4 lg:grid-cols-2" style={{ animationDelay: '280ms' }}>
+          <div className="bp-rise grid gap-4 [&>*]:min-w-0 lg:grid-cols-2" style={{ animationDelay: '280ms' }}>
             <RankBars title="Most revised" rows={most} data={data} color="var(--accent)" />
             <RankBars title="Least revised" rows={least} data={data} color="var(--annotation)" />
           </div>

@@ -1,9 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { NavTree } from './NavTree';
+import { visibleSectionLinks } from './navLinks';
 import { useAuth } from '@/components/AuthProvider';
 import { useMemberships } from '@/lib/orgs/useMemberships';
 import { DOMAIN_LABELS } from '@revision-app/shared';
@@ -12,6 +15,8 @@ export function MobileNavDrawer() {
   const [open, setOpen] = useState(false);
   const { session, logout } = useAuth();
   const { isCoach } = useMemberships();
+  // Null outside an app-router context (component tests render it bare).
+  const pathname = usePathname() ?? '';
   const close = () => setOpen(false);
 
   useEffect(() => {
@@ -33,7 +38,10 @@ export function MobileNavDrawer() {
         className="rounded-md border border-line p-3 text-ink-dim transition hover:border-line-strong hover:text-ink active:bg-panel-2 active:text-ink md:hidden">
         <Menu size={18} />
       </button>
-      {open && (
+      {/* Portalled to <body>: this component renders inside the header, whose
+          backdrop-blur makes it a containing block for fixed descendants — the
+          drawer was being clipped to the header's ~69px strip. */}
+      {open && createPortal(
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-ground-deep/70 backdrop-blur-sm" onClick={close} data-testid="mobile-nav-backdrop" />
           <motion.aside
@@ -46,16 +54,22 @@ export function MobileNavDrawer() {
               <button onClick={close} aria-label="Close menu" className="text-ink-faint transition hover:text-accent"><X size={16} /></button>
             </div>
 
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <Link href="/filtered" onClick={close} className="tblabel rounded px-2.5 py-2.5 transition hover:bg-panel hover:text-ink active:bg-panel-2 active:text-ink">Filtered</Link>
-              <Link href="/insights" onClick={close} className="tblabel rounded px-2.5 py-2.5 transition hover:bg-panel hover:text-ink active:bg-panel-2 active:text-ink">Insights</Link>
-              {isCoach && (
-                <Link href="/coaching" onClick={close} className="tblabel rounded px-2.5 py-2.5 transition hover:bg-panel hover:text-ink active:bg-panel-2 active:text-ink">Coaching</Link>
-              )}
-              <Link href="/calendar" onClick={close} className="tblabel rounded px-2.5 py-2.5 transition hover:bg-panel hover:text-ink active:bg-panel-2 active:text-ink">Calendar</Link>
-              <Link href="/bookmarks" onClick={close} className="tblabel rounded px-2.5 py-2.5 transition hover:bg-panel hover:text-ink active:bg-panel-2 active:text-ink">Bookmarks</Link>
-              <Link href="/archive" onClick={close} className="tblabel rounded px-2.5 py-2.5 transition hover:bg-panel hover:text-ink active:bg-panel-2 active:text-ink">Archive</Link>
-            </div>
+            {/* Full-width icon rows: as wrapped chips these were the smallest
+                touch targets in the app and read as decoration, not navigation. */}
+            <nav className="mb-3 flex flex-col gap-0.5 border-b border-line pb-3">
+              {visibleSectionLinks(isCoach).map(({ href, label, Icon }) => {
+                const active = pathname.startsWith(href);
+                return (
+                  <Link key={href} href={href} onClick={close}
+                    aria-current={active ? 'page' : undefined}
+                    className={`tblabel flex min-h-11 items-center gap-3 rounded-lg px-3 transition active:bg-panel-2 ${
+                      active ? 'bg-accent-soft text-accent' : 'hover:bg-panel hover:text-ink'
+                    }`}>
+                    <Icon size={16} className={`shrink-0 ${active ? 'text-accent' : 'text-ink-faint'}`} /> {label}
+                  </Link>
+                );
+              })}
+            </nav>
 
             {session && (
               <div className="mb-3 flex items-center justify-between border-b border-line pb-3">
@@ -79,7 +93,8 @@ export function MobileNavDrawer() {
               <NavTree onNavigate={close} />
             </div>
           </motion.aside>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );

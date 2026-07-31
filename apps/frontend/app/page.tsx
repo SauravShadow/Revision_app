@@ -78,26 +78,33 @@ export default function DashboardPage() {
         aria-label="Filter subjects"
       />
 
-      {visibleIds.length === 0 ? (
-        <p className="tblabel py-10 text-center text-ink-faint">
-          {query.trim()
-            ? `No subjects match “${query.trim()}”.`
-            : `No subjects with ${QUICK_FILTER_LABELS[filter].toLowerCase()} topics.`}
-        </p>
-      ) : (
-        <SortableContext items={visibleIds.map((id) => dragId('subject', id))} strategy={rectSortingStrategy}>
-          <motion.div layout className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            {visibleIds.map((id) => (
-              <SortableRow key={id} id={dragId('subject', id)}>
-                <SubjectCard subject={subjects[id]} autoEdit={id === justAddedId} />
-              </SortableRow>
-            ))}
-          </motion.div>
-        </SortableContext>
-      )}
+      {/* Order flips by breakpoint rather than duplicating the DOM: a phone
+          session is a 30-second "what's due now" check, so the queue leads
+          there; desktop keeps the subjects-first layout. */}
+      <div className="flex flex-col">
+        <div className="order-2 md:order-1">
+          {visibleIds.length === 0 ? (
+            <p className="tblabel py-10 text-center text-ink-faint">
+              {query.trim()
+                ? `No subjects match “${query.trim()}”.`
+                : `No subjects with ${QUICK_FILTER_LABELS[filter].toLowerCase()} topics.`}
+            </p>
+          ) : (
+            <SortableContext items={visibleIds.map((id) => dragId('subject', id))} strategy={rectSortingStrategy}>
+              <motion.div layout className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                {visibleIds.map((id) => (
+                  <SortableRow key={id} id={dragId('subject', id)}>
+                    <SubjectCard subject={subjects[id]} autoEdit={id === justAddedId} />
+                  </SortableRow>
+                ))}
+              </motion.div>
+            </SortableContext>
+          )}
+        </div>
 
-      <div className="mt-10">
-        <TodayQueue />
+        <div className="order-1 mb-8 md:order-2 md:mb-0 md:mt-10">
+          <TodayQueue />
+        </div>
       </div>
     </div>
   );

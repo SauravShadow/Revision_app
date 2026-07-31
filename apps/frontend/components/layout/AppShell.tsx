@@ -10,6 +10,7 @@ import { BottomTabBar } from './BottomTabBar';
 import { CommandPalette } from '@/components/CommandPalette';
 import { useAuth } from '@/components/AuthProvider';
 import { useMemberships } from '@/lib/orgs/useMemberships';
+import { SECTION_LINKS } from './navLinks';
 import { DOMAIN_LABELS } from '@revision-app/shared';
 
 const AUTH_PATHS = ['/login', '/register'];
@@ -57,20 +58,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <nav className="flex shrink-0 items-center gap-2">
             <CommandPalette />
             <HeaderControls />
-            <span className="mx-1 hidden h-5 w-px bg-line sm:block" />
-            <Link href="/filtered" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Filtered</Link>
-            <Link href="/insights" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Insights</Link>
-            {isCoach && (
-              <Link href="/coaching" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Coaching</Link>
-            )}
-            <Link href="/calendar" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Calendar</Link>
-            <Link href="/bookmarks" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Bookmarks</Link>
-            <Link href="/archive" className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink sm:block">Archive</Link>
+            {/* The full link row measures ~813px, so it only fits from lg up —
+                revealing it at sm made every layout 640–1023px wide overflow the
+                screen (landscape phones read as a zoomed-out desktop). Below lg
+                these links live in the sidebar (md–lg) or the drawer (< md). */}
+            <span className="mx-1 hidden h-5 w-px bg-line lg:block" />
+            {SECTION_LINKS.filter((l) => !l.coachOnly || isCoach).map(({ href, label }) => (
+              <Link key={href} href={href} className="tblabel hidden rounded px-2 py-1 transition hover:bg-panel hover:text-ink lg:block">{label}</Link>
+            ))}
             {session && (
               <>
-                <span className="mx-1 hidden h-5 w-px bg-line sm:block" />
+                <span className="mx-1 hidden h-5 w-px bg-line lg:block" />
                 <div className="flex items-center gap-2">
-                  <span className="hidden text-xs text-ink-dim sm:inline">{session.username}</span>
+                  <span className="hidden text-xs text-ink-dim lg:inline">{session.username}</span>
                   <Link
                     href="/settings"
                     title="Settings"

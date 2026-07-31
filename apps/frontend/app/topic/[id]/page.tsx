@@ -35,7 +35,8 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
   };
   return (
     <PreviewProvider>
-      <div className="mx-auto w-full max-w-5xl">
+      {/* Clearance for the docked action bar on phones. */}
+      <div className="mx-auto w-full max-w-5xl pb-20 md:pb-0">
         <Breadcrumb items={[
           { label: 'Subjects', href: '/' },
           ...(subject ? [{ label: subject.name, href: `/subject/${subject.id}` }] : []),
@@ -50,9 +51,11 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
               <Star size={18} className={topic.bookmarkedAt ? 'fill-amber-400 text-amber-400' : 'opacity-60'} />
             </button>
           </div>
-          {/* flex-wrap: with a planned date set, chip + both buttons exceed a
-              360px screen and would otherwise overflow the page. */}
-          <div className="flex flex-wrap items-center gap-2">
+          {/* Same element in both layouts: inline on desktop, docked above the
+              bottom tab bar on phones. "Mark as Revised" is the reason this
+              page gets opened, and inline it scrolls out of reach the moment
+              you start reading notes. */}
+          <div className="fixed inset-x-0 bottom-[calc(var(--tabbar-h)+env(safe-area-inset-bottom))] z-20 flex flex-wrap items-center gap-2 border-t border-line-strong bg-ground-deep/95 px-4 py-2.5 backdrop-blur-md md:static md:z-auto md:justify-end md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
             {topic.plannedAt != null && (
               <span className="dim-chip flex items-center gap-1.5 text-ink-dim">
                 Planned · {new Date(topic.plannedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
@@ -60,11 +63,11 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
               </span>
             )}
             <button onClick={() => setPlanFor('schedule')}
-              className="flex items-center justify-center gap-2 rounded-xl border border-line px-3 py-2 text-sm text-ink-dim transition hover:border-accent hover:text-accent active:scale-[0.97] active:border-accent active:text-accent">
+              className="flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-line px-3 py-2 text-sm text-ink-dim transition hover:border-accent hover:text-accent active:scale-[0.97] active:border-accent active:text-accent">
               <CalendarClock size={16} /> Schedule
             </button>
             <button onClick={() => { markTopicRevised(topic.id); setPlanFor('after-revise'); }}
-              className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500/90 px-4 py-2 text-sm font-medium text-black transition hover:bg-emerald-400 active:scale-[0.97] active:bg-emerald-400 sm:justify-start">
+              className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500/90 px-4 py-2 text-sm font-medium text-black transition hover:bg-emerald-400 active:scale-[0.97] active:bg-emerald-400 md:flex-none">
               <CheckCircle2 size={16} /> Mark as Revised
             </button>
           </div>
