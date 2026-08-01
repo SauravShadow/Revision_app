@@ -17,7 +17,7 @@ export function TagManager() {
 
   return (
     <div className="relative inline-block">
-      <button onClick={() => setOpen((o) => !o)} className="flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-xs opacity-70 hover:opacity-100"><Settings2 size={12} /> Tags</button>
+      <button onClick={() => setOpen((o) => !o)} className="flex min-h-11 items-center gap-1 rounded-full bg-white/5 px-3 text-xs opacity-70 hover:opacity-100 md:min-h-0 md:px-2.5 md:py-1"><Settings2 size={12} /> Tags</button>
       {open && (
         <div className="absolute z-30 mt-2 w-72 rounded-xl border border-white/10 bg-neutral-900 p-3 shadow-xl">
           <div className="mb-2 space-y-2">

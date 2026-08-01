@@ -213,18 +213,27 @@ button.dim-chip:active { background: var(--panel-2); transform: scale(0.97); }
    an ancestor with overflow:hidden clips the box, and a control that already
    uses ::after for decoration will have its decoration replaced. Either case
    takes the real-resize path instead. */
-@media (max-width: 767px) and (pointer: coarse) {
-  .touch-target { position: relative; }
-  .touch-target::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    height: 100%;
-    min-width: 44px;
-    min-height: 44px;
+/* Inside @layer utilities on purpose. Tailwind v4 puts its utilities in a
+   cascade layer, and an UNLAYERED rule beats a layered one whatever the
+   specificity — so declaring `position: relative` outside the layer silently
+   overrode `absolute` on badge-style controls and knocked them out of their
+   corner. Inside the layer, specificity decides again, and :where() drops this
+   to zero so `.absolute` / `.fixed` always win. A static element still picks up
+   `relative`, which is what the ::after box needs in order to centre on it. */
+@layer utilities {
+  @media (max-width: 767px) and (pointer: coarse) {
+    :where(.touch-target) { position: relative; }
+    .touch-target::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      min-width: 44px;
+      min-height: 44px;
+    }
   }
 }
 
