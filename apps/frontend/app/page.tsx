@@ -65,7 +65,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-end justify-between gap-4">
+      <div className="mb-4 flex items-end justify-between gap-4 md:mb-6">
         <div>
           <div className="tblabel mb-1.5">Index · Sheet 01</div>
           <h1 className="text-2xl font-semibold tracking-tight text-ink">Subjects</h1>
@@ -75,20 +75,24 @@ export default function DashboardPage() {
 
       <StreakCard />
 
-      <InlineSearch onChange={setQuery} placeholder="Search subjects, chapters, topics…" />
-
-      <FilterChips
-        options={options}
-        value={filter}
-        onChange={(k) => setFilter(LIST_KEY, k as QuickFilter)}
-        aria-label="Filter subjects"
-      />
-
       {/* Order flips by breakpoint rather than duplicating the DOM: a phone
           session is a 30-second "what's due now" check, so the queue leads
           there; desktop keeps the subjects-first layout. */}
       <div className="flex flex-col">
         <div className="order-2 md:order-1">
+          {/* Search and chips filter the subject grid, so they travel with it.
+              Sitting above the flex container they pushed the queue — the thing
+              a phone session actually opens for — halfway down the screen, and
+              sat nowhere near the list they control. */}
+          <InlineSearch onChange={setQuery} placeholder="Search subjects, chapters, topics…" />
+
+          <FilterChips
+            options={options}
+            value={filter}
+            onChange={(k) => setFilter(LIST_KEY, k as QuickFilter)}
+            aria-label="Filter subjects"
+          />
+
           {!hydrated ? (
             <SubjectGridSkeleton />
           ) : visibleIds.length === 0 ? (
