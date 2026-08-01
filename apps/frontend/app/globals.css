@@ -200,6 +200,43 @@ body::after {
 }
 button.dim-chip:active { background: var(--panel-2); transform: scale(0.97); }
 
+/* ----- Touch target floor ------------------------------------------------ */
+/* Dense drafting furniture — the editor toolbar, revision-history rows,
+   calendar chevrons — is deliberately small and must keep its drawn size, so
+   the *hit area* is floored instead: a centred pseudo-element of at least
+   44x44 that grows with the element.
+
+   Coarse pointers only. On a mouse the drawn box is already the right target,
+   and an invisible 44px box would swallow clicks meant for its neighbours.
+
+   Two ways this fails silently, both checked by scripts/mobile-audit.mjs:
+   an ancestor with overflow:hidden clips the box, and a control that already
+   uses ::after for decoration will have its decoration replaced. Either case
+   takes the real-resize path instead. */
+@media (max-width: 767px) and (pointer: coarse) {
+  .touch-target { position: relative; }
+  .touch-target::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* ----- Focus ring -------------------------------------------------------- */
+/* One visible ring for every interactive element. Undo/Redo shipped without
+   one; a global rule means the next control can't. outline (not box-shadow)
+   so it follows each element's own border-radius. */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* ----- Custom scrollbar (a machined runner) ------------------------------ */
 * { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
 *::-webkit-scrollbar { width: 10px; height: 10px; }
