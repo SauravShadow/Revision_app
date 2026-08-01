@@ -10,7 +10,10 @@ export function SortableRow({ id, children }: { id: string; children: React.Reac
     <div ref={setNodeRef} style={style} className="flex min-w-0 items-stretch gap-2">
       <button
         aria-label="Drag to reorder"
-        className="flex cursor-grab touch-none items-center px-1 opacity-30 transition hover:opacity-70 active:cursor-grabbing"
+        // 24px wide before this, which made reorder fiddly on a phone. Widened
+        // for real (not a hit-area floor) because the row content sits directly
+        // alongside and an expanded box would cover it.
+        className="flex w-11 cursor-grab touch-none items-center justify-center px-1 opacity-30 transition hover:opacity-70 active:cursor-grabbing md:w-auto md:justify-start"
         {...attributes}
         {...listeners}
       >
