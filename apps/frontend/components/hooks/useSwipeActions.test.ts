@@ -61,3 +61,15 @@ it('close() puts the row back', () => {
   expect(result.current.revealed).toBe(false);
   expect(result.current.offset).toBe(0);
 });
+
+it('resets when the browser cancels the gesture mid-drag', () => {
+  // pointercancel arrives instead of pointerup when the browser takes the
+  // gesture over. Without handling it the row stays translated part-way.
+  const { result } = renderHook(() => useSwipeActions({ onArchive: vi.fn(), onBookmark: vi.fn() }));
+  act(() => { result.current.handlers.onPointerDown(pointer(300, 100)); });
+  act(() => { result.current.handlers.onPointerMove(pointer(240, 102)); });
+  expect(result.current.offset).toBeLessThan(0);
+  act(() => { result.current.handlers.onPointerCancel(); });
+  expect(result.current.offset).toBe(0);
+  expect(result.current.revealed).toBe(false);
+});

@@ -75,6 +75,17 @@ export function useSwipeActions({
     claimed.current = false;
   }, [applyOffset]);
 
+  // The browser can take a gesture away mid-drag (scroll takeover, a system
+  // edge swipe, the tab losing focus) and fire pointercancel instead of
+  // pointerup. Without this the row is left translated part-way and stays
+  // stuck there, since no further events arrive.
+  const onPointerCancel = useCallback(() => {
+    start.current = null;
+    claimed.current = false;
+    setRevealed(false);
+    applyOffset(0);
+  }, [applyOffset]);
+
   const close = useCallback(() => {
     setRevealed(false);
     applyOffset(0);
@@ -84,7 +95,7 @@ export function useSwipeActions({
     offset,
     revealed,
     close,
-    handlers: { onPointerDown, onPointerMove, onPointerUp },
+    handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel },
     actions: { onArchive, onBookmark },
   };
 }
