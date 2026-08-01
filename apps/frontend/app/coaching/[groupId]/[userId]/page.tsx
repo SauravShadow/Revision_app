@@ -6,6 +6,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { Breadcrumb } from '@/components/layout/Breadcrumb';
 import type { StudentDrilldown } from '@revision-app/shared';
 import { fetchStudentDrilldown } from '@/lib/orgs/client';
+import { Sparkline } from '@/components/insights/Sparkline';
 
 // Mirrors RevisionBadge's colour palette (see components/RevisionBadge.tsx) —
 // same redline/annotation/go semantics, but the server's raw state string is
@@ -20,24 +21,6 @@ const STATE_TONE: Record<string, string> = {
   Upcoming: 'border-line text-ink-faint',
 };
 
-function ActivityBars({ username, activity }: { username: string; activity: { day: string; revisions: number }[] }) {
-  const max = Math.max(1, ...activity.map((a) => a.revisions));
-  return (
-    <div className="glass bp-ticks relative rounded-xl p-4">
-      <div className="tblabel mb-2">Revision activity (last 30 days)</div>
-      <div className="flex h-24 items-end gap-1" role="img" aria-label={`${username} revision activity`}>
-        {activity.map((a) => (
-          <div
-            key={a.day}
-            title={`${a.day}: ${a.revisions}`}
-            className="w-2 rounded-t bg-accent"
-            style={{ height: `${Math.round((a.revisions / max) * 100)}%` }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export default function DrilldownPage() {
   const { session, loading } = useAuth();
@@ -88,7 +71,7 @@ export default function DrilldownPage() {
 
       <div className="grid gap-5">
         <div className="bp-rise" style={{ animationDelay: '40ms' }}>
-          <ActivityBars username={data.username} activity={data.activity} />
+          <Sparkline points={data.activity} label={`${data.username} revision activity (last 30 days)`} />
         </div>
 
         {data.subjects.map((s, i) => (

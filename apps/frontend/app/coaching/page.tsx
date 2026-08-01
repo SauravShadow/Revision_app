@@ -5,6 +5,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { Breadcrumb } from '@/components/layout/Breadcrumb';
 import { StatTile } from '@/components/insights/StatTile';
 import { FilterChips } from '@/components/filters/FilterChips';
+import { Sparkline } from '@/components/insights/Sparkline';
 import type { CohortStudentRow, CohortSummary, MembershipSummary } from '@revision-app/shared';
 import { fetchMemberships, listGroups, fetchCohortSummary, fetchCohortStudents } from '@/lib/orgs/client';
 
@@ -26,25 +27,6 @@ async function resolveGroupOptions(memberships: MembershipSummary[]): Promise<Gr
     }
   }
   return [...options.values()];
-}
-
-function ActivityBars({ activity }: { activity: { day: string; revisions: number }[] }) {
-  const max = Math.max(1, ...activity.map((a) => a.revisions));
-  return (
-    <div className="glass bp-ticks relative rounded-xl p-4">
-      <div className="tblabel mb-2">Revision activity (last 30 days)</div>
-      <div className="flex h-24 items-end gap-1" role="img" aria-label="Cohort revision activity">
-        {activity.map((a) => (
-          <div
-            key={a.day}
-            title={`${a.day}: ${a.revisions}`}
-            className="w-2 rounded-t bg-accent"
-            style={{ height: `${Math.round((a.revisions / max) * 100)}%` }}
-          />
-        ))}
-      </div>
-    </div>
-  );
 }
 
 export default function CoachingPage() {
@@ -148,7 +130,7 @@ export default function CoachingPage() {
         </div>
 
         <div className="bp-rise" style={{ animationDelay: '120ms' }}>
-          <ActivityBars activity={summary.activity} />
+          <Sparkline points={summary.activity} label="Revision activity (last 30 days)" />
         </div>
 
         <div className="bp-rise glass overflow-x-auto rounded-xl p-4" style={{ animationDelay: '200ms' }}>
