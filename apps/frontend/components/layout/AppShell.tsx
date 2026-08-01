@@ -32,7 +32,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
             <MobileNavDrawer />
-            <Link href="/" className="group flex min-w-0 items-center gap-3">
+            <Link href="/" className="touch-target group flex min-w-0 items-center gap-3">
               {/* Brand mark */}
               <Image
                 src="/logo-icon-original.png"
@@ -75,14 +75,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     href="/settings"
                     title="Settings"
                     aria-label="Settings"
-                    className="grid place-items-center rounded-md p-3 text-ink-dim transition hover:bg-panel hover:text-accent active:bg-panel-2 active:text-accent md:p-2"
+                    className="touch-target grid place-items-center rounded-md p-3 text-ink-dim transition hover:bg-panel hover:text-accent active:bg-panel-2 active:text-accent md:p-2"
                   >
                     <Settings size={16} />
                   </Link>
                   <button
                     id="header-logout-btn"
                     onClick={logout}
-                    className="sidebar-logout-btn"
+                    className="sidebar-logout-btn touch-target"
                     title="Sign out"
                     aria-label="Sign out"
                   >

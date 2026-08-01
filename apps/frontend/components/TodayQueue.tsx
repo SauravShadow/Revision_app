@@ -35,7 +35,7 @@ function QueueGroup({
       <ul className="divide-y divide-line">
         {shown.map(({ topic, chapter, subject }) => (
           <li key={topic.id} className="group flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-accent-soft active:bg-accent-soft">
-            <Link href={`/topic/${topic.id}`} className="min-w-0 flex-1">
+            <Link href={`/topic/${topic.id}`} className="touch-target min-w-0 flex-1">
               <div className="tblabel truncate text-ink-faint">
                 {subject?.name ?? '—'}{chapter ? ` · ${chapter.name}` : ''}
               </div>
@@ -45,7 +45,7 @@ function QueueGroup({
               type="button"
               onClick={() => onRevise(topic.id)}
               aria-label={`Mark ${topic.title} revised`}
-              className="flex shrink-0 items-center gap-1 rounded-lg border border-line px-2.5 py-2.5 text-xs text-ink-dim transition hover:border-go/50 hover:bg-go/10 hover:text-go active:scale-95 active:border-go/50 active:bg-go/10 active:text-go md:py-1.5"
+              className="flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-lg border border-line px-2.5 text-xs text-ink-dim transition hover:border-go/50 hover:bg-go/10 hover:text-go active:scale-95 active:border-go/50 active:bg-go/10 active:text-go md:min-h-0 md:min-w-0 md:py-1.5"
             >
               <Check size={14} /> <span className="hidden sm:inline">Revised</span>
             </button>
@@ -56,7 +56,7 @@ function QueueGroup({
         <button
           type="button"
           onClick={() => setExpanded((e) => !e)}
-          className="tblabel mt-1.5 px-2 text-ink-dim transition hover:text-accent"
+          className="tblabel mt-1.5 flex min-h-11 items-center px-2 text-ink-dim transition hover:text-accent md:min-h-0"
         >
           {expanded ? 'Show less' : `Show ${items.length - CAP} more`}
         </button>

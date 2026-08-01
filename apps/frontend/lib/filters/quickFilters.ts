@@ -46,3 +46,14 @@ export function subjectQuickCounts(data: AppData, now: number): Record<QuickFilt
   }
   return counts;
 }
+
+/** Live chip counts for a topic list: how many topics match each quick filter. */
+export function topicQuickCounts(topics: Topic[], now: number): Record<QuickFilter, number> {
+  const counts = Object.fromEntries(QUICK_FILTERS.map((k) => [k, 0])) as Record<QuickFilter, number>;
+  for (const topic of topics) {
+    for (const qf of QUICK_FILTERS) {
+      if (topicMatchesQuick(topic, qf, now)) counts[qf] += 1;
+    }
+  }
+  return counts;
+}

@@ -13,6 +13,7 @@ import { matchingTopics, hasActiveFilters } from '@/lib/filters/predicates';
 import { FilterBar } from '@/components/FilterBar';
 import { TopicResultRow } from '@/components/TopicResultRow';
 import { PlanSubjectDialog } from '@/components/PlanSubjectDialog';
+import { ListSkeleton } from '@/components/ui/RouteSkeletons';
 
 export default function SubjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -24,6 +25,10 @@ export default function SubjectPage({ params }: { params: Promise<{ id: string }
   const filters = { tagIds, statuses };
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
   const [planOpen, setPlanOpen] = useState(false);
+  const hydrated = useStore((s) => s.hydrated);
+  // A missing record before hydration means "not loaded yet", not "gone" —
+  // without this guard a deep link 404s while the store is still loading.
+  if (!hydrated) return <ListSkeleton />;
   if (!subject) return notFound();
   return (
     <div>

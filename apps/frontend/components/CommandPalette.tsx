@@ -41,7 +41,7 @@ export function CommandPalette() {
   return (
     <>
       <button onClick={() => setOpen(true)} aria-label="Search"
-        className="tblabel flex items-center gap-2 rounded-md border border-line px-2.5 py-3 text-ink-dim transition hover:border-line-strong hover:text-ink active:bg-panel-2 active:text-ink md:py-1.5">
+        className="touch-target tblabel flex items-center gap-2 rounded-md border border-line px-2.5 py-3 text-ink-dim transition hover:border-line-strong hover:text-ink active:bg-panel-2 active:text-ink md:py-1.5">
         <Search size={14} /> <span className="hidden sm:inline">Search</span>
         <kbd className="hidden rounded border border-line px-1 font-mono text-[0.6rem] text-ink-faint sm:inline">⌘K</kbd>
       </button>

@@ -12,6 +12,9 @@ import { dragId } from '@/components/dnd/ids';
 import { FilterChips } from '@/components/filters/FilterChips';
 import { InlineSearch } from '@/components/filters/InlineSearch';
 import { TodayQueue } from '@/components/TodayQueue';
+import { SubjectGridSkeleton } from '@/components/ui/RouteSkeletons';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { StreakCard } from '@/components/StreakCard';
 import { subjectMatchesQuery } from '@/lib/search/search';
 import {
   QUICK_FILTERS,
@@ -32,6 +35,7 @@ export default function DashboardPage() {
   const setFilter = useQuickFilter((s) => s.set);
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  const hydrated = useStore((s) => s.hydrated);
 
   const now = Date.now();
   const data = useMemo(
@@ -69,6 +73,8 @@ export default function DashboardPage() {
         <AddButton label="Subject" onAdd={(name) => setJustAddedId(addSubject(name))} />
       </div>
 
+      <StreakCard />
+
       <InlineSearch onChange={setQuery} placeholder="Search subjects, chapters, topics…" />
 
       <FilterChips
@@ -83,12 +89,15 @@ export default function DashboardPage() {
           there; desktop keeps the subjects-first layout. */}
       <div className="flex flex-col">
         <div className="order-2 md:order-1">
-          {visibleIds.length === 0 ? (
-            <p className="tblabel py-10 text-center text-ink-faint">
-              {query.trim()
+          {!hydrated ? (
+            <SubjectGridSkeleton />
+          ) : visibleIds.length === 0 ? (
+            <EmptyState
+              title={query.trim()
                 ? `No subjects match “${query.trim()}”.`
                 : `No subjects with ${QUICK_FILTER_LABELS[filter].toLowerCase()} topics.`}
-            </p>
+              hint="Try a different filter, or add a subject."
+            />
           ) : (
             <SortableContext items={visibleIds.map((id) => dragId('subject', id))} strategy={rectSortingStrategy}>
               <motion.div layout className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">

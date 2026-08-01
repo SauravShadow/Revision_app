@@ -6,6 +6,7 @@ import { useStore } from '@/store/useStore';
 import { uploadFile } from '@/lib/files/uploadFile';
 import { makeId } from '@revision-app/shared';
 import { addTokenToUrl } from '@/lib/files/url';
+import { IconButton } from '@/components/ui/IconButton';
 import { usePreview } from '@/components/preview/PreviewContext';
 import { PdfThumbnail } from '@/components/preview/PdfThumbnail';
 
@@ -65,8 +66,8 @@ export function AttachmentsPanel({ topic, onInsertMarkdown }: { topic: Topic; on
       </div>
       <div className="mb-3 flex gap-2">
         <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Paste a link or video URL"
-          className="flex-1 rounded-lg bg-black/20 px-3 py-2 text-sm outline-none" onKeyDown={(e) => e.key === 'Enter' && addLink()} />
-        <button onClick={addLink} className="rounded-lg border border-white/10 px-3 text-sm hover:bg-white/5"><LinkIcon size={14} /></button>
+          className="min-h-11 flex-1 rounded-lg bg-black/20 px-3 py-2 text-sm outline-none md:min-h-0" onKeyDown={(e) => e.key === 'Enter' && addLink()} />
+        <button onClick={addLink} aria-label="Add link" className="min-h-11 min-w-11 rounded-lg border border-white/10 px-3 text-sm hover:bg-white/5 md:min-h-0 md:min-w-0"><LinkIcon size={14} /></button>
       </div>
       {attachments.length === 0 ? (
         <p className="text-sm opacity-50">No attachments yet.</p>
@@ -102,13 +103,13 @@ export function AttachmentsPanel({ topic, onInsertMarkdown }: { topic: Topic; on
                     <span className="truncate">{a.name}</span>
                   </a>
                 )}
-                <button
-                  aria-label="Remove attachment"
+                <IconButton
+                  label="Remove attachment"
                   onClick={() => remove(a.id)}
-                  className="absolute right-2 top-2 rounded bg-black/30 p-1 hover:bg-white/10"
+                  className="absolute right-2 top-2 bg-black/30 p-1 hover:bg-white/10"
                 >
                   <Trash2 size={14} />
-                </button>
+                </IconButton>
               </li>
             );
           })}

@@ -7,6 +7,7 @@ import { calendarMonth, type CalendarDay } from '@/lib/insights/calendar';
 import { startOfDay } from '@/lib/insights/day';
 import { TopicResultRow } from '@/components/TopicResultRow';
 import { PlanTopicPicker } from '@/components/PlanTopicPicker';
+import { IconButton } from '@/components/ui/IconButton';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -93,12 +94,14 @@ export function MonthCalendar() {
       {/* Calendar sheet */}
       <div className="glass bp-ticks relative rounded-xl p-4">
         <div className="mb-4 flex items-center justify-between gap-2">
-          <button onClick={() => step(-1)} aria-label="Previous month" className="rounded-lg border border-line p-2.5 text-ink-dim transition hover:border-accent hover:text-accent active:border-accent active:text-accent md:p-1.5"><ChevronLeft size={16} /></button>
+          {/* Isolated at the row ends — no neighbour for an expanded hit box to
+              collide with, so these keep their drawn size. */}
+          <IconButton onClick={() => step(-1)} label="Previous month" className="rounded-lg border border-line p-2.5 text-ink-dim hover:border-accent hover:text-accent active:border-accent active:text-accent md:p-1.5"><ChevronLeft size={16} /></IconButton>
           <div className="flex items-baseline gap-2">
             <span className="text-lg font-semibold tracking-tight text-ink">{MONTHS[view.month]}</span>
             <span className="bp-figure text-lg text-ink-dim">{view.year}</span>
           </div>
-          <button onClick={() => step(1)} aria-label="Next month" className="rounded-lg border border-line p-2.5 text-ink-dim transition hover:border-accent hover:text-accent active:border-accent active:text-accent md:p-1.5"><ChevronRight size={16} /></button>
+          <IconButton onClick={() => step(1)} label="Next month" className="rounded-lg border border-line p-2.5 text-ink-dim hover:border-accent hover:text-accent active:border-accent active:text-accent md:p-1.5"><ChevronRight size={16} /></IconButton>
         </div>
 
         {/* Horizontal swipe steps the month — the chevrons are the only other

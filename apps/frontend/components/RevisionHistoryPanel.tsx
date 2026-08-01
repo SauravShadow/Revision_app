@@ -4,6 +4,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 import type { Topic } from '@revision-app/shared';
 import { useStore } from '@/store/useStore';
 import { totalRevisions, relativeLabel } from '@/lib/revision/engine';
+import { IconButton } from '@/components/ui/IconButton';
 
 // datetime-local wants a local-time "YYYY-MM-DDTHH:mm" string.
 function toLocalInputValue(ts: number): string {
@@ -65,10 +66,13 @@ export function RevisionHistoryPanel({ topic }: { topic: Topic }) {
                   ) : (
                     <span className="opacity-70">{d.toLocaleDateString()} {d.toLocaleTimeString()} · {relativeLabel(r.timestamp, now)}</span>
                   )}
-                  <button aria-label="Edit revision time" onClick={() => setEditingId(r.id)}
-                    className="rounded p-1 opacity-0 transition-opacity hover:bg-white/10 focus-visible:opacity-100 group-hover:opacity-100"><Pencil size={13} /></button>
-                  <button aria-label="Delete revision" onClick={() => remove(r.id, n, r.timestamp)}
-                    className="rounded p-1 opacity-0 transition-opacity hover:bg-white/10 focus-visible:opacity-100 group-hover:opacity-100"><Trash2 size={13} /></button>
+                  {/* Visible by default on touch: there is no hover there, so the
+                      old opacity-0 + group-hover made these 21x21 controls
+                      invisible as well as tiny. Desktop keeps the reveal. */}
+                  <IconButton label="Edit revision time" onClick={() => setEditingId(r.id)}
+                    className="min-h-11 min-w-11 opacity-60 transition-opacity hover:bg-white/10 hover:opacity-100 focus-visible:opacity-100 md:min-h-0 md:min-w-0 md:p-1 md:opacity-0 md:group-hover:opacity-100"><Pencil size={13} /></IconButton>
+                  <IconButton label="Delete revision" onClick={() => remove(r.id, n, r.timestamp)}
+                    className="min-h-11 min-w-11 opacity-60 transition-opacity hover:bg-white/10 hover:opacity-100 focus-visible:opacity-100 md:min-h-0 md:min-w-0 md:p-1 md:opacity-0 md:group-hover:opacity-100"><Trash2 size={13} /></IconButton>
                 </span>
               </li>
             );

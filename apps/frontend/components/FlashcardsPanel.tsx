@@ -22,19 +22,19 @@ export function FlashcardsPanel({ topic }: { topic: Topic }) {
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2"><Layers size={16} /><h3 className="font-semibold">Flashcards ({cards.length})</h3></div>
         {cards.length > 0 && (
-          <button onClick={() => setReview(true)} className="flex items-center gap-1 rounded-lg border border-white/10 px-2 py-1 text-xs hover:bg-white/5"><Play size={13} /> Review</button>
+          <button onClick={() => setReview(true)} className="flex min-h-11 items-center gap-1 rounded-lg border border-white/10 px-3 text-xs hover:bg-white/5 md:min-h-0 md:px-2 md:py-1"><Play size={13} /> Review</button>
         )}
       </div>
       <div className="mb-3 grid gap-2">
-        <input value={front} onChange={(e) => setFront(e.target.value)} placeholder="Front (question)" className="rounded-lg bg-black/20 px-3 py-2 text-sm outline-none" />
-        <input value={back} onChange={(e) => setBack(e.target.value)} placeholder="Back (answer)" className="rounded-lg bg-black/20 px-3 py-2 text-sm outline-none" />
-        <button onClick={add} className="flex items-center justify-center gap-1 rounded-lg border border-dashed border-white/15 py-2 text-sm hover:border-white/30"><Plus size={14} /> Add card</button>
+        <input value={front} onChange={(e) => setFront(e.target.value)} placeholder="Front (question)" className="min-h-11 rounded-lg bg-black/20 px-3 py-2 text-sm outline-none md:min-h-0" />
+        <input value={back} onChange={(e) => setBack(e.target.value)} placeholder="Back (answer)" className="min-h-11 rounded-lg bg-black/20 px-3 py-2 text-sm outline-none md:min-h-0" />
+        <button onClick={add} className="flex min-h-11 items-center justify-center gap-1 rounded-lg border border-dashed border-white/15 py-2 text-sm hover:border-white/30 md:min-h-0"><Plus size={14} /> Add card</button>
       </div>
       <ul className="space-y-2">
         {cards.map((c) => (
           <li key={c.id} className="flex items-center justify-between gap-2 rounded-lg bg-white/5 p-2 text-sm">
             <span className="min-w-0"><span className="truncate font-medium">{c.front}</span> <span className="opacity-50">— {c.back}</span></span>
-            <button aria-label="Delete card" onClick={() => deleteFlashcard(topic.id, c.id)} className="rounded p-1 hover:bg-white/10"><Trash2 size={13} /></button>
+            <button aria-label="Delete card" onClick={() => deleteFlashcard(topic.id, c.id)} className="touch-target rounded p-1 hover:bg-white/10"><Trash2 size={13} /></button>
           </li>
         ))}
       </ul>

@@ -13,6 +13,8 @@ import { PlanNextDialog } from '@/components/PlanNextDialog';
 import { Breadcrumb } from '@/components/layout/Breadcrumb';
 import { PreviewProvider } from '@/components/preview/PreviewContext';
 import { badgeState } from '@/lib/revision/engine';
+import { IconButton } from '@/components/ui/IconButton';
+import { DetailSkeleton } from '@/components/ui/RouteSkeletons';
 
 export default function TopicPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -24,6 +26,11 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
   const toggleBookmark = useStore((s) => s.toggleBookmark);
   const clearPlan = useStore((s) => s.clearPlan);
   const [planFor, setPlanFor] = useState<null | 'after-revise' | 'schedule'>(null);
+  const hydrated = useStore((s) => s.hydrated);
+  // Children now render before the store has loaded, so a missing record means
+  // "not loaded yet", not "does not exist". Without this guard every deep link
+  // 404s during hydration.
+  if (!hydrated) return <DetailSkeleton />;
   if (!topic) return notFound();
   const chapter = chapters[topic.chapterId];
   const subject = chapter ? subjects[chapter.subjectId] : undefined;
@@ -47,9 +54,9 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold">{topic.title}</h1>
             <RevisionBadge state={badgeState(topic, Date.now())} />
-            <button aria-label="Toggle bookmark" onClick={() => toggleBookmark(topic.id)} className="rounded-lg p-2.5 hover:bg-white/10 active:bg-white/10 md:p-1.5">
+            <IconButton label="Toggle bookmark" onClick={() => toggleBookmark(topic.id)} className="rounded-lg p-2.5 hover:bg-white/10 active:bg-white/10 md:p-1.5">
               <Star size={18} className={topic.bookmarkedAt ? 'fill-amber-400 text-amber-400' : 'opacity-60'} />
-            </button>
+            </IconButton>
           </div>
           {/* Same element in both layouts: inline on desktop, docked above the
               bottom tab bar on phones. "Mark as Revised" is the reason this
@@ -59,7 +66,10 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
             {topic.plannedAt != null && (
               <span className="dim-chip flex items-center gap-1.5 text-ink-dim">
                 Planned · {new Date(topic.plannedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
-                <button aria-label="Clear plan" onClick={() => clearPlan(topic.id)} className="transition hover:text-alarm">×</button>
+                {/* Measured 7x16 before the hit-area floor — the smallest
+                    control in the app and effectively untappable. */}
+                <IconButton label="Clear plan" onClick={() => clearPlan(topic.id)}
+                  className="-mr-1 p-0.5 text-base leading-none hover:text-alarm">×</IconButton>
               </span>
             )}
             <button onClick={() => setPlanFor('schedule')}

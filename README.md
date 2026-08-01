@@ -124,6 +124,26 @@ npx tsc --noEmit      # type check
 npm run lint          # lint
 ```
 
+### Mobile audit
+
+```bash
+node apps/frontend/scripts/mobile-audit.mjs [baseUrl]   # defaults to http://127.0.0.1:3200
+```
+
+Drives the **running** stack in a phone-sized Chromium and fails (non-zero exit)
+on any of the regressions the mobile passes fixed: horizontal overflow at
+320–430px, touch targets under 44px, overlapping hit areas, form fields under
+16px (iOS zoom-lock), landscape breakage, the app shell being withheld during
+hydration, and missing focus rings.
+
+Needs a seeded `demo` account (`node scripts/seed-demo-user.mjs`) — override with
+`AUDIT_USER` / `AUDIT_PASS`. Playwright is deliberately not a dependency of the
+app; install it once with `npx playwright@latest install chromium`, or point
+`PLAYWRIGHT_PATH` at an existing module.
+
+Targets measured as under 44px that are genuinely fine get a documented entry in
+`TARGET_EXCEPTIONS` inside the script — each one must carry a reason.
+
 ## Also on the roadmap
 
 - **Notifications** — reminders when a topic becomes due

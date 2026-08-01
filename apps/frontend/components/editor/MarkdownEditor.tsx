@@ -5,6 +5,7 @@ import { MarkdownView } from './MarkdownView';
 import { wrapSelection, insertAt } from './insertMarkdown';
 import { uploadFile } from '@/lib/files/uploadFile';
 import { useStore } from '@/store/useStore';
+import { IconButton } from '@/components/ui/IconButton';
 
 type Mode = 'edit' | 'preview' | 'split';
 
@@ -72,14 +73,18 @@ export function MarkdownEditor({ value, onChange, topicId }: { value: string; on
     input.click();
   };
 
+  // 13 buttons at ~35px pitch: a 44px ::after hit box on each would overlap its
+  // neighbours by ~9px and land taps on the wrong tool, so this cluster grows
+  // for real on phones and the row scrolls rather than wrapping.
   const Btn = ({ title, onClick, children }: { title: string; onClick: () => void; children: React.ReactNode }) => (
-    <button title={title} aria-label={title} onClick={onClick} className="rounded p-2 opacity-70 hover:bg-white/10 hover:opacity-100 active:bg-white/15 active:opacity-100 md:p-1.5">{children}</button>
+    <IconButton label={title} onClick={onClick} size="regular"
+      className="shrink-0 opacity-70 hover:bg-white/10 hover:opacity-100 active:bg-white/15 active:opacity-100 md:min-h-0 md:min-w-0 md:p-1.5">{children}</IconButton>
   );
 
   return (
     <div className={`${maximized ? 'fixed inset-3 z-50 flex flex-col rounded-xl border border-line-strong bg-ground-deep/95 p-3 shadow-2xl shadow-black/60 backdrop-blur-md sm:inset-5' : 'glass rounded-xl p-3'}`}>
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-0.5">
+        <div data-toolbar className="-mx-1 flex items-center gap-0.5 overflow-x-auto px-1 [scrollbar-width:none] md:flex-wrap md:overflow-x-visible">
           <Btn title="Bold" onClick={() => wrap('**')}><Bold size={15} /></Btn>
           <Btn title="Italic" onClick={() => wrap('*')}><Italic size={15} /></Btn>
           <Btn title="Heading" onClick={() => block('\n## Heading\n')}><Heading size={15} /></Btn>
@@ -95,18 +100,16 @@ export function MarkdownEditor({ value, onChange, topicId }: { value: string; on
         <div className="flex items-center gap-2">
           <div className="flex gap-1 text-xs">
             {(['edit', 'split', 'preview'] as Mode[]).map((m) => (
-              <button key={m} onClick={() => setMode(m)} className={`rounded px-2.5 py-2.5 capitalize md:px-2 md:py-1 ${mode === m ? 'bg-white/15' : 'opacity-60 hover:bg-white/10 hover:opacity-100 active:bg-white/10'}`}>{m}</button>
+              <button key={m} onClick={() => setMode(m)} className={`min-h-11 rounded px-3 capitalize md:min-h-0 md:px-2 md:py-1 ${mode === m ? 'bg-white/15' : 'opacity-60 hover:bg-white/10 hover:opacity-100 active:bg-white/10'}`}>{m}</button>
             ))}
           </div>
-          <button
-            type="button"
-            title={maximized ? 'Minimize editor' : 'Maximize editor'}
-            aria-label={maximized ? 'Minimize editor' : 'Maximize editor'}
+          <IconButton
+            label={maximized ? 'Minimize editor' : 'Maximize editor'}
             onClick={() => setMaximized((current) => !current)}
-            className="rounded p-1.5 text-ink-dim transition hover:bg-white/10 hover:text-ink"
+            className="text-ink-dim hover:bg-white/10 hover:text-ink"
           >
             {maximized ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-          </button>
+          </IconButton>
         </div>
       </div>
       <div className={`${maximized ? 'min-h-0 flex-1' : ''} ${mode === 'split' ? 'grid gap-3 md:grid-cols-2' : ''}`}>

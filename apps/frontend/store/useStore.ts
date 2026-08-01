@@ -12,6 +12,13 @@ import type { RevisionRepository } from '@/lib/repository/RevisionRepository';
 import { preserveSilentFields } from './silentFields';
 
 interface StoreState extends AppData {
+  /**
+   * True once hydrate() has resolved for the current user. Routes read this to
+   * decide between a skeleton and their real content — and, critically, to tell
+   * "record not loaded yet" apart from "record does not exist" before calling
+   * notFound().
+   */
+  hydrated: boolean;
   hydrate: (domain: Domain) => Promise<void>;
   addSubject: (name: string) => string;
   renameSubject: (id: string, name: string) => void;
@@ -82,14 +89,18 @@ export function createRevisionStore(repo: RevisionRepository) {
     return {
       subjects: {}, chapters: {}, topics: {}, subjectOrder: [],
       tags: {}, tagOrder: [],
+      hydrated: false,
       history: emptyHistory<AppData>(),
       saveState: 'idle',
 
       hydrate: async (domain: Domain) => {
+        set({ hydrated: false });
         const loaded = await repo.load();
-        if (loaded) { set({ ...normalizeData(loaded), history: emptyHistory<AppData>() }); return; }
+        // `hydrated` flips in the same set() that installs the data, so there is
+        // never a frame where content is present but routes still show skeletons.
+        if (loaded) { set({ ...normalizeData(loaded), history: emptyHistory<AppData>(), hydrated: true }); return; }
         const seeded = seedDataForDomain(domain);
-        set({ ...seeded, history: emptyHistory<AppData>() });
+        set({ ...seeded, history: emptyHistory<AppData>(), hydrated: true });
         try {
           await repo.save(seeded);
         } catch {

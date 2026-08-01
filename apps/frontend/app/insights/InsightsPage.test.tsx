@@ -3,7 +3,9 @@ import { render, screen } from '@testing-library/react';
 import InsightsPage from './page';
 import { useStore } from '@/store/useStore';
 
-beforeEach(() => useStore.setState({ subjects: {}, chapters: {}, topics: {}, subjectOrder: [], tags: {}, tagOrder: [] }));
+// hydrated: true — these tests seed the store directly rather than going
+// through hydrate(), and the page renders a skeleton until it is set.
+beforeEach(() => useStore.setState({ subjects: {}, chapters: {}, topics: {}, subjectOrder: [], tags: {}, tagOrder: [], hydrated: true }));
 
 it('shows an empty state when there is no data', () => {
   render(<InsightsPage />);

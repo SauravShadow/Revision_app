@@ -17,8 +17,10 @@ export function TagPicker({ topic }: { topic: Topic }) {
           if (!tag) return null;
           const on = active.has(id);
           return (
+            // Rolls its own chip rather than .dim-chip, so the P0 44px rule for
+            // button.dim-chip never reached it — it measured 66x24.
             <button key={id} onClick={() => toggleTopicTag(topic.id, id)}
-              className="rounded-full px-2.5 py-1 text-xs transition"
+              className="min-h-11 rounded-full px-3 text-xs transition md:min-h-0 md:px-2.5 md:py-1"
               style={{ background: on ? tag.color : `${tag.color}22`, color: on ? '#000' : undefined, opacity: on ? 1 : 0.85 }}>
               {tag.name}
             </button>

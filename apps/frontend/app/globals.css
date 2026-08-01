@@ -200,6 +200,67 @@ body::after {
 }
 button.dim-chip:active { background: var(--panel-2); transform: scale(0.97); }
 
+/* ----- Touch target floor ------------------------------------------------ */
+/* Dense drafting furniture — the editor toolbar, revision-history rows,
+   calendar chevrons — is deliberately small and must keep its drawn size, so
+   the *hit area* is floored instead: a centred pseudo-element of at least
+   44x44 that grows with the element.
+
+   Coarse pointers only. On a mouse the drawn box is already the right target,
+   and an invisible 44px box would swallow clicks meant for its neighbours.
+
+   Two ways this fails silently, both checked by scripts/mobile-audit.mjs:
+   an ancestor with overflow:hidden clips the box, and a control that already
+   uses ::after for decoration will have its decoration replaced. Either case
+   takes the real-resize path instead. */
+/* Inside @layer utilities on purpose. Tailwind v4 puts its utilities in a
+   cascade layer, and an UNLAYERED rule beats a layered one whatever the
+   specificity — so declaring `position: relative` outside the layer silently
+   overrode `absolute` on badge-style controls and knocked them out of their
+   corner. Inside the layer, specificity decides again, and :where() drops this
+   to zero so `.absolute` / `.fixed` always win. A static element still picks up
+   `relative`, which is what the ::after box needs in order to centre on it. */
+@layer utilities {
+  @media (max-width: 767px) and (pointer: coarse) {
+    :where(.touch-target) { position: relative; }
+    .touch-target::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      min-width: 44px;
+      min-height: 44px;
+    }
+  }
+}
+
+/* ----- Focus ring -------------------------------------------------------- */
+/* One visible ring for every interactive element. Undo/Redo shipped without
+   one; a global rule means the next control can't. outline (not box-shadow)
+   so it follows each element's own border-radius. */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ----- Skeletons --------------------------------------------------------- */
+.skeleton {
+  background: linear-gradient(90deg, var(--panel) 25%, var(--panel-2) 37%, var(--panel) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-sheen 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-sheen {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+/* A shimmer is motion. Users who asked for less of it get a static block. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+}
+
 /* ----- Custom scrollbar (a machined runner) ------------------------------ */
 * { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
 *::-webkit-scrollbar { width: 10px; height: 10px; }

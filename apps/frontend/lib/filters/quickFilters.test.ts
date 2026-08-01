@@ -5,6 +5,7 @@ import {
   topicMatchesQuick,
   subjectMatchesQuick,
   subjectQuickCounts,
+  topicQuickCounts,
 } from './quickFilters';
 
 const DAY = 86_400_000;
@@ -88,5 +89,25 @@ describe('subjectQuickCounts', () => {
     expect(counts.due).toBe(0);
     expect(counts.bookmarked).toBe(0);
     expect(QUICK_FILTERS.every((k) => k in counts)).toBe(true);
+  });
+});
+
+describe('topicQuickCounts', () => {
+  it('counts topics per quick filter', () => {
+    const topics = [
+      topic('a', 'c1'),                                  // never revised
+      topic('b', 'c1', { bookmarkedAt: NOW }),           // bookmarked, never revised
+      topic('c', 'c1', dueExtra),                        // planned today => due
+    ];
+    const counts = topicQuickCounts(topics, NOW);
+    expect(counts.all).toBe(3);
+    expect(counts['not-revised']).toBe(2);
+    expect(counts.bookmarked).toBe(1);
+    expect(counts.due).toBe(1);
+  });
+
+  it('returns all-zero counts for an empty list', () => {
+    const counts = topicQuickCounts([], NOW);
+    for (const k of QUICK_FILTERS) expect(counts[k]).toBe(0);
   });
 });

@@ -32,7 +32,9 @@ export function WeekStrip({ loads, now }: { loads: Map<number, DayLoad>; now: nu
   };
   const goToday = () => { setAnchor(currentWeek); select(today); };
 
-  const navBtn = 'grid h-[30px] w-[30px] place-items-center rounded-lg border border-line text-ink-dim transition-colors hover:border-accent hover:text-accent';
+  // Next sits 8px from Today, so 44px ::after boxes on both would overlap by
+  // ~6px — this trio grows for real on phones instead.
+  const navBtn = 'grid h-11 w-11 place-items-center rounded-lg border border-line text-ink-dim transition-colors hover:border-accent hover:text-accent md:h-[30px] md:w-[30px]';
 
   return (
     <div className="glass bp-ticks relative mb-6 rounded-xl px-3.5 pb-3 pt-3.5">
@@ -45,12 +47,16 @@ export function WeekStrip({ loads, now }: { loads: Map<number, DayLoad>; now: nu
         <div className="flex items-center gap-2">
           <button type="button" className={navBtn} aria-label="Next week" onClick={() => setAnchor(startOfDay(anchor + 7 * DAY))}>›</button>
           <button type="button" onClick={goToday}
-            className="rounded-md border border-line px-2.5 py-1 font-mono text-[0.66rem] uppercase tracking-wider text-ink-dim transition-colors hover:border-accent hover:text-accent">
+            className="min-h-11 rounded-md border border-line px-3 font-mono text-[0.66rem] uppercase tracking-wider text-ink-dim transition-colors hover:border-accent hover:text-accent md:min-h-0 md:px-2.5 md:py-1">
             Today
           </button>
         </div>
       </div>
 
+      {/* Day columns measure ~39px wide at 320px. Seven 44px columns don't fit,
+          and scrolling a week view is worse than a narrow column — at 39x84
+          with no vertical neighbour these are comfortably tappable. Registered
+          as an explicit exception in scripts/mobile-audit.mjs. */}
       <div className="grid grid-cols-7 gap-1.5">
         {days.map((ts) => {
           const d = new Date(ts);

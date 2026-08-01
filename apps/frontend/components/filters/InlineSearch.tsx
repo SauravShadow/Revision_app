@@ -55,14 +55,14 @@ export function InlineSearch({ onChange, placeholder = 'Search…', debounceMs =
         onChange={(e) => setText(e.target.value)}
         placeholder={placeholder}
         aria-label="Search"
-        className="auth-input !py-2 !pl-9 !pr-9 [&::-webkit-search-cancel-button]:appearance-none"
+        className="auth-input min-h-11 !py-2 !pl-9 !pr-9 md:min-h-0 [&::-webkit-search-cancel-button]:appearance-none"
       />
       {text && (
         <button
           type="button"
           aria-label="Clear search"
           onClick={clear}
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-ink-faint transition hover:text-ink"
+          className="touch-target absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-ink-faint transition hover:text-ink"
         >
           <X size={15} />
         </button>
