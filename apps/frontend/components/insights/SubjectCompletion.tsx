@@ -18,8 +18,10 @@ export function SubjectCompletion({ data, now }: { data: AppData; now: number })
       <div className="grid gap-3.5">
         {subjects.map((s) => {
           const pct = subjectProgress(data, s.id, now);
+          // Rows are 32px tall in a 14px-gap stack, so a 44px hit box grows
+          // 6px each way into the gap without touching its neighbour.
           return (
-            <Link key={s.id} href={`/subject/${s.id}`} className="group block">
+            <Link key={s.id} href={`/subject/${s.id}`} className="touch-target group block">
               <div className="mb-1 flex items-baseline justify-between gap-3">
                 <span className="truncate text-sm text-ink transition group-hover:text-accent">{s.name}</span>
                 <span className="bp-figure shrink-0 text-xs text-ink-dim">{pct}%</span>

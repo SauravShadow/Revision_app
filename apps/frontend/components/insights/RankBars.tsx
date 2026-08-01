@@ -28,7 +28,7 @@ export function RankBars({
             const subject = data.subjects[r.subjectId];
             const chapter = data.chapters[r.chapterId];
             return (
-              <Link key={r.topicId} href={`/topic/${r.topicId}`} className="group block min-w-0">
+              <Link key={r.topicId} href={`/topic/${r.topicId}`} className="touch-target group block min-w-0">
                 <div className="mb-1 flex items-baseline justify-between gap-3">
                   {/* min-w-0: without it the flex item can't shrink under its
                       text, so truncate never engages and a long topic title
