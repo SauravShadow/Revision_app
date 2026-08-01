@@ -1,16 +1,17 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Star, Pin } from 'lucide-react';
+import { Star, Pin, CheckCircle2 } from 'lucide-react';
 import type { Topic } from '@revision-app/shared';
 import { useStore } from '@/store/useStore';
 import { badgeState, totalRevisions, lastRevisedAt, relativeLabel } from '@/lib/revision/engine';
 import { RevisionBadge } from '@/components/RevisionBadge';
 import { RowActions } from '@/components/RowActions';
 import { InlineEditable } from '@/components/InlineEditable';
+import { IconButton } from '@/components/ui/IconButton';
 
 export function TopicCard({ topic, autoEdit = false }: { topic: Topic; autoEdit?: boolean }) {
-  const { renameTopic, archiveTopic } = useStore.getState();
+  const { renameTopic, archiveTopic, markTopicRevised } = useStore.getState();
   const [editing, setEditing] = useState(autoEdit);
   useEffect(() => { if (autoEdit) setEditing(true); }, [autoEdit]);
   const now = Date.now();
@@ -36,6 +37,17 @@ export function TopicCard({ topic, autoEdit = false }: { topic: Topic; autoEdit?
         )}
         {topic.bookmarkedAt && <Star size={14} className="fill-annotation text-annotation" aria-label="Bookmarked — pinned to top" />}
         <RevisionBadge state={badgeState(topic, now)} />
+        {/* A revision session is tap-tap-tap down the list; before this the only
+            one-tap revise lived in TodayQueue. preventDefault because the whole
+            row is a Link. Real 44px box, not a floored hit area — RowActions
+            sits gap-2.5 away and expanded boxes would overlap. */}
+        <IconButton
+          label="Mark revised"
+          onClick={(e) => { e.preventDefault(); markTopicRevised(topic.id); }}
+          className="min-h-11 min-w-11 text-ink-dim hover:bg-white/10 hover:text-go active:bg-white/15 md:min-h-0 md:min-w-0"
+        >
+          <CheckCircle2 size={16} />
+        </IconButton>
         <RowActions onRename={() => setEditing(true)} onDelete={remove} />
       </div>
     </Link>
