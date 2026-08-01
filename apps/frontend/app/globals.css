@@ -195,10 +195,41 @@ body::after {
   button.dim-chip {
     min-height: 2.75rem;
     padding: 0.5rem 0.85rem;
-    font-size: 0.72rem;
+    /* 0.72rem (11.5px) is below Material 3's labelLarge (14) and Apple's
+       Subheadline (15) for a primary control. */
+    font-size: 0.875rem;
   }
 }
 button.dim-chip:active { background: var(--panel-2); transform: scale(0.97); }
+
+/* ----- Mobile type scale ------------------------------------------------- */
+/* The drafting scale is desktop-density. Measured on a 390px viewport, the
+   dominant secondary style .tblabel rendered at 10.6px with 0.14em tracking —
+   below the smallest size in both Apple's HIG (Caption 2, 11pt) and Material 3
+   (labelSmall, 11sp) — and the tracking pushed row metadata into truncation.
+   Small + all-caps + truncated is what makes a phone screen read as a shrunken
+   desktop page, so the small end of the scale gets a mobile bump. */
+@media (max-width: 767px) {
+  main h1 { font-size: 1.75rem; line-height: 1.15; }  /* 24px -> 28px (HIG Title 1) */
+}
+
+/* Row metadata: same drafting mono, but sentence case and normal tracking.
+   .tblabel stays uppercase for section headers, where it is a design signature
+   rather than content the user has to read at speed. */
+.meta {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.01em;
+  color: var(--ink-dim);
+}
+@media (max-width: 767px) {
+  .meta { font-size: 0.8125rem; }
+}
+
+/* Horizontally scrollable control rows (filter chips, editor toolbar) — on a
+   phone these wrap onto a second line and push content below the fold. */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
 /* ----- Touch target floor ------------------------------------------------ */
 /* Dense drafting furniture — the editor toolbar, revision-history rows,
@@ -321,6 +352,15 @@ button.dim-chip:active { background: var(--panel-2); transform: scale(0.97); }
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-dim);
+}
+/* Mobile bump. Must sit AFTER the base rule: a media query adds no specificity,
+   so at equal specificity source order decides — declared earlier in the file
+   this was silently losing to the 0.66rem above. */
+@media (max-width: 767px) {
+  .tblabel {
+    font-size: 0.8125rem;   /* 10.6px -> 13px, Apple Footnote / M3 labelMedium+ */
+    letter-spacing: 0.06em; /* wide tracking costs width that phones don't have */
+  }
 }
 
 /* A dimension "chip" — bracketed mono readout used for stats/badges. */

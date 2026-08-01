@@ -57,7 +57,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <nav className="flex shrink-0 items-center gap-2">
             <CommandPalette />
-            <HeaderControls />
+            {/* Below md the header is menu · logo · search only. Apple and
+                Material both cap a top bar at ~3 actions; this carried 12, which
+                is what made it read as a desktop toolbar. Undo/redo are a
+                desktop editing affordance, and settings/sign-out live in the
+                drawer on phones. */}
+            <span className="hidden md:contents">
+              <HeaderControls />
+            </span>
             {/* The full link row measures ~813px, so it only fits from lg up —
                 revealing it at sm made every layout 640–1023px wide overflow the
                 screen (landscape phones read as a zoomed-out desktop). Below lg
@@ -69,7 +76,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {session && (
               <>
                 <span className="mx-1 hidden h-5 w-px bg-line lg:block" />
-                <div className="flex items-center gap-2">
+                <div className="hidden items-center gap-2 md:flex">
                   <span className="hidden text-xs text-ink-dim lg:inline">{session.username}</span>
                   <Link
                     href="/settings"

@@ -30,16 +30,16 @@ function QueueGroup({
     <div>
       <div className="mb-1 flex items-center gap-2 px-1">
         <span className="tblabel" style={{ color: tone }}>{title}</span>
-        <span className="dim-chip font-mono text-[0.6rem] text-ink-dim">{items.length}</span>
+        <span className="dim-chip font-mono text-xs text-ink-dim">{items.length}</span>
       </div>
       <ul className="divide-y divide-line">
         {shown.map(({ topic, chapter, subject }) => (
           <li key={topic.id} className="group flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-accent-soft active:bg-accent-soft">
             <Link href={`/topic/${topic.id}`} className="touch-target min-w-0 flex-1">
-              <div className="tblabel truncate text-ink-faint">
+              <div className="meta truncate text-ink-faint">
                 {subject?.name ?? '—'}{chapter ? ` · ${chapter.name}` : ''}
               </div>
-              <div className="truncate text-sm font-medium text-ink">{topic.title}</div>
+              <div className="truncate text-base font-medium text-ink md:text-sm">{topic.title}</div>
             </Link>
             <button
               type="button"
