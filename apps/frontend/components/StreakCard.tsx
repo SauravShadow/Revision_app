@@ -17,7 +17,7 @@ export function StreakCard() {
   if (current === 0) return null;
   const best = longestStreak(data);
   return (
-    <div className="glass mb-5 flex items-center gap-3 rounded-xl px-4 py-3">
+    <div className="glass mb-3 flex items-center gap-3 rounded-xl px-4 py-2.5 md:mb-5 md:py-3">
       <Flame size={18} className="shrink-0 text-annotation" />
       <div className="min-w-0">
         <span className="bp-figure text-lg text-ink">{current}</span>
