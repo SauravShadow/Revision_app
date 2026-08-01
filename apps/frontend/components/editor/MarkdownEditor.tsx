@@ -84,7 +84,7 @@ export function MarkdownEditor({ value, onChange, topicId }: { value: string; on
   return (
     <div className={`${maximized ? 'fixed inset-3 z-50 flex flex-col rounded-xl border border-line-strong bg-ground-deep/95 p-3 shadow-2xl shadow-black/60 backdrop-blur-md sm:inset-5' : 'glass rounded-xl p-3'}`}>
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <div data-toolbar className="-mx-1 flex items-center gap-0.5 overflow-x-auto px-1 [scrollbar-width:none] md:flex-wrap md:overflow-x-visible">
+        <div data-toolbar className="no-scrollbar -mx-1 flex items-center gap-0.5 overflow-x-auto px-1 md:flex-wrap md:overflow-x-visible">
           <Btn title="Bold" onClick={() => wrap('**')}><Bold size={15} /></Btn>
           <Btn title="Italic" onClick={() => wrap('*')}><Italic size={15} /></Btn>
           <Btn title="Heading" onClick={() => block('\n## Heading\n')}><Heading size={15} /></Btn>

@@ -56,10 +56,12 @@ export function TopicCard({ topic, autoEdit = false }: { topic: Topic; autoEdit?
           <InlineEditable value={topic.title} editing={editing} onEditingChange={setEditing}
             onCommit={(n) => renameTopic(topic.id, n)} />
         </div>
-        <div className="tblabel mt-1.5">
-          <span className="text-accent">{String(totalRevisions(topic.revisionHistory)).padStart(2, '0')}</span> REV
+        {/* .meta, not .tblabel — row metadata is content to read, not a header,
+            and uppercase + wide tracking truncated it on phones. */}
+        <div className="meta mt-1.5">
+          <span className="text-accent">{String(totalRevisions(topic.revisionHistory)).padStart(2, '0')}</span> rev
           <span className="mx-2 text-line-strong">·</span>
-          <span className="normal-case tracking-normal">{last ? relativeLabel(last, now) : 'not revised yet'}</span>
+          <span>{last ? relativeLabel(last, now) : 'not revised yet'}</span>
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-2.5">

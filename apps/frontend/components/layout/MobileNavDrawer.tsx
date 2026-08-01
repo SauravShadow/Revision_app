@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { NavTree } from './NavTree';
 import { visibleSectionLinks } from './navLinks';
@@ -78,7 +78,18 @@ export function MobileNavDrawer() {
                   <div className="tblabel text-[0.58rem]">{DOMAIN_LABELS[session.domain] ?? session.domain}</div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => { close(); logout(); }} className="sidebar-logout-btn" title="Sign out" aria-label="Sign out">
+                  {/* Settings lives here on phones — the header is down to
+                      menu · logo · search, so this is its only mobile home. */}
+                  <Link
+                    href="/settings"
+                    onClick={close}
+                    title="Settings"
+                    aria-label="Settings"
+                    className="touch-target grid place-items-center rounded-md p-3 text-ink-dim transition hover:bg-panel hover:text-accent active:bg-panel-2"
+                  >
+                    <Settings size={18} />
+                  </Link>
+                  <button onClick={() => { close(); logout(); }} className="sidebar-logout-btn touch-target" title="Sign out" aria-label="Sign out">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                       <polyline points="16 17 21 12 16 7" />
