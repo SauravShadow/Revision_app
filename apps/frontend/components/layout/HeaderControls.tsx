@@ -2,6 +2,7 @@
 import { Undo2, Redo2, Check, Loader2, TriangleAlert } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useUndoRedoShortcuts } from '@/components/hooks/useUndoRedoShortcuts';
+import { IconButton } from '@/components/ui/IconButton';
 
 export function HeaderControls() {
   useUndoRedoShortcuts();
@@ -21,10 +22,10 @@ export function HeaderControls() {
               : <><Check size={13} className="text-go" /> Saved</>}
         </span>
       )}
-      <button aria-label="Undo" disabled={!canUndo} onClick={undo}
-        className="rounded-md border border-line p-3 text-ink-dim transition hover:border-line-strong hover:bg-panel hover:text-ink disabled:opacity-30 md:p-2"><Undo2 size={16} /></button>
-      <button aria-label="Redo" disabled={!canRedo} onClick={redo}
-        className="rounded-md border border-line p-3 text-ink-dim transition hover:border-line-strong hover:bg-panel hover:text-ink disabled:opacity-30 md:p-2"><Redo2 size={16} /></button>
+      <IconButton label="Undo" disabled={!canUndo} onClick={undo}
+        className="border border-line p-3 text-ink-dim hover:border-line-strong hover:bg-panel hover:text-ink disabled:opacity-30 md:p-2"><Undo2 size={16} /></IconButton>
+      <IconButton label="Redo" disabled={!canRedo} onClick={redo}
+        className="border border-line p-3 text-ink-dim hover:border-line-strong hover:bg-panel hover:text-ink disabled:opacity-30 md:p-2"><Redo2 size={16} /></IconButton>
     </div>
   );
 }
