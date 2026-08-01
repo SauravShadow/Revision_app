@@ -6,6 +6,7 @@ import { useStore } from '@/store/useStore';
 import { uploadFile } from '@/lib/files/uploadFile';
 import { makeId } from '@revision-app/shared';
 import { addTokenToUrl } from '@/lib/files/url';
+import { IconButton } from '@/components/ui/IconButton';
 import { usePreview } from '@/components/preview/PreviewContext';
 import { PdfThumbnail } from '@/components/preview/PdfThumbnail';
 
@@ -102,13 +103,13 @@ export function AttachmentsPanel({ topic, onInsertMarkdown }: { topic: Topic; on
                     <span className="truncate">{a.name}</span>
                   </a>
                 )}
-                <button
-                  aria-label="Remove attachment"
+                <IconButton
+                  label="Remove attachment"
                   onClick={() => remove(a.id)}
-                  className="absolute right-2 top-2 rounded bg-black/30 p-1 hover:bg-white/10"
+                  className="absolute right-2 top-2 bg-black/30 p-1 hover:bg-white/10"
                 >
                   <Trash2 size={14} />
-                </button>
+                </IconButton>
               </li>
             );
           })}
