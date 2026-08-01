@@ -1,7 +1,17 @@
 'use client';
+import { createContext, useContext } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
+
+const DraggingContext = createContext(false);
+
+/**
+ * True while this row is being dragged for reorder. Swipe-to-reveal reads it and
+ * stands down, so dnd-kit's TouchSensor and the swipe gesture never both claim
+ * the same touch.
+ */
+export const useRowDragging = () => useContext(DraggingContext);
 
 export function SortableRow({ id, children }: { id: string; children: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -19,7 +29,9 @@ export function SortableRow({ id, children }: { id: string; children: React.Reac
       >
         <GripVertical size={16} />
       </button>
-      <div className="min-w-0 flex-1">{children}</div>
+      <div className="min-w-0 flex-1">
+        <DraggingContext.Provider value={isDragging}>{children}</DraggingContext.Provider>
+      </div>
     </div>
   );
 }
