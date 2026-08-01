@@ -11,9 +11,11 @@ import { overallStats, topicsByRevisionCount } from '@/lib/insights/rankings';
 import { revisionCountsByDay } from '@/lib/insights/heatmap';
 import { currentStreak, longestStreak } from '@/lib/insights/streak';
 import { activeTopics } from '@/lib/insights/topics';
+import { DetailSkeleton } from '@/components/ui/RouteSkeletons';
 
 export default function InsightsPage() {
   const data = useStore();
+  const hydrated = useStore((s) => s.hydrated);
   const now = Date.now();
   const stats = overallStats(data, now);
   const heat = revisionCountsByDay(data, 365, now);
@@ -30,6 +32,10 @@ export default function InsightsPage() {
     { label: 'Overdue', value: stats.overdue, color: 'var(--alarm)' },
     { label: 'Never revised', value: stats.neverRevised, color: 'var(--ink-faint)' },
   ];
+
+  // Every figure on this page is derived from the store; rendering zeros while
+  // it loads reads as "you have done nothing", which is worse than a skeleton.
+  if (!hydrated) return <DetailSkeleton />;
 
   return (
     <div>

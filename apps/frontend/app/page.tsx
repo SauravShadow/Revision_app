@@ -12,6 +12,7 @@ import { dragId } from '@/components/dnd/ids';
 import { FilterChips } from '@/components/filters/FilterChips';
 import { InlineSearch } from '@/components/filters/InlineSearch';
 import { TodayQueue } from '@/components/TodayQueue';
+import { SubjectGridSkeleton } from '@/components/ui/RouteSkeletons';
 import { subjectMatchesQuery } from '@/lib/search/search';
 import {
   QUICK_FILTERS,
@@ -32,6 +33,7 @@ export default function DashboardPage() {
   const setFilter = useQuickFilter((s) => s.set);
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  const hydrated = useStore((s) => s.hydrated);
 
   const now = Date.now();
   const data = useMemo(
@@ -83,7 +85,9 @@ export default function DashboardPage() {
           there; desktop keeps the subjects-first layout. */}
       <div className="flex flex-col">
         <div className="order-2 md:order-1">
-          {visibleIds.length === 0 ? (
+          {!hydrated ? (
+            <SubjectGridSkeleton />
+          ) : visibleIds.length === 0 ? (
             <p className="tblabel py-10 text-center text-ink-faint">
               {query.trim()
                 ? `No subjects match “${query.trim()}”.`

@@ -55,3 +55,14 @@ it('re-hydrates when the logged-in user changes (account switch in the same tab)
     useStore.setState({ hydrate: realHydrate });
   }
 });
+
+it('renders children immediately for a logged-in session instead of withholding the whole app', () => {
+  // The old behaviour returned a centred "Loading…" in place of children while
+  // hydrating, so the header, sidebar and tab bar were all withheld — 5.1s of
+  // dead screen on a throttled connection. The shell must paint straight away.
+  mockAuth = { session: { userId: 'u1', username: 'alice', domain: 'civil-engineering' }, loading: false, setSession: () => {} };
+  useStore.setState({ hydrated: false });
+  render(<StoreHydrator><div data-testid="child">content</div></StoreHydrator>);
+  expect(screen.getByTestId('child')).toBeInTheDocument();
+  expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+});

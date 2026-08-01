@@ -14,6 +14,7 @@ import { Breadcrumb } from '@/components/layout/Breadcrumb';
 import { PreviewProvider } from '@/components/preview/PreviewContext';
 import { badgeState } from '@/lib/revision/engine';
 import { IconButton } from '@/components/ui/IconButton';
+import { DetailSkeleton } from '@/components/ui/RouteSkeletons';
 
 export default function TopicPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -25,6 +26,11 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
   const toggleBookmark = useStore((s) => s.toggleBookmark);
   const clearPlan = useStore((s) => s.clearPlan);
   const [planFor, setPlanFor] = useState<null | 'after-revise' | 'schedule'>(null);
+  const hydrated = useStore((s) => s.hydrated);
+  // Children now render before the store has loaded, so a missing record means
+  // "not loaded yet", not "does not exist". Without this guard every deep link
+  // 404s during hydration.
+  if (!hydrated) return <DetailSkeleton />;
   if (!topic) return notFound();
   const chapter = chapters[topic.chapterId];
   const subject = chapter ? subjects[chapter.subjectId] : undefined;
