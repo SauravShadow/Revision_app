@@ -19,7 +19,12 @@ export function ChapterCard({ chapter, autoEdit = false }: { chapter: Chapter; a
     <Link href={`/chapter/${chapter.id}`}
       className="group flex items-center justify-between gap-3 rounded-md px-3 py-3 transition-colors hover:bg-accent-soft active:bg-accent-soft">
       <div className="min-w-0" onDoubleClick={(e) => { e.preventDefault(); setEditing(true); }}>
-        <div className="truncate font-medium text-ink">
+        {/* Two-line wrap rather than a hard ellipsis: list titles are the one
+            thing a phone user must be able to read, and single-line truncation
+            is a desktop assumption. Matches SubjectCard. line-clamp sets
+            display:-webkit-box, so it is dropped while the inline editor's
+            input is mounted. */}
+        <div className={`font-medium text-ink ${editing ? '' : 'line-clamp-2 break-words'}`}>
           <InlineEditable value={chapter.name} editing={editing} onEditingChange={setEditing}
             onCommit={(n) => renameChapter(chapter.id, n)} />
         </div>

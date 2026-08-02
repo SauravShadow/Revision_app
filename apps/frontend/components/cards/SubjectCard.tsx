@@ -48,7 +48,10 @@ export function SubjectCard({ subject, autoEdit = false }: { subject: Subject; a
               <InlineEditable value={subject.name} editing={editing} onEditingChange={setEditing}
                 onCommit={(n) => renameSubject(subject.id, n)} />
             </h3>
-            <div className="tblabel mt-0.5 truncate normal-case tracking-normal text-ink-faint">
+            {/* Wraps rather than truncates: "1 chapter · 2 weeks ago" was being
+                cut mid-phrase on phones, and it is short enough that a second
+                line costs nothing. */}
+            <div className="tblabel mt-0.5 break-words normal-case tracking-normal text-ink-faint">
               {stats.chapterCount} chapter{stats.chapterCount === 1 ? '' : 's'}
               {' · '}
               {stats.lastRevised ? relativeLabel(stats.lastRevised, now) : 'never revised'}

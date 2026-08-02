@@ -39,7 +39,10 @@ function QueueGroup({
               <div className="meta truncate text-ink-faint">
                 {subject?.name ?? '—'}{chapter ? ` · ${chapter.name}` : ''}
               </div>
-              <div className="truncate text-base font-medium text-ink md:text-sm">{topic.title}</div>
+              {/* The queue is the reason a phone session is opened — its titles
+                  must be readable, so they wrap to two lines. The subject ·
+                  chapter line above stays single-line; it is context. */}
+              <div className="line-clamp-2 break-words text-base font-medium text-ink md:truncate md:text-sm">{topic.title}</div>
             </Link>
             <button
               type="button"

@@ -1,5 +1,5 @@
 import { it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { RowActions } from './RowActions';
 
 it('rename and delete carry the touch-target floor', () => {
@@ -27,6 +27,28 @@ it('suppresses the parent link navigation when an action is pressed', () => {
   render(<RowActions onRename={onRename} onDelete={() => {}} />);
   const evt = new MouseEvent('click', { bubbles: true, cancelable: true });
   fireEvent(screen.getByRole('button', { name: 'Rename' }), evt);
+  expect(onRename).toHaveBeenCalledOnce();
+  expect(evt.defaultPrevented).toBe(true);
+});
+
+it('offers a single overflow button for phones, so the row keeps its width for the title', () => {
+  render(<RowActions onRename={() => {}} onDelete={() => {}} onDuplicate={vi.fn()} />);
+  const more = screen.getByRole('button', { name: 'More actions' });
+  // Desktop keeps the inline row; the overflow button is the phone affordance.
+  expect(more.className).toContain('md:hidden');
+});
+
+it('the overflow sheet exposes every action and suppresses row navigation', async () => {
+  const onRename = vi.fn();
+  render(<RowActions onRename={onRename} onDelete={() => {}} onDuplicate={vi.fn()} />);
+  fireEvent.click(screen.getByRole('button', { name: 'More actions' }));
+
+  const dialog = await screen.findByRole('dialog');
+  expect(dialog).toBeInTheDocument();
+  const renameInSheet = within(dialog).getByRole('button', { name: /Rename/ });
+
+  const evt = new MouseEvent('click', { bubbles: true, cancelable: true });
+  fireEvent(renameInSheet, evt);
   expect(onRename).toHaveBeenCalledOnce();
   expect(evt.defaultPrevented).toBe(true);
 });
