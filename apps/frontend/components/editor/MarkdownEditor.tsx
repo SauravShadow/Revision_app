@@ -82,9 +82,17 @@ export function MarkdownEditor({ value, onChange, topicId }: { value: string; on
   );
 
   return (
-    <div className={`${maximized ? 'fixed inset-3 z-50 flex flex-col rounded-xl border border-line-strong bg-ground-deep/95 p-3 shadow-2xl shadow-black/60 backdrop-blur-md sm:inset-5' : 'glass rounded-xl p-3'}`}>
+    // min-w-0: this is a grid child on the topic page, and grid items also
+    // default to min-width:auto — without it the toolbar's intrinsic width
+    // still propagates up and widens the whole page.
+    <div className={`min-w-0 ${maximized ? 'fixed inset-3 z-50 flex flex-col rounded-xl border border-line-strong bg-ground-deep/95 p-3 shadow-2xl shadow-black/60 backdrop-blur-md sm:inset-5' : 'glass rounded-xl p-3'}`}>
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <div data-toolbar className="no-scrollbar -mx-1 flex items-center gap-0.5 overflow-x-auto px-1 md:flex-wrap md:overflow-x-visible">
+        {/* min-w-0 is load-bearing: a flex item defaults to min-width:auto, so
+            without it this row refuses to shrink below its 512px of buttons and
+            overflow-x-auto never engages — instead the whole page widens to
+            ~554px and the browser scales it down, which reads as "the topic
+            page opens zoomed out". */}
+        <div data-toolbar className="no-scrollbar -mx-1 flex min-w-0 items-center gap-0.5 overflow-x-auto px-1 md:flex-wrap md:overflow-x-visible">
           <Btn title="Bold" onClick={() => wrap('**')}><Bold size={15} /></Btn>
           <Btn title="Italic" onClick={() => wrap('*')}><Italic size={15} /></Btn>
           <Btn title="Heading" onClick={() => block('\n## Heading\n')}><Heading size={15} /></Btn>

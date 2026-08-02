@@ -179,16 +179,26 @@ console.log(`\nmobile audit — ${BASE}`);
 console.log(`routes: ${ROUTES.length}\n`);
 
 // ---- 1. horizontal overflow ----
-console.log('1. horizontal overflow, 320-430px');
+console.log('1. horizontal overflow + layout viewport, 320-430px');
 for (const w of WIDTHS) {
   await page.setViewportSize({ width: w, height: 800 });
   for (const route of ROUTES) {
     await settle(route);
-    const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-    if (over > 0) fail(`overflow: ${route} @${w}px by ${over}px`);
+    const m = await page.evaluate(() => ({
+      over: document.documentElement.scrollWidth - window.innerWidth,
+      innerW: window.innerWidth,
+    }));
+    if (m.over > 0) fail(`overflow: ${route} @${w}px by ${m.over}px`);
+    // Comparing scrollWidth to innerWidth alone is blind to a layout viewport
+    // that has expanded: when an unshrinkable element widens the page, BOTH
+    // grow and the difference stays 0 while the browser scales everything down
+    // — the app looks zoomed out. Pin innerWidth to the device width instead.
+    if (m.innerW !== w) {
+      fail(`layout viewport: ${route} @${w}px expanded to ${m.innerW}px — content is forcing the page wider and the browser is scaling it down (look for a flex/grid child missing min-w-0)`);
+    }
   }
 }
-if (!failures.length) ok('no route overflows at any phone width');
+if (!failures.length) ok('no overflow and no layout-viewport expansion at any phone width');
 
 // ---- 2 & 3. touch targets and hit-box overlap ----
 console.log('2. touch targets >= 44px, and 3. no overlapping hit areas');

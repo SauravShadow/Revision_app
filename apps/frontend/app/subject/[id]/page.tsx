@@ -33,11 +33,13 @@ export default function SubjectPage({ params }: { params: Promise<{ id: string }
   return (
     <div>
       <Breadcrumb items={[{ label: 'Subjects', href: '/' }, { label: subject.name }]} />
-      <div className="mb-6 mt-4 flex items-center justify-between">
+      {/* Stacked on phones: beside two buttons the heading got only 140px, so a
+          single word like "Mathematics" broke across two lines mid-word. */}
+      <div className="mb-6 mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">{subject.name}</h1>
         <div className="flex items-center gap-2">
           <button onClick={() => setPlanOpen(true)}
-            className="rounded-xl border border-line px-3 py-2 text-sm text-ink-dim transition hover:border-accent hover:text-accent">
+            className="flex min-h-11 items-center rounded-xl border border-line px-3 text-sm text-ink-dim transition hover:border-accent hover:text-accent md:min-h-0 md:py-2">
             Plan revision
           </button>
           <AddButton label="Chapter" onAdd={(name) => setJustAddedId(addChapter(id, name))} />

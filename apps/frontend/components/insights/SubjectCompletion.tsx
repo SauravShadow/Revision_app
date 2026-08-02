@@ -15,7 +15,9 @@ export function SubjectCompletion({ data, now }: { data: AppData; now: number })
   return (
     <div className="glass rounded-xl p-4">
       <div className="tblabel mb-3">Completion by subject</div>
-      <div className="grid gap-3.5">
+      {/* [&>*]:min-w-0 — grid items default to min-width:auto too, so the rows
+          themselves must be allowed to shrink, not just the text inside them. */}
+      <div className="grid gap-3.5 [&>*]:min-w-0">
         {subjects.map((s) => {
           const pct = subjectProgress(data, s.id, now);
           // Rows are 32px tall in a 14px-gap stack, so a 44px hit box grows
@@ -23,7 +25,11 @@ export function SubjectCompletion({ data, now }: { data: AppData; now: number })
           return (
             <Link key={s.id} href={`/subject/${s.id}`} className="touch-target group block">
               <div className="mb-1 flex items-baseline justify-between gap-3">
-                <span className="truncate text-sm text-ink transition group-hover:text-accent">{s.name}</span>
+                {/* min-w-0: truncate sets white-space:nowrap, and a flex item
+                    defaults to min-width:auto — without this the span refuses to
+                    shrink under a long subject name and widens the whole page
+                    (the same fix RankBars already carries). */}
+                <span className="min-w-0 truncate text-sm text-ink transition group-hover:text-accent">{s.name}</span>
                 <span className="bp-figure shrink-0 text-xs text-ink-dim">{pct}%</span>
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-ground-deep ring-1 ring-inset ring-line">
