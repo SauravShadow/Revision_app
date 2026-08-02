@@ -69,7 +69,9 @@ export default function ChapterPage({ params }: { params: Promise<{ id: string }
         ...(subject ? [{ label: subject.name, href: `/subject/${subject.id}` }] : []),
         { label: chapter.name },
       ]} />
-      <div className="mb-6 mt-4 flex items-center justify-between">
+      {/* Stacked on phones — see the subject page: beside the action button the
+          heading was too narrow and broke words mid-word. */}
+      <div className="mb-6 mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">{chapter.name}</h1>
         <AddButton label="Topic" onAdd={(title) => setJustAddedId(addTopic(id, title))} />
       </div>
