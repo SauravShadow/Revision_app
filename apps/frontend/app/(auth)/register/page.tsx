@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { register, resendVerification } from '@/lib/auth/client';
 import { DOMAIN_LABELS, DOMAIN_COLORS } from '@revision-app/shared';
 import type { Domain } from '@revision-app/shared';
+import { MARKETING_URL } from '@/lib/site';
 
 const DOMAINS: { id: Domain; emoji: string; description: string }[] = [
   {
@@ -185,6 +186,16 @@ export default function RegisterPage() {
             <p className="auth-footer">
               Already have an account?{' '}
               <Link href="/login" className="auth-link">Sign in</Link>
+            </p>
+            <p className="auth-footer">
+              <a
+                href={MARKETING_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="auth-link"
+              >
+                Learn more about RevisionWorks
+              </a>
             </p>
           </>
         ) : step === 'domain' ? (

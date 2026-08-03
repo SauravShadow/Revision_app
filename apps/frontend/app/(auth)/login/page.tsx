@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { login, resendVerification } from '@/lib/auth/client';
 import { useAuth } from '@/components/AuthProvider';
+import { MARKETING_URL } from '@/lib/site';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -118,6 +119,16 @@ export default function LoginPage() {
         <p className="auth-footer">
           <a href="/downloads/revisionworks.apk" download className="auth-link">
             📱 Download the Android app (.apk)
+          </a>
+        </p>
+        <p className="auth-footer">
+          <a
+            href={MARKETING_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="auth-link"
+          >
+            Learn more about RevisionWorks
           </a>
         </p>
       </div>

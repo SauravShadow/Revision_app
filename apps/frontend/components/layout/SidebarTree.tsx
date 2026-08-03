@@ -5,6 +5,7 @@ import { PanelLeftClose, PanelLeft } from 'lucide-react';
 import { NavTree } from './NavTree';
 import { visibleSectionLinks } from './navLinks';
 import { useMemberships } from '@/lib/orgs/useMemberships';
+import { MARKETING_URL } from '@/lib/site';
 
 export function SidebarTree() {
   const [collapsed, setCollapsed] = useState(false);
@@ -43,6 +44,14 @@ export function SidebarTree() {
         ))}
       </div>
       <NavTree />
+      <a
+        href={MARKETING_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="tblabel mt-4 block border-t border-line pt-3 transition hover:text-accent"
+      >
+        info.revisionworks.in
+      </a>
     </aside>
   );
 }

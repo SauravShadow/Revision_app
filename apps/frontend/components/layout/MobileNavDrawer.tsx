@@ -10,6 +10,7 @@ import { visibleSectionLinks } from './navLinks';
 import { useAuth } from '@/components/AuthProvider';
 import { useMemberships } from '@/lib/orgs/useMemberships';
 import { DOMAIN_LABELS } from '@revision-app/shared';
+import { MARKETING_URL } from '@/lib/site';
 
 export function MobileNavDrawer() {
   const [open, setOpen] = useState(false);
@@ -103,6 +104,16 @@ export function MobileNavDrawer() {
             <div className="min-h-0 flex-1 overflow-y-auto">
               <NavTree onNavigate={close} />
             </div>
+
+            <a
+              href={MARKETING_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={close}
+              className="tblabel mt-3 block shrink-0 border-t border-line pt-3 transition hover:text-accent"
+            >
+              info.revisionworks.in
+            </a>
           </motion.aside>
         </div>,
         document.body,
