@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { getEmailStatus, updateEmail } from '@/lib/auth/client';
 import { OrganisationCard } from '@/components/settings/OrganisationCard';
+import { AboutCard } from '@/components/settings/AboutCard';
 import { ThemePicker } from '@/components/theme/ThemePicker';
 
 type EmailStatus = { email: string | null; verified: boolean };
@@ -95,6 +96,7 @@ export default function SettingsPage() {
       </div>
 
       <OrganisationCard />
+      <AboutCard />
     </div>
   );
 }
