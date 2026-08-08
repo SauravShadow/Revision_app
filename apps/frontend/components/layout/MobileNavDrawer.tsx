@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Settings } from 'lucide-react';
+import { Menu, X, Settings, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { NavTree } from './NavTree';
 import { visibleSectionLinks } from './navLinks';
@@ -105,15 +105,18 @@ export function MobileNavDrawer() {
               <NavTree onNavigate={close} />
             </div>
 
-            <a
-              href={MARKETING_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={close}
-              className="tblabel mt-3 block shrink-0 border-t border-line pt-3 transition hover:text-accent"
-            >
-              info.revisionworks.in
-            </a>
+            <div className="mt-3 shrink-0 border-t border-line pt-3">
+              <a
+                href={MARKETING_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={close}
+                className="tblabel site-link inline-flex min-h-11 items-center gap-1.5"
+              >
+                info.revisionworks.in
+                <ExternalLink size={12} className="shrink-0" aria-hidden />
+              </a>
+            </div>
           </motion.aside>
         </div>,
         document.body,

@@ -1,3 +1,4 @@
+import { ExternalLink } from 'lucide-react';
 import { MARKETING_URL } from '@/lib/site';
 
 export function AboutCard() {
@@ -13,9 +14,10 @@ export function AboutCard() {
           href={MARKETING_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="auth-link"
+          className="site-link inline-flex items-center gap-1.5 font-semibold"
         >
           info.revisionworks.in
+          <ExternalLink size={13} className="shrink-0" aria-hidden />
         </a>
       </p>
     </div>

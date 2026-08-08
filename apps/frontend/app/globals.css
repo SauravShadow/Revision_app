@@ -363,6 +363,20 @@ button.dim-chip:active { background: var(--panel-2); transform: scale(0.97); }
   }
 }
 
+/* An outbound link to the marketing site. Composed with .tblabel in the
+   navigator and drawer, where the caption styling alone (dim ink, no
+   underline) made a real link read as static text. Accent ink + an underline
+   restore the affordance; the paired ExternalLink icon says it leaves the app. */
+.site-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  transition: text-decoration-color .15s, opacity .15s;
+}
+.site-link:hover { text-decoration-color: var(--accent); opacity: .85; }
+
 /* A dimension "chip" — bracketed mono readout used for stats/badges. */
 .dim-chip {
   font-family: var(--font-mono), monospace;

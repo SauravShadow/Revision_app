@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { PanelLeftClose, PanelLeft } from 'lucide-react';
+import { PanelLeftClose, PanelLeft, ExternalLink } from 'lucide-react';
 import { NavTree } from './NavTree';
 import { visibleSectionLinks } from './navLinks';
 import { useMemberships } from '@/lib/orgs/useMemberships';
@@ -44,14 +44,17 @@ export function SidebarTree() {
         ))}
       </div>
       <NavTree />
-      <a
-        href={MARKETING_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="tblabel mt-4 block border-t border-line pt-3 transition hover:text-accent"
-      >
-        info.revisionworks.in
-      </a>
+      <div className="mt-4 border-t border-line pt-3">
+        <a
+          href={MARKETING_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="tblabel site-link inline-flex items-center gap-1.5"
+        >
+          info.revisionworks.in
+          <ExternalLink size={11} className="shrink-0" aria-hidden />
+        </a>
+      </div>
     </aside>
   );
 }

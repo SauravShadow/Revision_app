@@ -48,3 +48,11 @@ it('closes on backdrop click', () => {
   fireEvent.click(screen.getByTestId('mobile-nav-backdrop'));
   expect(screen.queryByText('Structures')).not.toBeInTheDocument();
 });
+
+it('gives the marketing link visible link affordance, not caption styling', () => {
+  render(<DndContext><MobileNavDrawer /></DndContext>);
+  fireEvent.click(screen.getByLabelText('Open menu'));
+  const link = screen.getByRole('link', { name: /revisionworks\.in/i });
+  expect(link).toHaveAttribute('href', 'https://info.revisionworks.in');
+  expect(link.className).toMatch(/(^|\s)site-link(\s|$)/);
+});
