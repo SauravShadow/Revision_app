@@ -11,6 +11,18 @@ export function nextInterval(revisionCount: number): number {
   return LADDER[idx];
 }
 
+/**
+ * How much to shorten the next suggested interval based on the last quiz
+ * result. 1 = no change. Absent or empty scores never shorten.
+ */
+export function scoreFactor(score?: { correct: number; total: number }): number {
+  if (!score || score.total <= 0) return 1;
+  const ratio = score.correct / score.total;
+  if (ratio >= 0.8) return 1;
+  if (ratio >= 0.5) return 0.5;
+  return 0.25;
+}
+
 export function startOfDay(ts: number): number {
   const d = new Date(ts);
   d.setHours(0, 0, 0, 0);
@@ -33,10 +45,14 @@ export function nextDueDate(t: Plannable): number | undefined {
 }
 
 // The old ladder-derived date, demoted to a suggestion for the plan-next UI.
+// A weak self-graded quiz score pulls the suggestion earlier; it never pushes
+// it later, and never suggests less than one day out.
 export function suggestedNextDate(h: Revision[]): number | undefined {
   const last = lastRevisedAt(h);
   if (last === undefined) return undefined;
-  return last + nextInterval(h.length) * DAY_MS;
+  const base = nextInterval(h.length);
+  const days = Math.max(1, Math.floor(base * scoreFactor(h[h.length - 1].score)));
+  return last + days * DAY_MS;
 }
 
 export function daysSince(h: Revision[], now: number): number | undefined {

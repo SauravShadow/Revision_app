@@ -4,6 +4,8 @@ export type Priority = 'Low' | 'Medium' | 'High';
 export interface Revision {
   id: string;
   timestamp: number; // epoch ms
+  /** Self-graded quiz result for this session. Absent = ungraded revision. */
+  score?: { correct: number; total: number };
 }
 
 export interface Subject {
@@ -53,6 +55,8 @@ export interface Flashcard {
   front: string;
   back: string;
   createdAt: number;
+  /** Absent = legacy hand-written card. */
+  source?: 'manual' | 'generated';
 }
 
 export interface Topic {
