@@ -30,6 +30,7 @@ services:
       - AUTH_SERVICE_URL=http://auth-service:4001
       - FILES_SERVICE_URL=http://files-service:4003
       - CONTENT_SERVICE_URL=http://content-service:4002
+      - AI_SERVICE_URL=http://ai-service:4004
     depends_on:
       db:
         condition: service_healthy
@@ -38,6 +39,8 @@ services:
       files-service:
         condition: service_started
       content-service:
+        condition: service_started
+      ai-service:
         condition: service_started
     restart: unless-stopped
 
@@ -85,6 +88,22 @@ services:
         condition: service_healthy
       auth-service:
         condition: service_started
+    restart: unless-stopped
+
+  ai-service:
+    build:
+      context: .
+      dockerfile: services/ai-service/Dockerfile
+    container_name: revision_ai_service
+    environment:
+      - DATABASE_URL=postgres://revision:${POSTGRES_PASSWORD}@db:5432/revision_ai
+      - SESSION_SECRET=${SESSION_SECRET}
+      - SERVICE_SECRET=${SERVICE_SECRET}
+      - GEMINI_API_KEY_REVISION=${GEMINI_API_KEY_REVISION}
+      - AI_DAILY_QUOTA=${AI_DAILY_QUOTA:-10}
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
