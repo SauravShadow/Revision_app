@@ -1,5 +1,6 @@
 import express from 'express';
 import { sessionUserId } from './session';
+import { readQuota, todayUtc } from './quota';
 
 export function createApp() {
   const app = express();
@@ -7,10 +8,10 @@ export function createApp() {
 
   app.get('/health', (_req, res) => res.json({ ok: true }));
 
-  app.get('/quota', (req, res) => {
+  app.get('/quota', async (req, res) => {
     const session = sessionUserId(req);
     if (!session) return res.status(401).json({ error: 'Not authenticated' });
-    return res.json({ ok: true });
+    res.json(await readQuota(session.userId, todayUtc()));
   });
 
   return app;
