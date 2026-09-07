@@ -31,7 +31,7 @@ interface StoreState extends AppData {
   renameTopic: (id: string, title: string) => void;
   deleteTopic: (id: string) => void;
   updateTopicNotes: (id: string, notes: string) => void;
-  markTopicRevised: (id: string) => void;
+  markTopicRevised: (id: string, score?: { correct: number; total: number }) => void;
   planTopic: (id: string, date: number) => void;
   planTopics: (ids: string[], date: number) => void;
   clearPlan: (id: string) => void;
@@ -231,11 +231,11 @@ export function createRevisionStore(repo: RevisionRepository) {
         commitSilent({ topics: { ...s.topics, [id]: { ...s.topics[id], notes, updatedAt: Date.now() } } });
       },
 
-      markTopicRevised: (id) => {
+      markTopicRevised: (id, score) => {
         const s = get();
         const topic = s.topics[id];
         if (!topic) return;
-        commitSilent({ topics: { ...s.topics, [id]: markRevised(topic, Date.now()) } });
+        commitSilent({ topics: { ...s.topics, [id]: markRevised(topic, Date.now(), score) } });
       },
 
       planTopic: (id, date) => {

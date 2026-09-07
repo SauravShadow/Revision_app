@@ -67,3 +67,21 @@ it('disables Generate until the topic has notes', () => {
   render(<FlashcardsPanel topic={useStore.getState().topics[topicId]} />);
   expect(screen.getByRole('button', { name: /generate/i })).toBeDisabled();
 });
+
+it('grades a session and records exactly one scored revision', async () => {
+  useStore.getState().addFlashcard(topicId, 'Q1', 'A1');
+  useStore.getState().addFlashcard(topicId, 'Q2', 'A2');
+
+  render(<FlashcardsPanel topic={useStore.getState().topics[topicId]} />);
+  fireEvent.click(screen.getByRole('button', { name: /review/i }));
+
+  fireEvent.click(screen.getByRole('button', { name: /got it/i }));
+  fireEvent.click(screen.getByRole('button', { name: /missed it/i }));
+
+  await waitFor(() => {
+    expect(useStore.getState().topics[topicId].revisionHistory).toHaveLength(1);
+  });
+  // One revision for the whole session, not one per card graded.
+  expect(useStore.getState().topics[topicId].revisionHistory).toHaveLength(1);
+  expect(useStore.getState().topics[topicId].revisionHistory[0].score).toEqual({ correct: 1, total: 2 });
+});

@@ -118,6 +118,22 @@ describe('markRevised', () => {
     const t = { ...baseTopic([]), plannedAt: now };
     expect(markRevised(t, now).plannedAt).toBeNull();
   });
+
+  it('omits score entirely when ungraded — byte-identical to the pre-scoring shape', () => {
+    const now = at('2026-07-05');
+    const t = baseTopic([]);
+    const revision = markRevised(t, now).revisionHistory[0];
+    expect(revision).toEqual({ id: revision.id, timestamp: now });
+    expect(Object.keys(revision).sort()).toEqual(['id', 'timestamp']);
+    expect('score' in revision).toBe(false);
+  });
+
+  it('attaches the score when the session was graded', () => {
+    const now = at('2026-07-05');
+    const t = baseTopic([]);
+    const revision = markRevised(t, now, { correct: 3, total: 5 }).revisionHistory[0];
+    expect(revision.score).toEqual({ correct: 3, total: 5 });
+  });
 });
 
 describe('deleteRevision', () => {

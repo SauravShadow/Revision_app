@@ -12,7 +12,7 @@ interface ProposedCard {
 }
 
 export function FlashcardsPanel({ topic }: { topic: Topic }) {
-  const { addFlashcard, deleteFlashcard } = useStore.getState();
+  const { addFlashcard, deleteFlashcard, markTopicRevised } = useStore.getState();
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
   const [review, setReview] = useState(false);
@@ -140,17 +140,41 @@ export function FlashcardsPanel({ topic }: { topic: Topic }) {
           </li>
         ))}
       </ul>
-      {review && <ReviewModal cards={cards} onClose={() => setReview(false)} />}
+      {review && (
+        <ReviewModal
+          cards={cards}
+          onClose={() => setReview(false)}
+          onFinish={(score) => markTopicRevised(topic.id, score)}
+        />
+      )}
     </div>
   );
 }
 
-function ReviewModal({ cards, onClose }: { cards: { id: string; front: string; back: string }[]; onClose: () => void }) {
+function ReviewModal({
+  cards, onClose, onFinish,
+}: {
+  cards: { id: string; front: string; back: string }[];
+  onClose: () => void;
+  onFinish: (score: { correct: number; total: number }) => void;
+}) {
   const [i, setI] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [correct, setCorrect] = useState(0);
   const card = cards[i];
-  const next = () => { setFlipped(false); setI((n) => (n + 1) % cards.length); };
-  const prev = () => { setFlipped(false); setI((n) => (n - 1 + cards.length) % cards.length); };
+
+  const grade = (got: boolean) => {
+    const nextCorrect = correct + (got ? 1 : 0);
+    if (i === cards.length - 1) {
+      onFinish({ correct: nextCorrect, total: cards.length });
+      onClose();
+      return;
+    }
+    setCorrect(nextCorrect);
+    setFlipped(false);
+    setI(i + 1);
+  };
+
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" onClick={onClose}>
       <div className="glass w-full max-w-lg rounded-2xl p-6" onClick={(e) => e.stopPropagation()}>
@@ -162,10 +186,11 @@ function ReviewModal({ cards, onClose }: { cards: { id: string; front: string; b
           {flipped ? card.back : card.front}
         </button>
         <div className="mt-2 text-center text-xs opacity-50">{flipped ? 'answer — click to flip' : 'question — click to reveal'}</div>
-        <div className="mt-4 flex justify-between">
-          <button onClick={prev} className="rounded-lg border border-white/10 px-4 py-2 text-sm hover:bg-white/5">Prev</button>
-          <button onClick={next} className="rounded-lg border border-white/10 px-4 py-2 text-sm hover:bg-white/5">Next</button>
+        <div className="mt-4 flex gap-2">
+          <button onClick={() => grade(false)} className="min-h-11 flex-1 rounded-lg border border-white/10 text-sm hover:bg-white/5 md:min-h-0 md:py-2">Missed it</button>
+          <button onClick={() => grade(true)} className="min-h-11 flex-1 rounded-lg border border-white/15 text-sm hover:bg-white/5 md:min-h-0 md:py-2">Got it</button>
         </div>
+        <p className="mt-2 text-center text-xs text-white/50">{i + 1} / {cards.length}</p>
       </div>
     </div>
   );

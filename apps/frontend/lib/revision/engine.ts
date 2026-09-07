@@ -29,8 +29,8 @@ export function inGoodStanding(t: Plannable, now: number): boolean {
 }
 
 // Revising fulfils the current plan; the plan-next dialog sets the next one.
-export function markRevised(topic: Topic, now: number): Topic {
-  const revision: Revision = { id: makeId(), timestamp: now };
+export function markRevised(topic: Topic, now: number, score?: { correct: number; total: number }): Topic {
+  const revision: Revision = { id: makeId(), timestamp: now, ...(score ? { score } : {}) };
   return {
     ...topic,
     revisionHistory: [...topic.revisionHistory, revision],
