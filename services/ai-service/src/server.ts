@@ -83,19 +83,28 @@ export function createApp() {
       });
       return res.json({ usageId, cards: result.cards });
     } catch (err) {
-      // A failed generation must not cost the student a quota unit.
-      await getPool().query(
-        'UPDATE ai_quota SET used = GREATEST(0, used - 1) WHERE user_id = $1 AND day = $2',
-        [session.userId, today],
-      );
+      console.error('ai-service flashcards failed:', err);
       const kind = err instanceof ProviderError ? err.kind : 'unavailable';
-      await recordUsage({
-        userId: session.userId, provider: provider.name, model: 'n/a',
-        operation: 'flashcards', latencyMs: Date.now() - startedAt,
-        outcome: kind === 'rate_limited' ? 'rate_limited' : 'error',
-      });
+
+      // Trip before any await: a failing DB must not stop the breaker from opening.
+      if (kind === 'rate_limited') trip();
+
+      try {
+        // A failed generation must not cost the student a quota unit.
+        await getPool().query(
+          'UPDATE ai_quota SET used = GREATEST(0, used - 1) WHERE user_id = $1 AND day = $2',
+          [session.userId, today],
+        );
+        await recordUsage({
+          userId: session.userId, provider: provider.name, model: 'n/a',
+          operation: 'flashcards', latencyMs: Date.now() - startedAt,
+          outcome: kind === 'rate_limited' ? 'rate_limited' : 'error',
+        });
+      } catch (bookkeeping) {
+        console.error('ai-service bookkeeping failed:', bookkeeping);
+      }
+
       if (kind === 'rate_limited') {
-        trip();
         return res.status(503).json({ error: 'AI is busy right now — try again in a minute.' });
       }
       if (kind === 'bad_output') {

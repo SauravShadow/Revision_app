@@ -5,12 +5,20 @@ import { getPool } from './db';
 import { createApp } from './server';
 import * as providerModule from './provider';
 import { ProviderError } from './provider';
-import { reset as resetBreaker } from './breaker';
+import { isOpen, reset as resetBreaker } from './breaker';
+import { recordUsage } from './usage';
 
 const app = createApp();
+const USER_ID = '33333333-3333-3333-3333-333333333333';
+const OTHER_USER_ID = '66666666-6666-6666-6666-666666666666';
 const token = signSession({
-  userId: '33333333-3333-3333-3333-333333333333',
+  userId: USER_ID,
   username: 'alice',
+  domain: 'civil-engineering',
+});
+const otherToken = signSession({
+  userId: OTHER_USER_ID,
+  username: 'bob',
   domain: 'civil-engineering',
 });
 
@@ -88,10 +96,13 @@ describe('POST /flashcards', () => {
     expect(rows[0].used).toBe(0);
   });
 
-  it('502s on bad provider output', async () => {
+  it('502s on bad provider output, leaves the breaker closed, and refunds quota', async () => {
     stubProvider(async () => { throw new ProviderError('bad_output', 'garbage'); });
     const res = await request(app).post('/flashcards').set('Authorization', `Bearer ${token}`).send(body);
     expect(res.status).toBe(502);
+    expect(isOpen()).toBe(false);
+    const { rows } = await getPool().query('SELECT used FROM ai_quota');
+    expect(rows[0].used).toBe(0);
   });
 
   it('refuses locally while the breaker is open, without calling the provider', async () => {
@@ -102,5 +113,54 @@ describe('POST /flashcards', () => {
     expect((await send()).status).toBe(503);   // trips the breaker
     expect((await send()).status).toBe(503);   // refused locally
     expect(gen).toHaveBeenCalledTimes(1);
+  });
+
+  it('500s and never claims quota when getProvider() fails (deployment misconfiguration)', async () => {
+    vi.spyOn(providerModule, 'getProvider').mockImplementation(() => {
+      throw new Error('GEMINI_API_KEY_REVISION env var must be set');
+    });
+    const res = await request(app).post('/flashcards').set('Authorization', `Bearer ${token}`).send(body);
+
+    expect(res.status).toBe(500);
+    const { rows } = await getPool().query('SELECT used FROM ai_quota');
+    expect(rows[0]?.used ?? 0).toBe(0);
+  });
+});
+
+describe('POST /flashcards/kept', () => {
+  it('401s without a session', async () => {
+    const res = await request(app).post('/flashcards/kept').send({ usageId: 1, kept: 1 });
+    expect(res.status).toBe(401);
+  });
+
+  it('400s on a malformed body', async () => {
+    const res = await request(app).post('/flashcards/kept')
+      .set('Authorization', `Bearer ${token}`).send({ usageId: 'nope' });
+    expect(res.status).toBe(400);
+  });
+
+  it('204s and records kept cards for the owning user', async () => {
+    const usageId = await recordUsage({
+      userId: USER_ID, provider: 'gemini', model: 'gemini-2.5-flash',
+      operation: 'flashcards', outcome: 'ok', cardsProposed: 3,
+    });
+    const res = await request(app).post('/flashcards/kept')
+      .set('Authorization', `Bearer ${token}`).send({ usageId, kept: 2 });
+
+    expect(res.status).toBe(204);
+    const { rows } = await getPool().query('SELECT cards_kept FROM ai_usage WHERE id = $1', [usageId]);
+    expect(rows[0].cards_kept).toBe(2);
+  });
+
+  it("does not let a second user overwrite another user's usage row", async () => {
+    const usageId = await recordUsage({
+      userId: USER_ID, provider: 'gemini', model: 'gemini-2.5-flash',
+      operation: 'flashcards', outcome: 'ok', cardsProposed: 3,
+    });
+    await request(app).post('/flashcards/kept')
+      .set('Authorization', `Bearer ${otherToken}`).send({ usageId, kept: 40 });
+
+    const { rows } = await getPool().query('SELECT cards_kept FROM ai_usage WHERE id = $1', [usageId]);
+    expect(rows[0].cards_kept).toBeNull();
   });
 });
