@@ -50,7 +50,7 @@ interface StoreState extends AppData {
   moveTopic: (topicId: string, toChapterId: string) => void;
   addAttachment: (topicId: string, a: Attachment) => void;
   removeAttachment: (topicId: string, attId: string) => void;
-  addFlashcard: (topicId: string, front: string, back: string) => string;
+  addFlashcard: (topicId: string, front: string, back: string, source?: 'manual' | 'generated') => string;
   updateFlashcard: (topicId: string, cardId: string, front: string, back: string) => void;
   deleteFlashcard: (topicId: string, cardId: string) => void;
   toggleBookmark: (topicId: string) => void;
@@ -386,12 +386,12 @@ export function createRevisionStore(repo: RevisionRepository) {
         if (!t) return;
         commit({ topics: { ...s.topics, [topicId]: { ...t, attachments: (t.attachments ?? []).filter((x) => x.id !== attId), updatedAt: Date.now() } } });
       },
-      addFlashcard: (topicId, front, back) => {
+      addFlashcard: (topicId, front, back, source) => {
         const id = makeId();
         const s = get();
         const t = s.topics[topicId];
         if (!t) return id;
-        const card: Flashcard = { id, front, back, createdAt: Date.now() };
+        const card: Flashcard = { id, front, back, createdAt: Date.now(), ...(source ? { source } : {}) };
         commit({ topics: { ...s.topics, [topicId]: { ...t, flashcards: [...(t.flashcards ?? []), card], updatedAt: Date.now() } } });
         return id;
       },
