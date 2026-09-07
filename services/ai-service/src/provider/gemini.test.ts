@@ -61,7 +61,28 @@ describe('GeminiProvider', () => {
       candidates: [{ content: { parts: [{ text: '[{"front":"Q","back":"A"}]' }] } }],
     }));
     await provider.generateFlashcards(input);
-    const [, init] = spy.mock.calls[0];
+    const [url, init] = spy.mock.calls[0];
     expect((init as RequestInit).headers).toMatchObject({ 'x-goog-api-key': 'test-key' });
+    expect(url).not.toContain('test-key');
+    expect((init as RequestInit).body).not.toContain('test-key');
+  });
+
+  it('rejects a response body that is not valid JSON', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('<html>502 Bad Gateway</html>', { status: 200 }));
+    await expect(provider.generateFlashcards(input)).rejects.toMatchObject({ kind: 'bad_output' });
+  });
+
+  it('rejects when candidates array is empty or missing', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+      candidates: [],
+    }));
+    await expect(provider.generateFlashcards(input)).rejects.toMatchObject({ kind: 'bad_output' });
+  });
+
+  it('rejects when candidate text is not valid JSON', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+      candidates: [{ content: { parts: [{ text: 'not json' }] } }],
+    }));
+    await expect(provider.generateFlashcards(input)).rejects.toMatchObject({ kind: 'bad_output' });
   });
 });
