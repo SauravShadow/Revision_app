@@ -1,9 +1,15 @@
-import { describe, it, expect, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, afterAll } from 'vitest';
 import { getPool } from './db';
 import { consumeQuota, readQuota, todayUtc, dailyLimit } from './quota';
 
 const USER = '22222222-2222-2222-2222-222222222222';
 const DAY = '2026-09-04';
+
+let originalQuota: string | undefined;
+
+beforeAll(() => {
+  originalQuota = process.env.AI_DAILY_QUOTA;
+});
 
 beforeEach(async () => {
   await getPool().query('TRUNCATE ai_quota');
@@ -11,13 +17,28 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
+  process.env.AI_DAILY_QUOTA = originalQuota;
   await getPool().end();
 });
 
 describe('quota', () => {
-  it('defaults the limit to 10 when unset', () => {
-    delete process.env.AI_DAILY_QUOTA;
-    expect(dailyLimit()).toBe(10);
+  describe('dailyLimit', () => {
+    it.each([
+      [undefined, 10, 'unset'],
+      ['', 10, 'empty string'],
+      ['abc', 10, 'non-numeric'],
+      ['0', 10, 'zero'],
+      ['-5', 10, 'negative'],
+      ['3', 3, 'valid positive'],
+      ['42', 42, 'valid large'],
+    ])('returns %d when AI_DAILY_QUOTA is %s (%s)', (value, expected, _label) => {
+      if (value === undefined) {
+        delete process.env.AI_DAILY_QUOTA;
+      } else {
+        process.env.AI_DAILY_QUOTA = value;
+      }
+      expect(dailyLimit()).toBe(expected);
+    });
   });
 
   it('starts a fresh user at zero used', async () => {
