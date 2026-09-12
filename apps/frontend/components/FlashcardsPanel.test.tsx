@@ -85,3 +85,32 @@ it('grades a session and records exactly one scored revision', async () => {
   expect(useStore.getState().topics[topicId].revisionHistory).toHaveLength(1);
   expect(useStore.getState().topics[topicId].revisionHistory[0].score).toEqual({ correct: 1, total: 2 });
 });
+
+it('invokes onQuizFinished after a finished quiz so the caller can re-plan', async () => {
+  useStore.getState().addFlashcard(topicId, 'Q1', 'A1');
+  const onQuizFinished = vi.fn();
+
+  render(
+    <FlashcardsPanel topic={useStore.getState().topics[topicId]} onQuizFinished={onQuizFinished} />,
+  );
+  fireEvent.click(screen.getByRole('button', { name: /review/i }));
+  fireEvent.click(screen.getByRole('button', { name: /got it/i }));
+
+  // markRevised clears plannedAt, so without this callback the topic silently
+  // falls to Unplanned and PlanNextDialog — the only surface for the
+  // score-weighted suggestion — never opens.
+  await waitFor(() => expect(onQuizFinished).toHaveBeenCalledTimes(1));
+  expect(useStore.getState().topics[topicId].plannedAt ?? null).toBeNull();
+});
+
+it('does not blow up finishing a quiz without an onQuizFinished handler', async () => {
+  useStore.getState().addFlashcard(topicId, 'Q1', 'A1');
+
+  render(<FlashcardsPanel topic={useStore.getState().topics[topicId]} />);
+  fireEvent.click(screen.getByRole('button', { name: /review/i }));
+  fireEvent.click(screen.getByRole('button', { name: /got it/i }));
+
+  await waitFor(() => {
+    expect(useStore.getState().topics[topicId].revisionHistory).toHaveLength(1);
+  });
+});

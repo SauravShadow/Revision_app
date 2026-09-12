@@ -11,7 +11,16 @@ interface ProposedCard {
   keep: boolean;
 }
 
-export function FlashcardsPanel({ topic }: { topic: Topic }) {
+export function FlashcardsPanel({ topic, onQuizFinished }: {
+  topic: Topic;
+  /**
+   * Fired after a finished quiz marks the topic revised. markTopicRevised
+   * clears plannedAt, so every call site must follow it with the plan-next
+   * dialog — that dialog is also the only place suggestedNextDate, and so the
+   * score the quiz just earned, is ever surfaced.
+   */
+  onQuizFinished?: () => void;
+}) {
   const { addFlashcard, deleteFlashcard, markTopicRevised } = useStore.getState();
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
@@ -144,7 +153,7 @@ export function FlashcardsPanel({ topic }: { topic: Topic }) {
         <ReviewModal
           cards={cards}
           onClose={() => setReview(false)}
-          onFinish={(score) => markTopicRevised(topic.id, score)}
+          onFinish={(score) => { markTopicRevised(topic.id, score); onQuizFinished?.(); }}
         />
       )}
     </div>
