@@ -6,7 +6,7 @@ import { createApp } from './server';
 import * as providerModule from './provider';
 import { ProviderError } from './provider';
 import { isOpen, reset as resetBreaker } from './breaker';
-import { recordUsage } from './usage';
+import * as usageModule from './usage';
 
 const app = createApp();
 const USER_ID = '33333333-3333-3333-3333-333333333333';
@@ -96,13 +96,71 @@ describe('POST /flashcards', () => {
     expect(rows[0].used).toBe(0);
   });
 
-  it('502s on bad provider output, leaves the breaker closed, and refunds quota', async () => {
+  it('502s on bad provider output, leaves the breaker closed, and charges quota', async () => {
     stubProvider(async () => { throw new ProviderError('bad_output', 'garbage'); });
     const res = await request(app).post('/flashcards').set('Authorization', `Bearer ${token}`).send(body);
     expect(res.status).toBe(502);
     expect(isOpen()).toBe(false);
+    // The model ran and billed tokens, so this failure costs a quota unit.
+    // Refunding it would let a request engineered to produce garbage loop
+    // forever against the shared free-tier pool.
+    const { rows } = await getPool().query('SELECT used FROM ai_quota');
+    expect(rows[0].used).toBe(1);
+  });
+
+  it('503s on a provider timeout and charges quota, since the model was generating', async () => {
+    stubProvider(async () => { throw new ProviderError('timeout', 'took too long'); });
+    const res = await request(app).post('/flashcards').set('Authorization', `Bearer ${token}`).send(body);
+
+    expect(res.status).toBe(503);
+    // Same copy as any other unavailability — a timeout is not new user-facing state.
+    expect(res.body.error).toBe('AI is unavailable right now — try again shortly.');
+    const { rows } = await getPool().query('SELECT used FROM ai_quota');
+    expect(rows[0].used).toBe(1);
+  });
+
+  it('refunds quota when the request never reached the provider', async () => {
+    stubProvider(async () => { throw new ProviderError('unavailable', 'ECONNREFUSED'); });
+    const res = await request(app).post('/flashcards').set('Authorization', `Bearer ${token}`).send(body);
+
+    expect(res.status).toBe(503);
     const { rows } = await getPool().query('SELECT used FROM ai_quota');
     expect(rows[0].used).toBe(0);
+  });
+
+  it('truncates a runaway provider response to the requested count', async () => {
+    // A prompt injection inside `notes` can talk the model past `count`;
+    // responseSchema constrains shape, not length.
+    stubProvider(async () => ({
+      cards: Array.from({ length: 40 }, (_, i) => ({ front: `Q${i}`, back: `A${i}` })),
+      model: 'gemini-3.6-flash',
+    }));
+    const res = await request(app).post('/flashcards')
+      .set('Authorization', `Bearer ${token}`).send({ ...body, count: 3 });
+
+    expect(res.status).toBe(200);
+    expect(res.body.cards).toHaveLength(3);
+    expect(res.body.cards[0]).toEqual({ front: 'Q0', back: 'A0' });
+    const { rows } = await getPool().query('SELECT cards_proposed FROM ai_usage');
+    expect(rows[0].cards_proposed).toBe(3);
+  });
+
+  it('still returns the cards, with a null usageId, when usage logging fails', async () => {
+    stubProvider(async () => ({
+      cards: [{ front: 'Q1', back: 'A1' }], model: 'gemini-3.6-flash',
+    }));
+    vi.spyOn(usageModule, 'recordUsage').mockRejectedValueOnce(new Error('DB down'));
+
+    const res = await request(app).post('/flashcards')
+      .set('Authorization', `Bearer ${token}`).send(body);
+
+    // The generation completed and the tokens were billed; a failed INSERT
+    // must not throw the cards away or hand back a refund.
+    expect(res.status).toBe(200);
+    expect(res.body.cards).toEqual([{ front: 'Q1', back: 'A1' }]);
+    expect(res.body.usageId).toBeNull();
+    const { rows } = await getPool().query('SELECT used FROM ai_quota');
+    expect(rows[0].used).toBe(1);
   });
 
   it('refuses locally while the breaker is open, without calling the provider', async () => {
@@ -140,7 +198,7 @@ describe('POST /flashcards/kept', () => {
   });
 
   it('204s and records kept cards for the owning user', async () => {
-    const usageId = await recordUsage({
+    const usageId = await usageModule.recordUsage({
       userId: USER_ID, provider: 'gemini', model: 'gemini-3.6-flash',
       operation: 'flashcards', outcome: 'ok', cardsProposed: 3,
     });
@@ -153,7 +211,7 @@ describe('POST /flashcards/kept', () => {
   });
 
   it("does not let a second user overwrite another user's usage row", async () => {
-    const usageId = await recordUsage({
+    const usageId = await usageModule.recordUsage({
       userId: USER_ID, provider: 'gemini', model: 'gemini-3.6-flash',
       operation: 'flashcards', outcome: 'ok', cardsProposed: 3,
     });

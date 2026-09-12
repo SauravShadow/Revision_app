@@ -36,9 +36,30 @@ describe('GeminiProvider', () => {
     await expect(provider.generateFlashcards(input)).rejects.toMatchObject({ kind: 'unavailable' });
   });
 
-  it('maps a network failure to an unavailable ProviderError', async () => {
+  it('maps a connection failure to an unavailable ProviderError', async () => {
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('ECONNREFUSED'));
     await expect(provider.generateFlashcards(input)).rejects.toBeInstanceOf(ProviderError);
+    await expect(provider.generateFlashcards(input)).rejects.toMatchObject({ kind: 'unavailable' });
+  });
+
+  it('maps an AbortSignal.timeout abort to a timeout ProviderError', async () => {
+    // This is exactly what AbortSignal.timeout rejects fetch with.
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(
+      new DOMException('The operation was aborted due to timeout', 'TimeoutError'),
+    );
+    await expect(provider.generateFlashcards(input)).rejects.toBeInstanceOf(ProviderError);
+    // A timeout means the model was generating and billing tokens, so the
+    // caller must be able to tell it apart from never reaching Google.
+    await expect(provider.generateFlashcards(input)).rejects.toMatchObject({ kind: 'timeout' });
+  });
+
+  it('bounds the model output so an injected prompt cannot run away', async () => {
+    const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+      candidates: [{ content: { parts: [{ text: '[{"front":"Q","back":"A"}]' }] } }],
+    }));
+    await provider.generateFlashcards(input);
+    const body = JSON.parse((spy.mock.calls[0][1] as RequestInit).body as string);
+    expect(body.generationConfig.maxOutputTokens).toBe(2048);
   });
 
   it('rejects output that is not an array of front/back pairs', async () => {

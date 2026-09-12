@@ -76,12 +76,26 @@ export function createApp() {
       const result = await provider.generateFlashcards({
         title: parsed.data.title, notes: parsed.data.notes, count: parsed.data.count,
       });
-      const usageId = await recordUsage({
-        userId: session.userId, provider: provider.name, model: result.model,
-        operation: 'flashcards', inputTokens: result.inputTokens, outputTokens: result.outputTokens,
-        latencyMs: Date.now() - startedAt, outcome: 'ok', cardsProposed: result.cards.length,
-      });
-      return res.json({ usageId, cards: result.cards });
+      // The prompt asks for `count` cards but `notes` is user-authored, so a
+      // prompt injection could talk the model into returning far more. Bound
+      // what we hand back to what was actually asked for.
+      const cards = result.cards.slice(0, parsed.data.count);
+
+      // Bookkeeping gets its own try: a completed, token-billed generation must
+      // not be thrown away (and the quota refunded) because an INSERT failed.
+      // The client tolerates a null usageId — it simply skips the kept-count
+      // quality signal.
+      let usageId: number | null = null;
+      try {
+        usageId = await recordUsage({
+          userId: session.userId, provider: provider.name, model: result.model,
+          operation: 'flashcards', inputTokens: result.inputTokens, outputTokens: result.outputTokens,
+          latencyMs: Date.now() - startedAt, outcome: 'ok', cardsProposed: cards.length,
+        });
+      } catch (logging) {
+        console.error('ai-service usage logging failed:', logging);
+      }
+      return res.json({ usageId, cards });
     } catch (err) {
       console.error('ai-service flashcards failed:', err);
       const kind = err instanceof ProviderError ? err.kind : 'unavailable';
@@ -89,12 +103,22 @@ export function createApp() {
       // Trip before any await: a failing DB must not stop the breaker from opening.
       if (kind === 'rate_limited') trip();
 
+      // Refund only when nothing was generated and nothing was billed:
+      // 'unavailable' (the request never produced output) and 'rate_limited'
+      // (the provider refused before generating — charging a student for
+      // Google's 429 would be unfair). 'bad_output' means the model ran, and
+      // 'timeout' means it was still generating when we gave up; both burn the
+      // shared free-tier pool, so both cost the student their quota unit.
+      // Refunding those would let a request engineered to fail loop forever.
+      const refundable = kind === 'unavailable' || kind === 'rate_limited';
+
       try {
-        // A failed generation must not cost the student a quota unit.
-        await getPool().query(
-          'UPDATE ai_quota SET used = GREATEST(0, used - 1) WHERE user_id = $1 AND day = $2',
-          [session.userId, today],
-        );
+        if (refundable) {
+          await getPool().query(
+            'UPDATE ai_quota SET used = GREATEST(0, used - 1) WHERE user_id = $1 AND day = $2',
+            [session.userId, today],
+          );
+        }
         await recordUsage({
           userId: session.userId, provider: provider.name, model: 'n/a',
           operation: 'flashcards', latencyMs: Date.now() - startedAt,
@@ -110,6 +134,7 @@ export function createApp() {
       if (kind === 'bad_output') {
         return res.status(502).json({ error: "Couldn't generate cards for this topic." });
       }
+      // 'timeout' falls through here too: same 503, same copy as 'unavailable'.
       return res.status(503).json({ error: 'AI is unavailable right now — try again shortly.' });
     }
   }));
