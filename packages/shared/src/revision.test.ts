@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  LADDER, DAY_MS, nextInterval, nextDueDate, suggestedNextDate, badgeState, activeTopics, currentStreak, startOfDay,
+  LADDER, DAY_MS, nextInterval, nextDueDate, suggestedNextDate, badgeState, activeTopics, currentStreak, startOfDay, scoreFactor,
 } from './revision';
 import type { AppData, Revision, Topic } from './types';
 
@@ -126,5 +126,61 @@ describe('revision math', () => {
         process.env.TZ = originalTZ;
       }
     }
+  });
+});
+
+describe('scoreFactor', () => {
+  it('returns 1 when there is no score', () => {
+    expect(scoreFactor(undefined)).toBe(1);
+  });
+  it('returns 1 for a solid score', () => {
+    expect(scoreFactor({ correct: 9, total: 10 })).toBe(1);
+  });
+  it('halves the interval for a shaky score', () => {
+    expect(scoreFactor({ correct: 6, total: 10 })).toBe(0.5);
+  });
+  it('quarters the interval for a weak score', () => {
+    expect(scoreFactor({ correct: 2, total: 10 })).toBe(0.25);
+  });
+  it('returns 1 for an empty session rather than dividing by zero', () => {
+    expect(scoreFactor({ correct: 0, total: 0 })).toBe(1);
+  });
+  // Exact >= cutoffs: a > vs >= typo here silently halves a good session's
+  // interval, so pin both boundaries.
+  it('treats exactly 0.8 as a solid score', () => {
+    expect(scoreFactor({ correct: 4, total: 5 })).toBe(1);
+  });
+  it('treats exactly 0.5 as shaky, not weak', () => {
+    expect(scoreFactor({ correct: 1, total: 2 })).toBe(0.5);
+  });
+});
+
+describe('suggestedNextDate with scores', () => {
+  const last = 1_700_000_000_000;
+
+  it('is unchanged when the last revision has no score', () => {
+    const h = [{ id: 'r1', timestamp: last }];
+    expect(suggestedNextDate(h)).toBe(last + 1 * DAY_MS);
+  });
+
+  it('pulls the suggestion earlier after a weak score', () => {
+    const h = [{ id: 'r1', timestamp: last, score: { correct: 2, total: 10 } }];
+    // 1-day base interval * 0.25 => floored to the 1-day minimum
+    expect(suggestedNextDate(h)).toBe(last + 1 * DAY_MS);
+  });
+
+  it('halves a longer interval after a shaky score', () => {
+    const h = [
+      { id: 'r1', timestamp: last - 3 * DAY_MS },
+      { id: 'r2', timestamp: last - 2 * DAY_MS },
+      { id: 'r3', timestamp: last, score: { correct: 5, total: 10 } },
+    ];
+    // 3 revisions => nextInterval(3) = 7 days; * 0.5 => 3.5 => 3 days
+    expect(suggestedNextDate(h)).toBe(last + 3 * DAY_MS);
+  });
+
+  it('never suggests less than one day out', () => {
+    const h = [{ id: 'r1', timestamp: last, score: { correct: 0, total: 20 } }];
+    expect(suggestedNextDate(h)).toBe(last + 1 * DAY_MS);
   });
 });

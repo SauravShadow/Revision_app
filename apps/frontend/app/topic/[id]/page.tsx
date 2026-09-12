@@ -93,7 +93,7 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
             <RevisionHistoryPanel topic={topic} />
             <TagPicker topic={topic} />
             <AttachmentsPanel topic={topic} onInsertMarkdown={insertMarkdown} />
-            <FlashcardsPanel topic={topic} />
+            <FlashcardsPanel topic={topic} onQuizFinished={() => setPlanFor('after-revise')} />
           </div>
         </div>
       </div>

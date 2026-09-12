@@ -31,7 +31,7 @@ interface StoreState extends AppData {
   renameTopic: (id: string, title: string) => void;
   deleteTopic: (id: string) => void;
   updateTopicNotes: (id: string, notes: string) => void;
-  markTopicRevised: (id: string) => void;
+  markTopicRevised: (id: string, score?: { correct: number; total: number }) => void;
   planTopic: (id: string, date: number) => void;
   planTopics: (ids: string[], date: number) => void;
   clearPlan: (id: string) => void;
@@ -50,7 +50,7 @@ interface StoreState extends AppData {
   moveTopic: (topicId: string, toChapterId: string) => void;
   addAttachment: (topicId: string, a: Attachment) => void;
   removeAttachment: (topicId: string, attId: string) => void;
-  addFlashcard: (topicId: string, front: string, back: string) => string;
+  addFlashcard: (topicId: string, front: string, back: string, source?: 'manual' | 'generated') => string;
   updateFlashcard: (topicId: string, cardId: string, front: string, back: string) => void;
   deleteFlashcard: (topicId: string, cardId: string) => void;
   toggleBookmark: (topicId: string) => void;
@@ -231,11 +231,11 @@ export function createRevisionStore(repo: RevisionRepository) {
         commitSilent({ topics: { ...s.topics, [id]: { ...s.topics[id], notes, updatedAt: Date.now() } } });
       },
 
-      markTopicRevised: (id) => {
+      markTopicRevised: (id, score) => {
         const s = get();
         const topic = s.topics[id];
         if (!topic) return;
-        commitSilent({ topics: { ...s.topics, [id]: markRevised(topic, Date.now()) } });
+        commitSilent({ topics: { ...s.topics, [id]: markRevised(topic, Date.now(), score) } });
       },
 
       planTopic: (id, date) => {
@@ -386,12 +386,12 @@ export function createRevisionStore(repo: RevisionRepository) {
         if (!t) return;
         commit({ topics: { ...s.topics, [topicId]: { ...t, attachments: (t.attachments ?? []).filter((x) => x.id !== attId), updatedAt: Date.now() } } });
       },
-      addFlashcard: (topicId, front, back) => {
+      addFlashcard: (topicId, front, back, source) => {
         const id = makeId();
         const s = get();
         const t = s.topics[topicId];
         if (!t) return id;
-        const card: Flashcard = { id, front, back, createdAt: Date.now() };
+        const card: Flashcard = { id, front, back, createdAt: Date.now(), ...(source ? { source } : {}) };
         commit({ topics: { ...s.topics, [topicId]: { ...t, flashcards: [...(t.flashcards ?? []), card], updatedAt: Date.now() } } });
         return id;
       },
