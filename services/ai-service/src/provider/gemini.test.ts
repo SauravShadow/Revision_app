@@ -23,7 +23,7 @@ describe('GeminiProvider', () => {
     expect(result.cards).toEqual([{ front: 'Q1', back: 'A1' }, { front: 'Q2', back: 'A2' }]);
     expect(result.inputTokens).toBe(120);
     expect(result.outputTokens).toBe(45);
-    expect(result.model).toBe('gemini-2.5-flash');
+    expect(result.model).toBe('gemini-3.6-flash');
   });
 
   it('maps 429 to a rate_limited ProviderError', async () => {

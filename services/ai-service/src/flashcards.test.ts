@@ -57,7 +57,7 @@ describe('POST /flashcards', () => {
 
   it('returns generated cards and logs usage', async () => {
     stubProvider(async () => ({
-      cards: [{ front: 'Q1', back: 'A1' }], inputTokens: 100, outputTokens: 20, model: 'gemini-2.5-flash',
+      cards: [{ front: 'Q1', back: 'A1' }], inputTokens: 100, outputTokens: 20, model: 'gemini-3.6-flash',
     }));
     const res = await request(app).post('/flashcards')
       .set('Authorization', `Bearer ${token}`).send(body);
@@ -72,7 +72,7 @@ describe('POST /flashcards', () => {
   });
 
   it('429s once the daily quota is spent, without calling the provider', async () => {
-    const gen = vi.fn(async () => ({ cards: [{ front: 'Q', back: 'A' }], model: 'gemini-2.5-flash' }));
+    const gen = vi.fn(async () => ({ cards: [{ front: 'Q', back: 'A' }], model: 'gemini-3.6-flash' }));
     stubProvider(gen);
     const send = () => request(app).post('/flashcards').set('Authorization', `Bearer ${token}`).send(body);
 
@@ -141,7 +141,7 @@ describe('POST /flashcards/kept', () => {
 
   it('204s and records kept cards for the owning user', async () => {
     const usageId = await recordUsage({
-      userId: USER_ID, provider: 'gemini', model: 'gemini-2.5-flash',
+      userId: USER_ID, provider: 'gemini', model: 'gemini-3.6-flash',
       operation: 'flashcards', outcome: 'ok', cardsProposed: 3,
     });
     const res = await request(app).post('/flashcards/kept')
@@ -154,7 +154,7 @@ describe('POST /flashcards/kept', () => {
 
   it("does not let a second user overwrite another user's usage row", async () => {
     const usageId = await recordUsage({
-      userId: USER_ID, provider: 'gemini', model: 'gemini-2.5-flash',
+      userId: USER_ID, provider: 'gemini', model: 'gemini-3.6-flash',
       operation: 'flashcards', outcome: 'ok', cardsProposed: 3,
     });
     await request(app).post('/flashcards/kept')

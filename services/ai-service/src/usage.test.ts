@@ -11,7 +11,7 @@ afterAll(async () => { await getPool().end(); });
 describe('usage log', () => {
   it('inserts a row and returns its id', async () => {
     const id = await recordUsage({
-      userId: USER, provider: 'gemini', model: 'gemini-2.5-flash',
+      userId: USER, provider: 'gemini', model: 'gemini-3.6-flash',
       operation: 'flashcards', outcome: 'ok', cardsProposed: 4,
     });
     expect(id).toBeGreaterThan(0);
@@ -19,7 +19,7 @@ describe('usage log', () => {
 
   it('records kept cards for the owning user', async () => {
     const id = await recordUsage({
-      userId: USER, provider: 'gemini', model: 'gemini-2.5-flash',
+      userId: USER, provider: 'gemini', model: 'gemini-3.6-flash',
       operation: 'flashcards', outcome: 'ok', cardsProposed: 4,
     });
     expect(await recordKept(id, USER, 3)).toBe(true);
@@ -29,7 +29,7 @@ describe('usage log', () => {
 
   it('refuses to record kept cards for another user', async () => {
     const id = await recordUsage({
-      userId: USER, provider: 'gemini', model: 'gemini-2.5-flash',
+      userId: USER, provider: 'gemini', model: 'gemini-3.6-flash',
       operation: 'flashcards', outcome: 'ok', cardsProposed: 4,
     });
     expect(await recordKept(id, OTHER, 99)).toBe(false);
