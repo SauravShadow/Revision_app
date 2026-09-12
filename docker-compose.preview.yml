@@ -1,0 +1,134 @@
+# Isolated preview stack for the AI flashcard feature.
+#
+# Standalone — NOT an override of docker-compose.yml. The live stack's volumes
+# are `external: true` and hold real user data, so this file deliberately
+# declares its own local volumes rather than risking a reference to those.
+#
+# Everything is distinct from the live stack: container names, host ports,
+# volumes, and network. Bring it up with:
+#
+#   docker compose -f docker-compose.preview.yml -p rwpreview up -d --build
+#
+# and tear it down (including its data) with:
+#
+#   docker compose -f docker-compose.preview.yml -p rwpreview down -v
+#
+# Because the Postgres volume starts empty, db/init/*.sql runs automatically —
+# which creates revision_auth, revision_content AND revision_ai without the
+# manual CREATE DATABASE that an existing deployment would need.
+#
+# restart: "no" throughout, so a host reboot does not resurrect the preview.
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: rwpreview_db
+    environment:
+      - POSTGRES_USER=revision
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=revision_app
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - rwpreview-db:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    restart: "no"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U revision -d revision_auth"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    container_name: rwpreview_app
+    ports:
+      - "127.0.0.1:3211:3000"
+    environment:
+      - SESSION_SECRET=${SESSION_SECRET}
+      - AUTH_SERVICE_URL=http://auth-service:4001
+      - FILES_SERVICE_URL=http://files-service:4003
+      - CONTENT_SERVICE_URL=http://content-service:4002
+      - AI_SERVICE_URL=http://ai-service:4004
+    depends_on:
+      db:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      files-service:
+        condition: service_started
+      content-service:
+        condition: service_started
+      ai-service:
+        condition: service_started
+    restart: "no"
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: services/auth-service/Dockerfile
+    container_name: rwpreview_auth_service
+    environment:
+      - DATABASE_URL=postgres://revision:${POSTGRES_PASSWORD}@db:5432/revision_auth
+      - SESSION_SECRET=${SESSION_SECRET}
+      - SERVICE_SECRET=${SERVICE_SECRET}
+      - FRONTEND_URL=http://127.0.0.1:3211
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+      - FROM_EMAIL=${FROM_EMAIL:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  files-service:
+    build:
+      context: .
+      dockerfile: services/files-service/Dockerfile
+    container_name: rwpreview_files_service
+    environment:
+      - SESSION_SECRET=${SESSION_SECRET}
+      - FILES_DIR=/data/files
+    volumes:
+      - rwpreview-files:/data/files
+    restart: "no"
+
+  content-service:
+    build:
+      context: .
+      dockerfile: services/content-service/Dockerfile
+    container_name: rwpreview_content_service
+    environment:
+      - DATABASE_URL=postgres://revision:${POSTGRES_PASSWORD}@db:5432/revision_content
+      - SESSION_SECRET=${SESSION_SECRET}
+      - SERVICE_SECRET=${SERVICE_SECRET}
+      - AUTH_SERVICE_URL=http://auth-service:4001
+    depends_on:
+      db:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    restart: "no"
+
+  ai-service:
+    build:
+      context: .
+      dockerfile: services/ai-service/Dockerfile
+    container_name: rwpreview_ai_service
+    ports:
+      - "127.0.0.1:4104:4004"
+    environment:
+      - DATABASE_URL=postgres://revision:${POSTGRES_PASSWORD}@db:5432/revision_ai
+      - SESSION_SECRET=${SESSION_SECRET}
+      - SERVICE_SECRET=${SERVICE_SECRET}
+      - GEMINI_API_KEY_REVISION=${GEMINI_API_KEY_REVISION:-}
+      - AI_DAILY_QUOTA=${AI_DAILY_QUOTA:-10}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  rwpreview-db:
+  rwpreview-files:
