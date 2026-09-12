@@ -99,6 +99,46 @@ stateDiagram-v2
 | **Multi-user auth** | Per-user accounts scoped to an engineering domain (civil, mechanical, electrical), fully isolated data and file storage per user; account/email/password managed at `/settings` |
 | **Coaching dashboard** | Organisations → groups with invite-code joining; heads/admins see cohort completion, activity, per-student drill-down (revision status only — notes/attachments stay private) at `/coaching` |
 | **Installable app** | Web App Manifest + service-worker-ready build — "Add to Home Screen" on any device, and shipped to the Play Store as a Trusted Web Activity |
+| **AI flashcard generation** | Generate flashcards for a topic from its notes via Gemini, review and keep/discard each before saving; the classic flip-through card review is now a self-graded quiz that feeds the revision ladder — see below |
+
+## AI flashcard generation
+
+A **Generate** button on a topic's flashcards panel (disabled until the topic has notes) sends that topic's title and notes to a Gemini model and proposes a batch of flashcards. Generated cards land in a **review step** — the student keeps or discards each one individually, and only the kept cards are saved; nothing is written automatically. The existing flip-through card review is now a **self-graded quiz** (*Got it* / *Missed it*): finishing a session records one revision carrying the session's score, and a weak score nudges the ladder toward an earlier suggested next revision date.
+
+### Why generated cards are reviewed, never auto-saved
+
+A free-tier model occasionally produces a weak or wrong card, and inside a spaced-repetition system a wrong card gets *rehearsed* — repeated and reinforced on a schedule — which is worse than having no card at all. The review step doubles as a free quality signal: how many of the proposed cards a student actually keeps is logged against every generation (`cards_proposed` vs `cards_kept`, see the runbook below).
+
+### Why the quiz is graded locally
+
+Grading is a self-tap, not a model call: no LLM request, no per-request cost, and it runs instantly with the app offline. It only ever *suggests* a next revision date — `plannedAt` stays user-owned, in keeping with the app's manual-first scheduling described above; the quiz informs the ladder, it never overrides the student.
+
+### Architecture
+
+A fourth service, `ai-service` (port `4004`, own database `revision_ai`), holds the provider API key, a per-user daily quota, and a circuit breaker against a rate-limited provider. `apps/frontend` proxies the browser to it through `/api/ai/flashcards` and `/api/ai/flashcards/kept`; accepted cards are then saved through the existing content-service path, so `ai-service` itself never touches `app_data`.
+
+### Configuration
+
+| Variable | Set on | Purpose |
+|---|---|---|
+| `GEMINI_API_KEY_REVISION` | `.env` → `ai-service` | Gemini API key — **see warning below** |
+| `AI_DAILY_QUOTA` | `.env` → `ai-service` | Per-user daily generation cap (default `10`) |
+| `AI_SERVICE_URL` | `app` | `http://ai-service:4004` — how the frontend reaches ai-service |
+| `DATABASE_URL` (ai-service's own) | `ai-service` | `postgres://revision:***@db:5432/revision_ai` — set independently of the other services' `DATABASE_URL`, same pattern as auth-service/content-service |
+
+`ai-service` also reuses the `SESSION_SECRET` and `SERVICE_SECRET` already configured for the other services.
+
+**Warning — use a separate Google Cloud project.** `GEMINI_API_KEY_REVISION` must come from its own Google Cloud project, never one shared with another Gemini-using app on the same host (for example a key already used by another AI project). Google's free-tier rate limits are per-project: a shared key means a busy neighbouring app throttles students mid-revision, and a busy revision session throttles that other app right back.
+
+**Privacy note.** On Gemini's free tier, submitted content may be used by Google to improve their products, and a student's topic notes are sent to the model in order to generate cards. Tell users this before the feature is turned on for them.
+
+### The model ID is a maintenance trap
+
+ai-service currently targets **`gemini-3.6-flash`**, set in exactly one place: `services/ai-service/src/provider/gemini.ts`. Model IDs get retired — this feature originally targeted `gemini-2.5-flash`, which now returns HTTP 404 ("no longer available to new users") from Google. When generation starts failing with a 404, that file is the first and only place to look.
+
+### Deploying and operating
+
+See [`docs/ai-flashcards-deployment.md`](docs/ai-flashcards-deployment.md) for getting a key, creating the `revision_ai` database on an existing deployment, rehearsing safely in the isolated preview stack, deploying for real, reading the usage/quota data, and troubleshooting provider errors.
 
 ## Getting started
 
