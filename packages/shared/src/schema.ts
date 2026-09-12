@@ -1,11 +1,17 @@
 import { z } from 'zod';
 
-const revisionSchema = z.object({ id: z.string(), timestamp: z.number() });
+const revisionSchema = z.object({
+  id: z.string(), timestamp: z.number(),
+  score: z.object({ correct: z.number(), total: z.number() }).optional(),
+});
 const attachmentSchema = z.object({
   id: z.string(), name: z.string(), kind: z.enum(['image', 'pdf', 'link', 'video']),
   url: z.string(), mime: z.string().optional(), size: z.number().optional(), createdAt: z.number(),
 });
-const flashcardSchema = z.object({ id: z.string(), front: z.string(), back: z.string(), createdAt: z.number() });
+const flashcardSchema = z.object({
+  id: z.string(), front: z.string(), back: z.string(), createdAt: z.number(),
+  source: z.enum(['manual', 'generated']).optional(),
+});
 const topicSchema = z.object({
   id: z.string(), chapterId: z.string(), title: z.string(), notes: z.string(), order: z.number(),
   difficulty: z.enum(['Easy', 'Medium', 'Hard']), priority: z.enum(['Low', 'Medium', 'High']),

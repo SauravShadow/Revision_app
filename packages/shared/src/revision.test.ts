@@ -145,6 +145,14 @@ describe('scoreFactor', () => {
   it('returns 1 for an empty session rather than dividing by zero', () => {
     expect(scoreFactor({ correct: 0, total: 0 })).toBe(1);
   });
+  // Exact >= cutoffs: a > vs >= typo here silently halves a good session's
+  // interval, so pin both boundaries.
+  it('treats exactly 0.8 as a solid score', () => {
+    expect(scoreFactor({ correct: 4, total: 5 })).toBe(1);
+  });
+  it('treats exactly 0.5 as shaky, not weak', () => {
+    expect(scoreFactor({ correct: 1, total: 2 })).toBe(0.5);
+  });
 });
 
 describe('suggestedNextDate with scores', () => {
